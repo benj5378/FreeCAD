@@ -21,7 +21,7 @@
 """Provides utility funtions for TD Tools."""
 
 import FreeCAD as App
-import os
+
 
 def havePage():
     objs = App.ActiveDocument.Objects
@@ -30,10 +30,10 @@ def havePage():
             return True
     return False
 
+
 def haveView():
     objs = App.ActiveDocument.Objects
     for o in objs:
         if o.isDerivedFrom("TechDraw::DrawView"):
             return True
     return False
-

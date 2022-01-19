@@ -21,18 +21,18 @@
 # ***************************************************************************
 
 __title__ = "TechDrawTools package"
-__author__  = "WandererFan"
-__url__     = "https://www.freecadweb.org"
+__author__ = "WandererFan"
+__url__ = "https://www.freecadweb.org"
 __version__ = "00.01"
-__date__    = "2022-01-11" 
- 
-## @package TechDrawTools
+__date__ = "2022-01-11"
+
+#  @package TechDrawTools
 #  \ingroup TechDraw
 #  \brief TechDrawTools Package for TechDraw workbench
 
-#from .TDToolsMovers import *
-#from .TDToolsUtil import *
-#from .CommandCopyView import CommandCopyView
-#from .CommandMoveView import CommandMoveView
-#from .TaskCopyView import TaskCopyView
-#from .TaskMoveView import TaskMoveView
+# from .TDToolsMovers import *
+# from .TDToolsUtil import *
+# from .CommandCopyView import CommandCopyView
+# from .CommandMoveView import CommandMoveView
+# from .TaskCopyView import TaskCopyView
+# from .TaskMoveView import TaskMoveView
