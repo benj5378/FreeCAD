@@ -177,8 +177,9 @@ def processcsg(filename):
 
     # Build the parser
     if printverbose: print('Load Parser')
-    # No debug out otherwise Linux has protection exception
-    parser = yacc.yacc(debug=False)
+    # Disable generation of debug ('parser.out') and table cache ('parsetab.py'),
+    # as it requires a writable location
+    parser = yacc.yacc(debug=False, write_tables=False)
     if printverbose: print('Parser Loaded')
     # Give the lexer some input
     #f=open('test.scad', 'r')
@@ -193,7 +194,8 @@ def processcsg(filename):
     if printverbose:
         print('End Parser')
         print(result)
-    fixVisibility()
+    if gui:
+        fixVisibility()
     hassetcolor.clear()
     alreadyhidden.clear()
     FreeCAD.Console.PrintMessage('End processing CSG file\n')
@@ -227,6 +229,9 @@ def p_group_action1(p):
     'group_action1 : group LPAREN RPAREN OBRACE block_list EBRACE'
     if printverbose: print("Group")
 # Test if need for implicit fuse
+    if p[5] is None:
+        p[0] = []
+        return
     if (len(p[5]) > 1):
         p[0] = [fuse(p[5], "Group")]
     else:
@@ -450,16 +455,16 @@ def p_offset_action(p):
     if len(p[6]) == 0:
         newobj = placeholder('group',[],'{}')
     elif (len(p[6]) == 1 ): #single object
-        subobj = p[6]
+        subobj = p[6][0]
     else:
         subobj = fuse(p[6],"Offset Union")
     if 'r' in p[3]:
         offset = float(p[3]['r'])
     if 'delta' in p[3]:
         offset = float(p[3]['delta'])
-    if subobj[0].Shape.Volume == 0 :
+    if subobj.Shape.Volume == 0 :
        newobj=doc.addObject("Part::Offset2D",'Offset2D')
-       newobj.Source = subobj[0]
+       newobj.Source = subobj
        newobj.Value = offset
        if 'r' in p[3]:
            newobj.Join = 0
@@ -470,7 +475,7 @@ def p_offset_action(p):
        newobj.Shape = subobj[0].Shape.makeOffset(offset)
     newobj.Document.recompute()
     if gui:
-        subobj[0].ViewObject.hide()
+        subobj.ViewObject.hide()
 #        if FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/OpenSCAD").\
 #            GetBool('useViewProviderTree'):
 #            from OpenSCADFeatures import ViewProviderTree
@@ -478,6 +483,12 @@ def p_offset_action(p):
 #        else:
 #            newobj.ViewObject.Proxy = 0
     p[0] = [newobj]
+
+def checkObjShape(obj) :
+    if printverbose: print('Check Object Shape')
+    if obj.Shape.isNull() == True :
+       if printverbose: print('Shape is Null - recompute')
+       obj.recompute()
 
 def p_hull_action(p):
     'hull_action : hull LPAREN RPAREN OBRACE block_list EBRACE'
@@ -609,6 +620,9 @@ def fuse(lst,name):
        myfuse = doc.addObject('Part::Fuse',name)
        myfuse.Base = lst[0]
        myfuse.Tool = lst[1]
+       checkObjShape(myfuse.Base)
+       checkObjShape(myfuse.Tool)
+       myfuse.Shape = myfuse.Base.Shape.fuse(myfuse.Tool.Shape)
        if gui:
            myfuse.Base.ViewObject.hide()
            myfuse.Tool.ViewObject.hide()
@@ -642,6 +656,7 @@ def p_difference_action(p):
            mycut.Tool = fuse(p[5][1:],'union')
         else :
            mycut.Tool = p[5][1]
+           checkObjShape(mycut.Tool)
         if gui:
             mycut.Base.ViewObject.hide()
             mycut.Tool.ViewObject.hide()
@@ -666,6 +681,8 @@ def p_intersection_action(p):
        mycommon = doc.addObject('Part::Common',p[1])
        mycommon.Base = p[5][0]
        mycommon.Tool = p[5][1]
+       checkObjShape(mycommon.Base)
+       checkObjShape(mycommon.Tool)
        if gui:
            mycommon.Base.ViewObject.hide()
            mycommon.Tool.ViewObject.hide()
@@ -673,6 +690,7 @@ def p_intersection_action(p):
         mycommon = p[5][0]
     else : # 1 child
         mycommon = placeholder('group',[],'{}')
+    mycommon.Shape = mycommon.Base.Shape.common(mycommon.Tool.Shape)
     p[0] = [mycommon]
     if printverbose: print("End Intersection")
 
@@ -809,6 +827,7 @@ def p_linear_extrude_with_transform(p):
         obj = fuse(p[6],"Linear Extrude Union")
     else :
         obj = p[6][0]
+    checkObjShape(obj)
     if t != 0.0 or s[0] != 1.0 or s[1] != 1.0:
         newobj = process_linear_extrude_with_transform(obj,h,t,s)
     else:
@@ -924,7 +943,7 @@ def p_multmatrix_action(p):
     transform_matrix = FreeCAD.Matrix()
     if printverbose: print("Multmatrix")
     if printverbose: print(p[3])
-    if gui:
+    if gui and p[6]:
         parentcolor=p[6][0].ViewObject.ShapeColor
         parenttransparency=p[6][0].ViewObject.Transparency
 
@@ -1007,7 +1026,7 @@ def p_multmatrix_action(p):
         p[0] = [newobj]
     else :
         p[0] = [new_part]
-    if gui:
+    if gui and p[6]:
         new_part.ViewObject.ShapeColor=parentcolor
         new_part.ViewObject.Transparency = parenttransparency
     if printverbose: print("Multmatrix applied")
@@ -1182,7 +1201,8 @@ def p_circle_action(p) :
         Draft._Circle(mycircle)
         mycircle.Radius = r
         mycircle.MakeFace = True
-        #mycircle = Draft.makeCircle(r,face=True) # would call doc.recompute
+        mycircle = Draft.makeCircle(r,face=True) # would call doc.recompute
+        FreeCAD.ActiveDocument.recompute()
         #mycircle = doc.addObject('Part::Circle',p[1]) #would not create a face
         #mycircle.Radius = r
     else :

@@ -63,7 +63,7 @@ PyObject *Geometry2dPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  //
     // never create such objects with the constructor
     PyErr_SetString(PyExc_RuntimeError,
         "You cannot create an instance of the abstract class 'Geometry'.");
-    return 0;
+    return nullptr;
 }
 
 // constructor method
@@ -94,7 +94,7 @@ PyObject* Geometry2dPy::mirror(PyObject *args)
     }
 
     PyErr_SetString(PartExceptionOCCError, "either a point (vector) or axis (vector, vector) must be given");
-    return 0;
+    return nullptr;
 }
 
 PyObject* Geometry2dPy::rotate(PyObject *args)
@@ -110,7 +110,7 @@ PyObject* Geometry2dPy::rotate(PyObject *args)
     }
 
     PyErr_SetString(PartExceptionOCCError, "Vector2d and float expected");
-    return 0;
+    return nullptr;
 }
 
 PyObject* Geometry2dPy::scale(PyObject *args)
@@ -126,14 +126,14 @@ PyObject* Geometry2dPy::scale(PyObject *args)
     }
 
     PyErr_SetString(PartExceptionOCCError, "Vector2d and float expected");
-    return 0;
+    return nullptr;
 }
 
 PyObject* Geometry2dPy::transform(PyObject *args)
 {
     PyObject* o;
     if (!PyArg_ParseTuple(args, "O", &o))
-        return 0;
+        return nullptr;
     Py::Sequence list(o);
     double a11 = static_cast<double>(Py::Float(list.getItem(0)));
     double a12 = static_cast<double>(Py::Float(list.getItem(1)));
@@ -143,13 +143,7 @@ PyObject* Geometry2dPy::transform(PyObject *args)
     double a23 = static_cast<double>(Py::Float(list.getItem(5)));
 
     gp_Trsf mat;
-    mat.SetValues(a11, a12, 0, a13,
-                  a21, a22, 0, a23,
-                  0  ,   0, 1,   0
-#if OCC_VERSION_HEX < 0x060800
-                  , 0.00001,0.00001
-#endif
-                ); //precision was removed in OCCT CR0025194
+    mat.SetValues(a11, a12, 0, a13, a21, a22, 0, a23, 0, 0, 1, 0);
     gp_Trsf2d trf(mat);
 
     getGeometry2dPtr()->handle()->Transform(trf);
@@ -168,23 +162,23 @@ PyObject* Geometry2dPy::translate(PyObject *args)
     }
 
     PyErr_SetString(PartExceptionOCCError, "Vector2d expected");
-    return 0;
+    return nullptr;
 }
 
 PyObject* Geometry2dPy::copy(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return NULL;
+        return nullptr;
 
     Part::Geometry2d* geom = this->getGeometry2dPtr();
     PyTypeObject* type = this->GetType();
-    PyObject* cpy = 0;
+    PyObject* cpy = nullptr;
     // let the type object decide
     if (type->tp_new)
-        cpy = type->tp_new(type, this, 0);
+        cpy = type->tp_new(type, this, nullptr);
     if (!cpy) {
         PyErr_SetString(PyExc_TypeError, "failed to create copy of geometry");
-        return 0;
+        return nullptr;
     }
 
     Part::Geometry2dPy* geompy = static_cast<Part::Geometry2dPy*>(cpy);
@@ -200,7 +194,7 @@ PyObject* Geometry2dPy::copy(PyObject *args)
 
 PyObject *Geometry2dPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Geometry2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

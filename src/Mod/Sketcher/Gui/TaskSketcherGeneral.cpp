@@ -23,9 +23,6 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <boost_bind_bind.hpp>
-#endif
 
 #include "ui_TaskSketcherGeneral.h"
 #include "TaskSketcherGeneral.h"
@@ -190,7 +187,7 @@ void SketcherGeneralWidget::changeEvent(QEvent *e)
 // ----------------------------------------------------------------------------
 
 TaskSketcherGeneral::TaskSketcherGeneral(ViewProviderSketch *sketchView)
-    : TaskBox(Gui::BitmapFactory().pixmap("document-new"),tr("Edit controls"),true, 0)
+    : TaskBox(Gui::BitmapFactory().pixmap("document-new"),tr("Edit controls"),true, nullptr)
     , sketchView(sketchView)
 {
     // we need a separate container widget to add all controls to

@@ -24,18 +24,12 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <sstream>
-# include <QRegExp>
-# include <QTextStream>
 # include <Precision.hxx>
 #endif
 
+#include <Mod/PartDesign/App/FeaturePocket.h>
 #include "ui_TaskPadPocketParameters.h"
 #include "TaskPocketParameters.h"
-#include <Gui/Command.h>
-#include <Gui/ViewProvider.h>
-#include <Mod/PartDesign/App/FeaturePocket.h>
-#include <Mod/Sketcher/App/SketchObject.h>
 
 using namespace PartDesignGui;
 using namespace Gui;
@@ -50,9 +44,16 @@ TaskPocketParameters::TaskPocketParameters(ViewProviderPocket *PocketView,QWidge
     ui->checkBoxReversed->setToolTip(tr("Reverses pocket direction"));
 
     // set the history path
+    ui->lengthEdit->setEntryName(QByteArray("Length"));
     ui->lengthEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/PocketLength"));
+    ui->lengthEdit2->setEntryName(QByteArray("Length2"));
     ui->lengthEdit2->setParamGrpPath(QByteArray("User parameter:BaseApp/History/PocketLength2"));
+    ui->offsetEdit->setEntryName(QByteArray("Offset"));
     ui->offsetEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/PocketOffset"));
+    ui->taperEdit->setEntryName(QByteArray("TaperAngle"));
+    ui->taperEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/PocketTaperAngle"));
+    ui->taperEdit2->setEntryName(QByteArray("TaperAngle2"));
+    ui->taperEdit2->setParamGrpPath(QByteArray("User parameter:BaseApp/History/PocketTaperAngle2"));
 
     setupDialog();
 

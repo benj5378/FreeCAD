@@ -23,18 +23,14 @@
 #ifndef TECHDRAW_COSMETIC_H
 #define TECHDRAW_COSMETIC_H
 
-#include <boost/uuid/uuid_io.hpp>
-
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 
 #include <App/FeaturePython.h>
-
 #include <Base/Persistence.h>
 #include <Base/Vector3D.h>
-#include <App/Material.h>
 
 #include "Geometry.h"
+
 
 class TopoDS_Edge;
 
@@ -214,6 +210,14 @@ public:
                                          int mode = 0,
                                          bool flip = false);
     TechDraw::BaseGeomPtr scaledGeometry(TechDraw::DrawViewPart* partFeat);
+
+    static std::pair<Base::Vector3d, Base::Vector3d> calcEndPointsNoRef(
+                                                          Base::Vector3d start,
+                                                          Base::Vector3d end,
+                                                          double scale,
+                                                          double ext,
+                                                          double hShift, double vShift,
+                                                          double rotate);
     static std::pair<Base::Vector3d, Base::Vector3d> calcEndPoints(
                                           TechDraw::DrawViewPart* partFeat,
                                           std::vector<std::string> faceNames,

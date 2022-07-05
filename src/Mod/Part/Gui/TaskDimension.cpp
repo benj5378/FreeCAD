@@ -26,9 +26,6 @@
 # include <QButtonGroup>
 # include <QPushButton>
 # include <sstream>
-# include <Python.h>
-# include <boost_bind_bind.hpp>
-
 # include <TopoDS_Shape.hxx>
 # include <TopoDS_Vertex.hxx>
 # include <TopoDS_Edge.hxx>
@@ -64,11 +61,14 @@
 # include <Inventor/engines/SoComposeRotationFromTo.h>
 # include <Inventor/engines/SoComposeRotation.h>
 # include <Inventor/nodes/SoMaterial.h>
+# include <Inventor/nodes/SoPickStyle.h>
 #endif
 
 #include <Base/Console.h>
+#include <Base/Interpreter.h>
 #include <Base/UnitsApi.h>
 #include "../App/PartFeature.h"
+#include <App/Document.h>
 #include <Gui/Application.h>
 #include <Gui/Selection.h>
 #include <Gui/Document.h>
@@ -120,7 +120,7 @@ bool PartGui::getShapeFromStrings(TopoDS_Shape &shapeOut, const std::string &doc
 
 bool PartGui::evaluateLinearPreSelection(TopoDS_Shape &shape1, TopoDS_Shape &shape2)
 {
-  std::vector<Gui::SelectionSingleton::SelObj> selections = Gui::Selection().getSelection(0,false);
+  std::vector<Gui::SelectionSingleton::SelObj> selections = Gui::Selection().getSelection(nullptr, Gui::ResolveMode::NoResolve);
   if (selections.size() != 2)
     return false;
   std::vector<Gui::SelectionSingleton::SelObj>::iterator it;
@@ -228,13 +228,13 @@ Gui::View3DInventorViewer * PartGui::getViewer()
 {
   Gui::Document *doc = Gui::Application::Instance->activeDocument();
   if (!doc)
-    return 0;
+    return nullptr;
   Gui::View3DInventor *view = dynamic_cast<Gui::View3DInventor*>(doc->getActiveView());
   if (!view)
-    return 0;
+    return nullptr;
   Gui::View3DInventorViewer *viewer = view->getViewer();
   if (!viewer)
-    return 0;
+    return nullptr;
   return viewer;
 }
 
@@ -407,6 +407,11 @@ SbBool PartGui::DimensionLinear::affectsState() const
 
 void PartGui::DimensionLinear::setupDimension()
 {
+  //make unpickable
+  SoPickStyle* ps = static_cast<SoPickStyle*>(getPart("pickStyle", true));
+  if (ps)
+      ps->style = SoPickStyle::UNPICKABLE;
+
   //transformation
   SoTransform *trans = static_cast<SoTransform *>(getPart("transformation", true));
   trans->translation.connectFrom(&point1);
@@ -514,7 +519,7 @@ void PartGui::DimensionLinear::setupDimension()
 }
 
 PartGui::TaskMeasureLinear::TaskMeasureLinear()
-    : Gui::SelectionObserver(true,false)
+    : Gui::SelectionObserver(true, Gui::ResolveMode::NoResolve)
     , selections1(), selections2(), buttonSelectedIndex(0)
 {
   setUpGui();
@@ -628,14 +633,14 @@ void PartGui::TaskMeasureLinear::setUpGui()
   QPixmap mainIcon = Gui::BitmapFactory().pixmap("Part_Measure_Linear");
 
   Gui::TaskView::TaskBox* selectionTaskBox = new Gui::TaskView::TaskBox
-    (mainIcon, QObject::tr("Selections"), false, 0);
+    (mainIcon, QObject::tr("Selections"), false, nullptr);
   QVBoxLayout *selectionLayout = new QVBoxLayout();
   stepped = new SteppedSelection(2, selectionTaskBox);
   selectionLayout->addWidget(stepped);
   selectionTaskBox->groupLayout()->addLayout(selectionLayout);
 
   Gui::TaskView::TaskBox* controlTaskBox = new Gui::TaskView::TaskBox
-    (mainIcon, QObject::tr("Control"), false, 0);
+    (mainIcon, QObject::tr("Control"), false, nullptr);
   QVBoxLayout *controlLayout = new QVBoxLayout();
 
   DimensionControl *control = new DimensionControl(controlTaskBox);
@@ -831,7 +836,7 @@ void PartGui::goDimensionAngularRoot()
 
 bool PartGui::evaluateAngularPreSelection(VectorAdapter &vector1Out, VectorAdapter &vector2Out)
 {
-  std::vector<Gui::SelectionSingleton::SelObj> selections = Gui::Selection().getSelection(0,false);
+  std::vector<Gui::SelectionSingleton::SelObj> selections = Gui::Selection().getSelection(nullptr, Gui::ResolveMode::NoResolve);
   if (selections.size() > 4 || selections.size() < 2)
     return false;
   std::vector<Gui::SelectionSingleton::SelObj>::iterator it;
@@ -1379,8 +1384,8 @@ void PartGui::ArcEngine::defaultValues()
 
 PartGui::SteppedSelection::SteppedSelection(const uint& buttonCountIn, QWidget* parent)
   : QWidget(parent)
-  , stepActive(0)
-  , stepDone(0)
+  , stepActive(nullptr)
+  , stepDone(nullptr)
 {
   if (buttonCountIn < 1)
     return;
@@ -1394,10 +1399,10 @@ PartGui::SteppedSelection::SteppedSelection(const uint& buttonCountIn, QWidget* 
   for (uint index = 0; index < buttonCountIn; ++index)
   {
     ButtonIconPairType tempPair;
-
+    QString text = QObject::tr("Selection ");
     std::ostringstream stream;
-    stream << "Selection " << ((index < 10) ? "0" : "") <<  index + 1;
-    QString buttonText = QObject::tr(stream.str().c_str());
+    stream << text.toStdString() << ((index < 10) ? "0" : "") <<  index + 1;
+    QString buttonText = QString::fromStdString(stream.str());
     QPushButton *button = new QPushButton(buttonText, this);
     button->setCheckable(true);
     button->setEnabled(false);
@@ -1427,12 +1432,12 @@ PartGui::SteppedSelection::~SteppedSelection()
   if(stepActive)
   {
     delete stepActive;
-    stepActive = 0;
+    stepActive = nullptr;
   }
   if (stepDone)
   {
     delete stepDone;
-    stepDone = 0;
+    stepDone = nullptr;
   }
 }
 
@@ -1449,7 +1454,7 @@ void PartGui::SteppedSelection::buildPixmaps()
 void PartGui::SteppedSelection::selectionSlot(bool checked)
 {
   QPushButton *sender = qobject_cast<QPushButton*>(QObject::sender());
-  assert(sender != 0);
+  assert(sender != nullptr);
   std::vector<ButtonIconPairType>::iterator it;
   for (it = buttons.begin(); it != buttons.end(); ++it)
     if (it->first == sender)
@@ -1513,7 +1518,7 @@ void PartGui::DimensionControl::clearAllSlot(bool)
 }
 
 PartGui::TaskMeasureAngular::TaskMeasureAngular()
-    : Gui::SelectionObserver(true,false)
+    : Gui::SelectionObserver(true, Gui::ResolveMode::NoResolve)
     , selections1(), selections2(), buttonSelectedIndex(0)
 {
   setUpGui();
@@ -1766,14 +1771,14 @@ void PartGui::TaskMeasureAngular::setUpGui()
   QPixmap mainIcon = Gui::BitmapFactory().pixmap("Part_Measure_Angular");
 
   Gui::TaskView::TaskBox* selectionTaskBox = new Gui::TaskView::TaskBox
-    (mainIcon, QObject::tr("Selections"), false, 0);
+    (mainIcon, QObject::tr("Selections"), false, nullptr);
   QVBoxLayout *selectionLayout = new QVBoxLayout();
   stepped = new SteppedSelection(2, selectionTaskBox);
   selectionLayout->addWidget(stepped);
   selectionTaskBox->groupLayout()->addLayout(selectionLayout);
 
   Gui::TaskView::TaskBox* controlTaskBox = new Gui::TaskView::TaskBox
-    (mainIcon, QObject::tr("Control"), false, 0);
+    (mainIcon, QObject::tr("Control"), false, nullptr);
   QVBoxLayout *controlLayout = new QVBoxLayout();
 
   DimensionControl *control = new DimensionControl(controlTaskBox);

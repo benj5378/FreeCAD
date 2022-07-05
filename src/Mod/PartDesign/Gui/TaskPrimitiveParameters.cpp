@@ -24,31 +24,24 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <Precision.hxx>
 # include <QMessageBox>
-# include <QRegExp>
-# include <QTextStream>
-# include <sstream>
 #endif
 
-#include "TaskPrimitiveParameters.h"
-#include "ui_TaskPrimitiveParameters.h"
-#include "ViewProviderDatumCS.h"
-
+#include <App/Document.h>
 #include <App/Origin.h>
 #include <Base/Console.h>
-#include <Base/Interpreter.h>
 #include <Base/UnitsApi.h>
 #include <Gui/Application.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/ViewProviderOrigin.h>
-#include <Mod/Part/App/DatumFeature.h>
 #include <Mod/PartDesign/App/Body.h>
-#include <Mod/PartDesign/App/DatumCS.h>
 #include <Mod/PartDesign/App/FeaturePrimitive.h>
+
+#include "TaskPrimitiveParameters.h"
+#include "ui_TaskPrimitiveParameters.h"
+
 
 using namespace PartDesignGui;
 
@@ -341,7 +334,7 @@ TaskBoxPrimitives::~TaskBoxPrimitives()
 {
     //hide the parts coordinate system axis for selection
     try {
-        PartDesign::Body * body = vp ? PartDesign::Body::findBodyOf(vp->getObject()) : 0;
+        PartDesign::Body * body = vp ? PartDesign::Body::findBodyOf(vp->getObject()) : nullptr;
         if (body) {
             App::Origin *origin = body->getOrigin();
             Gui::ViewProviderOrigin* vpOrigin;

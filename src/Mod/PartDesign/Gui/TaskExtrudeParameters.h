@@ -20,16 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskExtrudeParameters_H
 #define GUI_TASKVIEW_TaskExtrudeParameters_H
 
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/TaskView/TaskDialog.h>
-
 #include "TaskSketchBasedParameters.h"
 #include "ViewProviderSketchBased.h"
+
 
 class Ui_TaskPadPocketParameters;
 
@@ -84,6 +80,8 @@ protected Q_SLOTS:
     void onLengthChanged(double);
     void onLength2Changed(double);
     void onOffsetChanged(double);
+    void onTaperChanged(double);
+    void onTaper2Changed(double);
     void onDirectionCBChanged(int);
     void onAlongSketchNormalChanged(bool);
     void onDirectionToggled(bool);
@@ -104,13 +102,13 @@ protected:
     App::PropertyLinkSub* propReferenceAxis;
     void getReferenceAxis(App::DocumentObject*& obj, std::vector<std::string>& sub) const;
 
+    double getOffset(void) const;
     bool   getAlongSketchNormal(void) const;
     bool   getCustom(void) const;
     std::string getReferenceAxis(void) const;
     double getXDirection(void) const;
     double getYDirection(void) const;
     double getZDirection(void) const;
-    double getOffset(void) const;
     bool   getReversed(void) const;
     bool   getMidplane(void) const;
     int    getMode(void) const;

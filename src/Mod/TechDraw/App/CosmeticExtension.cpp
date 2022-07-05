@@ -47,10 +47,10 @@ CosmeticExtension::CosmeticExtension()
 {
     static const char *cgroup = "Cosmetics";
 
-    EXTENSION_ADD_PROPERTY_TYPE(CosmeticVertexes, (0), cgroup, App::Prop_Output, "CosmeticVertex Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(CosmeticEdges, (0), cgroup, App::Prop_Output, "CosmeticEdge Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(CenterLines ,(0),cgroup,App::Prop_Output,"Geometry format Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(GeomFormats ,(0),cgroup,App::Prop_Output,"Geometry format Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CosmeticVertexes, (nullptr), cgroup, App::Prop_Output, "CosmeticVertex Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CosmeticEdges, (nullptr), cgroup, App::Prop_Output, "CosmeticEdge Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CenterLines ,(nullptr),cgroup,App::Prop_Output,"Geometry format Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(GeomFormats ,(nullptr),cgroup,App::Prop_Output,"Geometry format Save/Restore");
 
     initExtensionType(CosmeticExtension::getExtensionClassTypeId());
 }
@@ -281,7 +281,8 @@ std::string CosmeticExtension::addCenterLine(Base::Vector3d start,
                                                Base::Vector3d end)
 {
 //    Base::Console().Message("CEx::addCenterLine(%s)\n",
- //                           DrawUtil::formatVector(pos).c_str());
+//                            DrawUtil::formatVector(start).c_str(),
+//                            DrawUtil::formatVector(end).c_str());
     std::vector<CenterLine*> cLines = CenterLines.getValues();
     TechDraw::CenterLine* cl = new TechDraw::CenterLine(start, end);
     cLines.push_back(cl);

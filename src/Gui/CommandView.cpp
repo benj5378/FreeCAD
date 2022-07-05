@@ -25,12 +25,13 @@
 
 #ifndef _PreComp_
 # include <sstream>
-# include <Inventor/actions/SoGetBoundingBoxAction.h>
 # include <Inventor/events/SoMouseButtonEvent.h>
 # include <Inventor/nodes/SoOrthographicCamera.h>
 # include <Inventor/nodes/SoPerspectiveCamera.h>
 # include <QApplication>
 # include <QDialog>
+# include <QDomDocument>
+# include <QDomElement>
 # include <QFile>
 # include <QFileInfo>
 # include <QFont>
@@ -39,8 +40,16 @@
 # include <QPainter>
 # include <QPointer>
 # include <QTextStream>
-# include <boost_bind_bind.hpp>
 #endif
+
+#include <App/ComplexGeoDataPy.h>
+#include <App/Document.h>
+#include <App/DocumentObject.h>
+#include <App/GeoFeature.h>
+#include <App/GeoFeatureGroupExtension.h>
+#include <App/MeasureDistance.h>
+#include <Base/Console.h>
+#include <Base/Parameter.h>
 
 #include "Command.h"
 #include "Action.h"
@@ -48,50 +57,30 @@
 #include "BitmapFactory.h"
 #include "Control.h"
 #include "Clipping.h"
-#include "FileDialog.h"
-#include "MainWindow.h"
-#include "Tree.h"
-#include "View.h"
-#include "Document.h"
-#include "Macro.h"
+#include "DemoMode.h"
 #include "DlgDisplayPropertiesImp.h"
 #include "DlgSettingsImageImp.h"
+#include "Document.h"
+#include "FileDialog.h"
+#include "Macro.h"
+#include "MainWindow.h"
+#include "NavigationStyle.h"
+#include "SceneInspector.h"
 #include "Selection.h"
-#include "SoFCOffscreenRenderer.h"
-#include "SoFCBoundingBox.h"
-#include "SoFCUnifiedSelection.h"
+#include "SelectionObject.h"
 #include "SoAxisCrossKit.h"
-#include "SoQTQuarterAdaptor.h"
+#include "SoFCOffscreenRenderer.h"
+#include "SoFCUnifiedSelection.h"
+#include "TextureMapping.h"
+#include "Tools.h"
+#include "Tree.h"
+#include "Utilities.h"
 #include "View3DInventor.h"
 #include "View3DInventorViewer.h"
 #include "ViewParams.h"
-#include "WaitCursor.h"
 #include "ViewProviderMeasureDistance.h"
 #include "ViewProviderGeometryObject.h"
-#include "SceneInspector.h"
-#include "DemoMode.h"
-#include "TextureMapping.h"
-#include "Tools.h"
-#include "Utilities.h"
-#include "NavigationStyle.h"
-
-#include <Base/Console.h>
-#include <Base/Tools2D.h>
-#include <Base/Exception.h>
-#include <Base/FileInfo.h>
-#include <Base/Reader.h>
-#include <Base/Parameter.h>
-#include <App/Application.h>
-#include <App/Document.h>
-#include <App/GeoFeature.h>
-#include <App/DocumentObjectGroup.h>
-#include <App/MeasureDistance.h>
-#include <App/DocumentObject.h>
-#include <App/ComplexGeoDataPy.h>
-#include <App/GeoFeatureGroupExtension.h>
-
-#include <QDomDocument>
-#include <QDomElement>
+#include "WaitCursor.h"
 
 using namespace Gui;
 using Gui::Dialog::DlgSettingsImageImp;
@@ -294,10 +283,10 @@ StdCmdFreezeViews::StdCmdFreezeViews()
   , maxViews(50)
   , savedViews(0)
   , offset(0)
-  , saveView(0)
-  , freezeView(0)
-  , clearView(0)
-  , separator(0)
+  , saveView(nullptr)
+  , freezeView(nullptr)
+  , clearView(nullptr)
+  , separator(nullptr)
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Freeze display");
@@ -348,12 +337,12 @@ void StdCmdFreezeViews::activated(int iMsg)
     }
     else if (iMsg == 3) {
         // Create a new view
-        const char* ppReturn=0;
+        const char* ppReturn=nullptr;
         getGuiApplication()->sendMsgToActiveView("GetCamera",&ppReturn);
 
         QList<QAction*> acts = pcAction->actions();
         int index = 1;
-        for (QList<QAction*>::ConstIterator it = acts.begin()+offset; it != acts.end(); ++it, index++) {
+        for (QList<QAction*>::Iterator it = acts.begin()+offset; it != acts.end(); ++it, index++) {
             if (!(*it)->isVisible()) {
                 savedViews++;
                 QString viewnr = QString(QObject::tr("Restore view &%1")).arg(index);
@@ -370,7 +359,7 @@ void StdCmdFreezeViews::activated(int iMsg)
     else if (iMsg == 4) {
         savedViews = 0;
         QList<QAction*> acts = pcAction->actions();
-        for (QList<QAction*>::ConstIterator it = acts.begin()+offset; it != acts.end(); ++it)
+        for (QList<QAction*>::Iterator it = acts.begin()+offset; it != acts.end(); ++it)
             (*it)->setVisible(false);
     }
     else if (iMsg >= offset) {
@@ -399,7 +388,7 @@ void StdCmdFreezeViews::onSaveViews()
             << "<FrozenViews SchemaVersion=\"1\">\n";
         str << "  <Views Count=\"" << savedViews <<"\">\n";
 
-        for (QList<QAction*>::ConstIterator it = acts.begin()+offset; it != acts.end(); ++it) {
+        for (QList<QAction*>::Iterator it = acts.begin()+offset; it != acts.end(); ++it) {
             if ( !(*it)->isVisible() )
                 break;
             QString data = (*it)->toolTip();
@@ -468,7 +457,8 @@ void StdCmdFreezeViews::onRestoreViews()
 
     bool ok;
     int scheme = root.attribute(QString::fromLatin1("SchemaVersion")).toInt(&ok);
-    if (!ok) return;
+    if (!ok)
+        return;
     // SchemeVersion "1"
     if (scheme == 1) {
         // read the views, ignore the attribute 'Count'
@@ -539,7 +529,7 @@ void StdCmdFreezeViews::languageChange()
     acts[3]->setText(QObject::tr("Freeze view"));
     acts[4]->setText(QObject::tr("Clear views"));
     int index=1;
-    for (QList<QAction*>::ConstIterator it = acts.begin()+5; it != acts.end(); ++it, index++) {
+    for (QList<QAction*>::Iterator it = acts.begin()+5; it != acts.end(); ++it, index++) {
         if ((*it)->isVisible()) {
             QString viewnr = QString(QObject::tr("Restore view &%1")).arg(index);
             (*it)->setText(viewnr);
@@ -1703,7 +1693,8 @@ void StdViewDockUndockFullscreen::activated(int iMsg)
         getMainWindow()->showNormal();
 
     MDIView* view = getMainWindow()->activeWindow();
-    if (!view) return; // no active view
+    if (!view) // no active view
+        return;
 
     // nothing to do when the view is docked and 'Docked' is pressed
     if (iMsg == 0 && view->currentViewMode() == MDIView::Child)
@@ -1718,12 +1709,12 @@ void StdViewDockUndockFullscreen::activated(int iMsg)
         if (!clone)
             return;
 
-        const char* ppReturn = 0;
+        const char* ppReturn = nullptr;
         if (view->onMsg("GetCamera", &ppReturn)) {
             std::string sMsg = "SetCamera ";
             sMsg += ppReturn;
 
-            const char** pReturnIgnore=0;
+            const char** pReturnIgnore=nullptr;
             clone->onMsg(sMsg.c_str(), pReturnIgnore);
         }
 
@@ -1832,7 +1823,7 @@ void StdViewScreenShot::activated(int iMsg)
         Base::Reference<ParameterGrp> hExt = App::GetApplication().GetUserParameter().GetGroup("BaseApp")
                                    ->GetGroup("Preferences")->GetGroup("General");
         QString ext = QString::fromLatin1(hExt->GetASCII("OffscreenImageFormat").c_str());
-        int backtype = hExt->GetInt("OffscreenImageBackground",0);
+        int backtype = hExt->GetInt("OffscreenImageBackground", 0);
 
         Base::Reference<ParameterGrp> methodGrp = App::GetApplication().GetParameterGroupByPath
             ("User parameter:BaseApp/Preferences/View");
@@ -1897,14 +1888,14 @@ void StdViewScreenShot::activated(int iMsg)
 
             // which background chosen
             const char* background;
-            switch(opt->backgroundType()){
-                case 0:  background="Current"; break;
-                case 1:  background="White"; break;
-                case 2:  background="Black"; break;
-                case 3:  background="Transparent"; break;
-                default: background="Current"; break;
+            switch (opt->backgroundType()) {
+            case 0:  background = "Current"; break;
+            case 1:  background = "White"; break;
+            case 2:  background = "Black"; break;
+            case 3:  background = "Transparent"; break;
+            default: background = "Current"; break;
             }
-            hExt->SetInt("OffscreenImageBackground",opt->backgroundType());
+            hExt->SetInt("OffscreenImageBackground", opt->backgroundType());
 
             QString comment = opt->comment();
             if (!comment.isEmpty()) {
@@ -1912,17 +1903,17 @@ void StdViewScreenShot::activated(int iMsg)
                 // otherwise Python would interpret it as an invalid command.
                 // Python does the decoding for us.
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
-                QStringList lines = comment.split(QLatin1String("\n"), Qt::KeepEmptyParts );
+                QStringList lines = comment.split(QLatin1String("\n"), Qt::KeepEmptyParts);
 #else
-                QStringList lines = comment.split(QLatin1String("\n"), QString::KeepEmptyParts );
+                QStringList lines = comment.split(QLatin1String("\n"), QString::KeepEmptyParts);
 #endif
                 comment = lines.join(QLatin1String("\\n"));
-                doCommand(Gui,"Gui.activeDocument().activeView().saveImage('%s',%d,%d,'%s','%s')",
-                            fn.toUtf8().constData(),w,h,background,comment.toUtf8().constData());
+                doCommand(Gui, "Gui.activeDocument().activeView().saveImage('%s',%d,%d,'%s','%s')",
+                          fn.toUtf8().constData(), w, h, background, comment.toUtf8().constData());
             }
             else {
-                doCommand(Gui,"Gui.activeDocument().activeView().saveImage('%s',%d,%d,'%s')",
-                            fn.toUtf8().constData(),w,h,background);
+                doCommand(Gui, "Gui.activeDocument().activeView().saveImage('%s',%d,%d,'%s')",
+                          fn.toUtf8().constData(), w, h, background);
             }
 
             // When adding a watermark check if the image could be created
@@ -1932,7 +1923,7 @@ void StdViewScreenShot::activated(int iMsg)
                 if (fi.exists() && pixmap.load(fn)) {
                     QString name = qApp->applicationName();
                     std::map<std::string, std::string>& config = App::Application::Config();
-                    QString url  = QString::fromLatin1(config["MaintainerUrl"].c_str());
+                    QString url = QString::fromLatin1(config["MaintainerUrl"].c_str());
                     url = QUrl(url).host();
 
                     QPixmap appicon = Gui::BitmapFactory().pixmap(config["AppIcon"].c_str());
@@ -1940,7 +1931,7 @@ void StdViewScreenShot::activated(int iMsg)
                     QPainter painter;
                     painter.begin(&pixmap);
 
-                    painter.drawPixmap(8, h-15-appicon.height(), appicon);
+                    painter.drawPixmap(8, h - 15 - appicon.height(), appicon);
 
                     QFont font = painter.font();
                     font.setPointSize(20);
@@ -1950,12 +1941,13 @@ void StdViewScreenShot::activated(int iMsg)
                     int h = pixmap.height();
 
                     painter.setFont(font);
-                    painter.drawText(8+appicon.width(), h-24, name);
+                    painter.drawText(8 + appicon.width(), h - 24, name);
 
                     font.setPointSize(12);
-                    int u = QtTools::horizontalAdvance(fm, url);
+                    QFontMetrics fm2(font);
+                    int u = QtTools::horizontalAdvance(fm2, url);
                     painter.setFont(font);
-                    painter.drawText(8+appicon.width()+n-u, h-9, url);
+                    painter.drawText(8 + appicon.width() + n - u, h - 6, url);
 
                     painter.end();
                     pixmap.save(fn);
@@ -1997,7 +1989,7 @@ void StdCmdViewCreate::activated(int iMsg)
 
 bool StdCmdViewCreate::isActive(void)
 {
-    return (getActiveGuiDocument()!=NULL);
+    return (getActiveGuiDocument()!=nullptr);
 }
 
 //===========================================================================
@@ -2159,7 +2151,7 @@ void StdCmdAxisCross::activated(int iMsg)
     Q_UNUSED(iMsg);
     Gui::View3DInventor* view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (view) {
-        if (view->getViewer()->hasAxisCross() == false)
+        if (!view->getViewer()->hasAxisCross())
             doCommand(Command::Gui,"Gui.ActiveDocument.ActiveView.setAxisCross(True)");
         else
             doCommand(Command::Gui,"Gui.ActiveDocument.ActiveView.setAxisCross(False)");
@@ -2177,7 +2169,8 @@ bool StdCmdAxisCross::isActive(void)
         if (_pcAction->isChecked())
             _pcAction->setChecked(false);
     }
-    if (view ) return true;
+    if (view)
+        return true;
     return false;
 
 }
@@ -2289,7 +2282,7 @@ StdCmdViewIvStereoOff::StdCmdViewIvStereoOff()
 void StdCmdViewIvStereoOff::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"None\")");
+    doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"Mono\")");
 }
 
 bool StdCmdViewIvStereoOff::isActive(void)
@@ -2434,7 +2427,7 @@ void StdCmdViewIvIssueCamPos::activated(int iMsg)
     std::string Temp,Temp2;
     std::string::size_type pos;
 
-    const char* ppReturn=0;
+    const char* ppReturn=nullptr;
     getGuiApplication()->sendMsgToActiveView("GetCamera",&ppReturn);
 
     // remove the #inventor line...
@@ -2526,11 +2519,13 @@ bool StdViewZoomOut::isActive(void)
 {
     return (qobject_cast<View3DInventor*>(getMainWindow()->activeWindow()));
 }
-class SelectionCallbackHandler {    
+
+namespace {
+class SelectionCallbackHandler {
 
 private:
     static std::unique_ptr<SelectionCallbackHandler> currentSelectionHandler;
-    QCursor* prevSelectionCursor;
+    QCursor prevSelectionCursor;
     typedef void (*FnCb)(void * userdata, SoEventCallback * node);
     FnCb fnCb;
     void* userData;
@@ -2541,7 +2536,8 @@ public:
     // Takes the viewer, a selection mode, a cursor, a function pointer to be called on success and a void pointer for user data to be passed to the given function.
     // The selection handler class stores all necessary previous states, registers a event callback and starts the selection in the given mode.    
     // If there is still a selection handler active, this call will generate a message and returns.
-    static void Create(View3DInventorViewer* viewer, View3DInventorViewer::SelectionMode selectionMode, const QCursor& cursor, FnCb doFunction= NULL, void* ud=NULL)
+    static void Create(View3DInventorViewer* viewer, View3DInventorViewer::SelectionMode selectionMode,
+                       const QCursor& cursor, FnCb doFunction= nullptr, void* ud=nullptr)
     {
         if (currentSelectionHandler)
         {
@@ -2554,7 +2550,7 @@ public:
         {
             currentSelectionHandler->userData = ud;
             currentSelectionHandler->fnCb = doFunction;
-            currentSelectionHandler->prevSelectionCursor = new QCursor(viewer->cursor());
+            currentSelectionHandler->prevSelectionCursor = viewer->cursor();
             viewer->setEditingCursor(cursor);
             viewer->addEventCallback(SoEvent::getClassTypeId(),
                 SelectionCallbackHandler::selectionCallback, currentSelectionHandler.get());
@@ -2562,16 +2558,18 @@ public:
             viewer->setSelectionEnabled(false);
             viewer->startSelection(selectionMode);
         }
-    };
+    }
 
-    void* getUserData() { return userData; };
+    void* getUserData() const {
+        return userData;
+    }
 
     // Implements the event handler. In the normal case the provided function is called. 
     // Also supports aborting the selection mode by pressing (releasing) the Escape key. 
     static void selectionCallback(void * ud, SoEventCallback * n)
     {
-        SelectionCallbackHandler* selectionHandler = reinterpret_cast<SelectionCallbackHandler*>(ud);
-        Gui::View3DInventorViewer* view = reinterpret_cast<Gui::View3DInventorViewer*>(n->getUserData());
+        SelectionCallbackHandler* selectionHandler = static_cast<SelectionCallbackHandler*>(ud);
+        Gui::View3DInventorViewer* view = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
         const SoEvent* ev = n->getEvent();
         if (ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
 
@@ -2581,11 +2579,11 @@ public:
             const SoKeyboardEvent * ke = static_cast<const SoKeyboardEvent*>(ev);
             const SbBool press = ke->getState() == SoButtonEvent::DOWN ? true : false;
             if (ke->getKey() == SoKeyboardEvent::ESCAPE) {
-                              
-                if (!press) {                    
+
+                if (!press) {
                     view->abortSelection();
                     restoreState(selectionHandler, view);
-                }                
+                }
             }
         }
         else if (ev->isOfType(SoMouseButtonEvent::getClassTypeId())) {
@@ -2596,7 +2594,8 @@ public:
 
             if (mbe->getButton() == SoMouseButtonEvent::BUTTON1 && mbe->getState() == SoButtonEvent::UP)
             {
-                if (selectionHandler && selectionHandler->fnCb) selectionHandler->fnCb(selectionHandler->getUserData(), n);
+                if (selectionHandler && selectionHandler->fnCb)
+                    selectionHandler->fnCb(selectionHandler->getUserData(), n);
                 restoreState(selectionHandler, view);
             }
             // No other mouse events available from Coin3D to implement right mouse up abort
@@ -2605,14 +2604,18 @@ public:
 
     static void restoreState(SelectionCallbackHandler * selectionHandler, View3DInventorViewer* view)
     {
-        if(selectionHandler) selectionHandler->fnCb = NULL;
-        view->setEditingCursor(*selectionHandler->prevSelectionCursor);
-        view->removeEventCallback(SoEvent::getClassTypeId(), SelectionCallbackHandler::selectionCallback, selectionHandler);
-        view->setSelectionEnabled(selectionHandler->prevSelectionEn);
+        if (selectionHandler)
+        {
+            selectionHandler->fnCb = nullptr;
+            view->setEditingCursor(selectionHandler->prevSelectionCursor);
+            view->removeEventCallback(SoEvent::getClassTypeId(), SelectionCallbackHandler::selectionCallback, selectionHandler);
+            view->setSelectionEnabled(selectionHandler->prevSelectionEn);
+        }
         Application::Instance->commandManager().testActive();
-        currentSelectionHandler = NULL;
+        currentSelectionHandler = nullptr;
     }
 };
+}
 
 std::unique_ptr<SelectionCallbackHandler> SelectionCallbackHandler::currentSelectionHandler = std::unique_ptr<SelectionCallbackHandler>();
 //===========================================================================
@@ -2757,7 +2760,7 @@ static std::vector<std::string> getBoxSelection(
     // DO NOT check this view object Visibility, let the caller do this. Because
     // we may be called by upper object hierarchy that manages our visibility.
 
-    auto bbox3 = vp->getBoundingBox(0,transform);
+    auto bbox3 = vp->getBoundingBox(nullptr,transform);
     if(!bbox3.IsValid())
         return ret;
 
@@ -2783,9 +2786,9 @@ static std::vector<std::string> getBoxSelection(
             return ret;
         }
         Base::PyGILStateLocker lock;
-        PyObject *pyobj = 0;
+        PyObject *pyobj = nullptr;
         Base::Matrix4D matCopy(mat);
-        obj->getSubObject(0,&pyobj,&matCopy,transform,depth);
+        obj->getSubObject(nullptr,&pyobj,&matCopy,transform,depth);
         if(!pyobj)
             return ret;
         Py::Object pyobject(pyobj,true);
@@ -2837,10 +2840,10 @@ static std::vector<std::string> getBoxSelection(
 
     size_t count = 0;
     for(auto &sub : subs) {
-        App::DocumentObject *parent = 0;
+        App::DocumentObject *parent = nullptr;
         std::string childName;
         Base::Matrix4D smat(mat);
-        auto sobj = obj->resolve(sub.c_str(),&parent,&childName,0,0,&smat,transform,depth+1);
+        auto sobj = obj->resolve(sub.c_str(),&parent,&childName,nullptr,nullptr,&smat,transform,depth+1);
         if(!sobj)
             continue;
         int vis;
@@ -2870,7 +2873,7 @@ static std::vector<std::string> getBoxSelection(
 static void doSelect(void* ud, SoEventCallback * cb)
 {
     bool selectElement = ud ? true : false;
-    Gui::View3DInventorViewer* viewer = reinterpret_cast<Gui::View3DInventorViewer*>(cb->getUserData());
+    Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventorViewer*>(cb->getUserData());
 
     SoNode* root = viewer->getSceneGraph();
     static_cast<Gui::SoFCUnifiedSelection*>(root)->selectionRole.setValue(true);
@@ -2938,7 +2941,7 @@ void StdBoxSelection::activated(int iMsg)
                 SoKeyboardEvent ev;
                 viewer->navigationStyle()->processEvent(&ev);
             }
-            SelectionCallbackHandler::Create(viewer, View3DInventorViewer::Rubberband, QCursor(QPixmap(cursor_box_select), 7, 7), doSelect, NULL);
+            SelectionCallbackHandler::Create(viewer, View3DInventorViewer::Rubberband, QCursor(QPixmap(cursor_box_select), 7, 7), doSelect, nullptr);
             SoNode* root = viewer->getSceneGraph();
             static_cast<Gui::SoFCUnifiedSelection*>(root)->selectionRole.setValue(false);
         }
@@ -3122,20 +3125,20 @@ StdCmdTreeSelectAllInstances::StdCmdTreeSelectAllInstances()
 
 bool StdCmdTreeSelectAllInstances::isActive(void)
 {
-    const auto &sels = Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(),true,true);
+    const auto &sels = Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(), ResolveMode::OldStyleElement, true);
     if(sels.empty())
         return false;
     auto obj = sels[0].getObject();
     if(!obj || !obj->getNameInDocument())
         return false;
     return dynamic_cast<ViewProviderDocumentObject*>(
-            Application::Instance->getViewProvider(obj))!=0;
+            Application::Instance->getViewProvider(obj))!=nullptr;
 }
 
 void StdCmdTreeSelectAllInstances::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    const auto &sels = Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(),true,true);
+    const auto &sels = Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(), ResolveMode::OldStyleElement, true);
     if(sels.empty())
         return;
     auto obj = sels[0].getObject();
@@ -3266,7 +3269,7 @@ void StdCmdSceneInspector::activated(int iMsg)
     Q_UNUSED(iMsg);
     Gui::Document* doc = Application::Instance->activeDocument();
     if (doc) {
-        static QPointer<Gui::Dialog::DlgInspector> dlg = 0;
+        static QPointer<Gui::Dialog::DlgInspector> dlg = nullptr;
         if (!dlg)
             dlg = new Gui::Dialog::DlgInspector(getMainWindow());
         dlg->setDocument(doc);
@@ -3304,7 +3307,7 @@ bool StdCmdTextureMapping::isActive(void)
 {
     Gui::MDIView* view = getMainWindow()->activeWindow();
     return view && view->isDerivedFrom(Gui::View3DInventor::getClassTypeId())
-                && (Gui::Control().activeDialog()==0);
+                && (Gui::Control().activeDialog()==nullptr);
 }
 
 DEF_STD_CMD(StdCmdDemoMode)
@@ -3324,7 +3327,7 @@ StdCmdDemoMode::StdCmdDemoMode()
 void StdCmdDemoMode::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    static QPointer<QDialog> dlg = 0;
+    static QPointer<QDialog> dlg = nullptr;
     if (!dlg)
         dlg = new Gui::Dialog::DemoMode(getMainWindow());
     dlg->setAttribute(Qt::WA_DeleteOnClose);

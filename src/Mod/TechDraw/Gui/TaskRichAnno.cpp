@@ -24,14 +24,15 @@
 
 #ifndef _PreComp_
 #include <cmath>
-#endif // #ifndef _PreComp_
-
 #include <QStatusBar>
 #include <QGraphicsScene>
 #include <QDialog>
+#endif // #ifndef _PreComp_
 
 #include <Base/Console.h>
 #include <Base/Tools.h>
+
+#include <App/Document.h>
 
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
@@ -52,8 +53,8 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskRichAnno.h>
 
-#include "DrawGuiStd.h"
 #include "PreferencesGui.h"
+#include "QGSPage.h"
 #include "QGVPage.h"
 #include "QGIView.h"
 #include "QGIPrimPath.h"
@@ -120,9 +121,9 @@ TaskRichAnno::TaskRichAnno(TechDrawGui::ViewProviderRichAnno* annoVP) :
     m_qgParent = nullptr;
     m_haveMdi = true;
     if (m_mdi != nullptr) {
-        m_view = m_mdi->getQGVPage();
+        m_scene = m_mdi->getQGSPage();
         if (m_baseFeat != nullptr) {
-            m_qgParent = m_view->findQViewForDocObj(m_baseFeat);
+            m_qgParent = m_scene->findQViewForDocObj(m_baseFeat);
         }
     } else {
         m_haveMdi = false;
@@ -175,8 +176,8 @@ TaskRichAnno::TaskRichAnno(TechDraw::DrawView* baseFeat,
     m_haveMdi = true;
     m_mdi = dvp->getMDIViewPage();
     if (m_mdi != nullptr) {
-        m_view = m_mdi->getQGVPage();
-        m_qgParent = m_view->findQViewForDocObj(baseFeat);
+        m_scene= m_mdi->getQGSPage();
+        m_qgParent = m_scene->findQViewForDocObj(baseFeat);
     } else {
         m_haveMdi = false;
     }
@@ -226,7 +227,6 @@ void TaskRichAnno::setUiPrimary()
     MRichTextEdit mre;
     ui->teAnnoText->setFontPointSize(mre.getDefFontSizeNum());
     // set a placeholder text to inform the user
-    // (QTextEdit has no placeholderText property in Qt4)
     ui->teAnnoText->setPlaceholderText(tr("Input the annotation text directly or start the rich text editor"));
 }
 
@@ -276,7 +276,7 @@ void TaskRichAnno::onEditorClicked(bool b)
 {
 //    Base::Console().Message("TL::onEditorClicked(%d)\n",b);
     Q_UNUSED(b);
-    m_textDialog = new QDialog(0);
+    m_textDialog = new QDialog(nullptr);
     QString leadText = ui->teAnnoText->toHtml();
     QString plainText = ui->teAnnoText->toPlainText();
 //    Base::Console().Message("TRA::onEditorClicked - leadText: %s**  plainText: %s**\n",
@@ -531,7 +531,8 @@ bool TaskRichAnno::accept()
     }
 
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     if (!getCreateMode())  {
         updateAnnoFeature();
@@ -577,7 +578,7 @@ TaskDlgRichAnno::TaskDlgRichAnno(TechDraw::DrawView* baseFeat,
 {
     widget  = new TaskRichAnno(baseFeat,page);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_RichTextAnnotation"),
-                                              widget->windowTitle(), true, 0);
+                                              widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -587,7 +588,7 @@ TaskDlgRichAnno::TaskDlgRichAnno(TechDrawGui::ViewProviderRichAnno* leadVP)
 {
     widget  = new TaskRichAnno(leadVP);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_RichTextAnnotation"),
-                                         widget->windowTitle(), true, 0);
+                                         widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

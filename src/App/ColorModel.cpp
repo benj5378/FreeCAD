@@ -26,7 +26,10 @@
 # include <cstdlib>
 #endif
 
+#include <Base/Exception.h>
+
 #include "ColorModel.h"
+
 
 using namespace App;
 
@@ -87,13 +90,13 @@ ColorField::ColorField (const ColorModel &rclModel, float fMin, float fMax, std:
 }
 
 ColorField::ColorField (const ColorField &rclCF)
-  : colorModel(rclCF.colorModel),
-    fMin(rclCF.fMin),
-    fMax(rclCF.fMax),
-    fAscent(rclCF.fAscent),
-    fConstant(rclCF.fConstant),
-    ctColors(rclCF.ctColors),
-    colorField(rclCF.colorField)
+  : colorModel(rclCF.colorModel)
+  , fMin(rclCF.fMin)
+  , fMax(rclCF.fMax)
+  , fAscent(rclCF.fAscent)
+  , fConstant(rclCF.fConstant)
+  , ctColors(rclCF.ctColors)
+  , colorField(rclCF.colorField)
 {
 }
 
@@ -105,9 +108,14 @@ ColorField& ColorField::operator = (const ColorField &rclCF)
 
 void ColorField::set (const ColorModel &rclModel, float fMin, float fMax, std::size_t usCt)
 {
+    auto bounds = std::minmax(fMin, fMax);
+    if (bounds.second <= bounds.first) {
+        throw Base::ValueError("Maximum must be higher than minimum");
+    }
+
+    this->fMin = bounds.first;
+    this->fMax = bounds.second;
     colorModel = rclModel;
-    this->fMin = std::min<float>(fMin, fMax);
-    this->fMax = std::max<float>(this->fMin + CCR_EPS, fMax);
     ctColors = std::max<std::size_t>(usCt, colorModel.getCountColors());
     rebuild();
 }
@@ -120,15 +128,12 @@ void ColorField::setColorModel (const ColorModel &rclModel)
 
 void ColorField::rebuild ()
 {
-    std::size_t usInd1, usInd2, usStep, i;
-
     colorField.resize(ctColors);
 
-
-    usStep = std::min<std::size_t>(ctColors / (colorModel.getCountColors() - 1), ctColors - 1);
-    usInd1 = 0;
-    usInd2 = usStep;
-    for (i = 0; i < (colorModel.getCountColors() - 1); i++) {
+    std::size_t usStep = std::min<std::size_t>(ctColors / (colorModel.getCountColors() - 1), ctColors - 1);
+    std::size_t usInd1 = 0;
+    std::size_t usInd2 = usStep;
+    for (std::size_t i = 0; i < (colorModel.getCountColors() - 1); i++) {
         interpolate(colorModel.colors[i], usInd1, colorModel.colors[i+1], usInd2);
         usInd1 = usInd2;
         if ((i + 1) == (colorModel.getCountColors() - 2))
@@ -144,45 +149,64 @@ void ColorField::rebuild ()
 // fuellt das Array von Farbe 1, Index 1 bis Farbe 2, Index 2
 void ColorField::interpolate (Color clCol1, std::size_t usInd1, Color clCol2, std::size_t usInd2)
 {
-    std::size_t i;
-    float ucR, ucG, ucB;
-    float fR, fG, fB, fStep = 1.0f, fLen = float(usInd2 - usInd1);
+    float fStep = 1.0f, fLen = float(usInd2 - usInd1);
 
     colorField[usInd1] = clCol1;
     colorField[usInd2] = clCol2;
 
-    fR = (float(clCol2.r) - float(clCol1.r)) / fLen;
-    fG = (float(clCol2.g) - float(clCol1.g)) / fLen;
-    fB = (float(clCol2.b) - float(clCol1.b)) / fLen;
+    float fR = (float(clCol2.r) - float(clCol1.r)) / fLen;
+    float fG = (float(clCol2.g) - float(clCol1.g)) / fLen;
+    float fB = (float(clCol2.b) - float(clCol1.b)) / fLen;
 
-    for (i = (usInd1 + 1); i < usInd2; i++) {
-        ucR = clCol1.r + fR * fStep;
-        ucG = clCol1.g + fG * fStep;
-        ucB = clCol1.b + fB * fStep;
+    for (std::size_t i = (usInd1 + 1); i < usInd2; i++) {
+        float ucR = clCol1.r + fR * fStep;
+        float ucG = clCol1.g + fG * fStep;
+        float ucB = clCol1.b + fB * fStep;
         colorField[i] = Color(ucR, ucG, ucB);
         fStep += 1.0f;
     }
 }
 
 
-ColorGradient::ColorGradient ()
-:  tStyle(ZERO_BASED),
-   outsideGrayed(false),
-   tColorModel(0)
+ColorGradientProfile::ColorGradientProfile()
+  : tStyle{ColorBarStyle::FLOW}
+  , fMin{}
+  , fMax{}
+  , ctColors{}
+  , tColorModel{}
+  , visibility{Visibility::Default}
 {
-    createStandardPacks();
-    setColorModel();
-    set(-1.0f, 1.0f, 13, ZERO_BASED, false);
+
 }
 
-ColorGradient::ColorGradient (float fMin, float fMax, std::size_t usCtColors, TStyle tS, bool bOG)
-:  tStyle(tS),
-   outsideGrayed(false),
-   tColorModel(0)
+bool ColorGradientProfile::isEqual(const ColorGradientProfile& cg) const
+{
+    if (tStyle != cg.tStyle)
+        return false;
+    if (fMin != cg.fMin)
+        return false;
+    if (fMax != cg.fMax)
+        return false;
+    if (!visibility.isEqual(cg.visibility))
+        return false;
+    if (tColorModel != cg.tColorModel)
+        return false;
+    return true;
+}
+
+
+ColorGradient::ColorGradient ()
 {
     createStandardPacks();
     setColorModel();
-    set(fMin, fMax, usCtColors, tS, bOG);
+    set(-1.0f, 1.0f, 13, ColorBarStyle::ZERO_BASED, Visibility::Default);
+}
+
+ColorGradient::ColorGradient (float fMin, float fMax, std::size_t usCtColors, ColorBarStyle tS, VisibilityFlags flags)
+{
+    createStandardPacks();
+    setColorModel();
+    set(fMin, fMax, usCtColors, tS, flags);
 }
 
 void ColorGradient::createStandardPacks()
@@ -203,36 +227,48 @@ std::vector<std::string> ColorGradient::getColorModelNames() const
     return names;
 }
 
-void ColorGradient::set (float fMin, float fMax, std::size_t usCt, TStyle tS, bool bOG)
+void ColorGradient::setProfile(const ColorGradientProfile& pro)
 {
-    _fMin = std::min<float>(fMin, fMax);
-    _fMax = std::max<float>(_fMin + CCR_EPS, fMax);
-    ctColors = std::max<std::size_t>(usCt, getMinColors());
-    tStyle = tS;
-    outsideGrayed = bOG;
+    profile = pro;
+    setColorModel();
+    rebuild();
+}
+
+void ColorGradient::set (float fMin, float fMax, std::size_t usCt, ColorBarStyle tS, VisibilityFlags flags)
+{
+    auto bounds = std::minmax(fMin, fMax);
+    if (bounds.second <= bounds.first) {
+        throw Base::ValueError("Maximum must be higher than minimum");
+    }
+
+    profile.fMin = bounds.first;
+    profile.fMax = bounds.second;
+    profile.ctColors = std::max<std::size_t>(usCt, getMinColors());
+    profile.tStyle = tS;
+    profile.visibility = flags;
     rebuild();
 }
 
 void ColorGradient::rebuild ()
 {
-    switch (tStyle)
+    switch (profile.tStyle)
     {
-        case FLOW:
+    case ColorBarStyle::FLOW:
         {
-            colorField1.set(currentModelPack.totalModel, _fMin, _fMax, ctColors);
+            colorField1.set(currentModelPack.totalModel, profile.fMin, profile.fMax, profile.ctColors);
             break;
         }
-        case ZERO_BASED:
+    case ColorBarStyle::ZERO_BASED:
         {
-            if ((_fMin < 0.0f) && (_fMax > 0.0f))
+            if ((profile.fMin < 0.0f) && (profile.fMax > 0.0f))
             {
-                colorField1.set(currentModelPack.bottomModel, _fMin, 0.0f, ctColors / 2);
-                colorField2.set(currentModelPack.topModel, 0.0f, _fMax, ctColors / 2);
+                colorField1.set(currentModelPack.bottomModel, profile.fMin, 0.0f, profile.ctColors / 2);
+                colorField2.set(currentModelPack.topModel, 0.0f, profile.fMax, profile.ctColors / 2);
             }
-            else if (_fMin >= 0.0f)
-                colorField1.set(currentModelPack.topModel, 0.0f, _fMax, ctColors);
+            else if (profile.fMin >= 0.0f)
+                colorField1.set(currentModelPack.topModel, 0.0f, profile.fMax, profile.ctColors);
             else
-                colorField1.set(currentModelPack.bottomModel, _fMin, 0.0f, ctColors);
+                colorField1.set(currentModelPack.bottomModel, profile.fMin, 0.0f, profile.ctColors);
             break;
         }
     }
@@ -240,13 +276,13 @@ void ColorGradient::rebuild ()
 
 std::size_t ColorGradient::getMinColors () const
 {
-    switch (tStyle)
+    switch (profile.tStyle)
     {
-        case FLOW:
-            return colorField1.getMinColors();
-        case ZERO_BASED:
+    case ColorBarStyle::FLOW:
+        return colorField1.getMinColors();
+    case ColorBarStyle::ZERO_BASED:
         {
-            if ((_fMin < 0.0f) && (_fMax > 0.0f))
+            if ((profile.fMin < 0.0f) && (profile.fMax > 0.0f))
                 return colorField1.getMinColors() + colorField2.getMinColors();
             else
                 return colorField1.getMinColors();
@@ -257,25 +293,25 @@ std::size_t ColorGradient::getMinColors () const
 
 void ColorGradient::setColorModel (std::size_t tModel)
 {
-    tColorModel = tModel;
+    profile.tColorModel = tModel;
     setColorModel();
     rebuild();
 }
 
 void ColorGradient::setColorModel ()
 {
-    if (tColorModel < modelPacks.size())
-        currentModelPack = modelPacks[tColorModel];
+    if (profile.tColorModel < modelPacks.size())
+        currentModelPack = modelPacks[profile.tColorModel];
 
-    switch (tStyle)
+    switch (profile.tStyle)
     {
-    case FLOW:
+    case ColorBarStyle::FLOW:
     {
         colorField1.setColorModel(currentModelPack.totalModel);
         colorField2.setColorModel(currentModelPack.bottomModel);
         break;
     }
-    case ZERO_BASED:
+    case ColorBarStyle::ZERO_BASED:
     {
         colorField1.setColorModel(currentModelPack.topModel);
         colorField2.setColorModel(currentModelPack.bottomModel);
@@ -285,17 +321,20 @@ void ColorGradient::setColorModel ()
 }
 
 ColorLegend::ColorLegend ()
-: outsideGrayed(false)
+  : outsideGrayed(false)
 {
-    // default  green, red
+    // default  blue, green, red
+    colorFields.emplace_back(0, 0, 1);
     colorFields.emplace_back(0, 1, 0);
     colorFields.emplace_back(1, 0, 0);
 
     names.push_back("Min");
+    names.push_back("Mid");
     names.push_back("Max");
 
     values.push_back(-1.0f);
-    values.push_back(0.0f);
+    values.push_back(-0.333f);
+    values.push_back(0.333f);
     values.push_back(1.0f);
 }
 
@@ -325,7 +364,7 @@ bool ColorLegend::operator == (const ColorLegend &rclCL) const
           outsideGrayed == rclCL.outsideGrayed;
 }
 
-float ColorLegend::getValue (unsigned long ulPos) const
+float ColorLegend::getValue (std::size_t ulPos) const
 {
     if (ulPos < values.size())
         return values[ulPos];
@@ -333,7 +372,7 @@ float ColorLegend::getValue (unsigned long ulPos) const
         return 0.0f;
 }
 
-bool ColorLegend::setValue (unsigned long ulPos, float fVal)
+bool ColorLegend::setValue (std::size_t ulPos, float fVal)
 {
     if (ulPos < values.size())
     {
@@ -344,7 +383,7 @@ bool ColorLegend::setValue (unsigned long ulPos, float fVal)
         return false;
 }
 
-Color ColorLegend::getColor (unsigned long ulPos) const
+Color ColorLegend::getColor (std::size_t ulPos) const
 {
     if (ulPos < colorFields.size())
         return colorFields[ulPos];
@@ -353,13 +392,13 @@ Color ColorLegend::getColor (unsigned long ulPos) const
 }
 
 // color as: 0x00rrggbb
-uint32_t ColorLegend::getPackedColor (unsigned long ulPos) const
+uint32_t ColorLegend::getPackedColor (std::size_t ulPos) const
 {
     Color clRGB = getColor(ulPos);
     return clRGB.getPackedValue();
 }
 
-std::string ColorLegend::getText (unsigned long ulPos) const
+std::string ColorLegend::getText (std::size_t ulPos) const
 {
     if (ulPos < names.size())
         return names[ulPos];
@@ -367,10 +406,10 @@ std::string ColorLegend::getText (unsigned long ulPos) const
         return "";
 }
 
-bool ColorLegend::addMin (const std::string &rclName)
+std::size_t ColorLegend::addMin (const std::string &rclName)
 {
     names.push_front(rclName);
-    values.push_front(*values.begin() - 1.0f);
+    values.push_front(values.front() - 1.0f);
 
     Color clNewRGB;
     clNewRGB.r = ((float)rand() / (float)RAND_MAX);
@@ -379,13 +418,13 @@ bool ColorLegend::addMin (const std::string &rclName)
 
     colorFields.push_front(clNewRGB);
 
-    return true;
+    return colorFields.size() - 1;
 }
 
-bool ColorLegend::addMax (const std::string &rclName)
+std::size_t ColorLegend::addMax (const std::string &rclName)
 {
     names.push_back(rclName);
-    values.push_back(*(values.end()-1) + 1.0f);
+    values.push_back(values.back() + 1.0f);
 
     Color clNewRGB;
     clNewRGB.r = ((float)rand() / (float)RAND_MAX);
@@ -394,13 +433,12 @@ bool ColorLegend::addMax (const std::string &rclName)
 
     colorFields.push_back(clNewRGB);
 
-    return true;
+    return colorFields.size() - 1;
 }
 
-bool ColorLegend::remove (unsigned long ulPos)
+bool ColorLegend::remove (std::size_t ulPos)
 {
-    if (ulPos < colorFields.size())
-    {
+    if (ulPos < colorFields.size()) {
         colorFields.erase(colorFields.begin() + ulPos);
         names.erase(names.begin() + ulPos);
         values.erase(values.begin() + ulPos);
@@ -413,8 +451,7 @@ bool ColorLegend::remove (unsigned long ulPos)
 
 void ColorLegend::removeFirst ()
 {
-    if (colorFields.size() > 0)
-    {
+    if (colorFields.size() > 0) {
         colorFields.erase(colorFields.begin());
         names.erase(names.begin());
         values.erase(values.begin());
@@ -423,46 +460,42 @@ void ColorLegend::removeFirst ()
 
 void ColorLegend::removeLast ()
 {
-    if (colorFields.size() > 0)
-    {
+    if (colorFields.size() > 0) {
         colorFields.erase(colorFields.end()-1);
         names.erase(names.end()-1);
         values.erase(values.end()-1);
     }
 }
 
-void ColorLegend::resize (unsigned long ulCt)
+void ColorLegend::resize (std::size_t ulCt)
 {
     if ((ulCt < 2) || (ulCt == colorFields.size()))
         return;
 
-    if (ulCt > colorFields.size())
-    {
+    if (ulCt > colorFields.size()) {
         int k = ulCt - colorFields.size();
         for (int i = 0; i < k; i++)
             addMin("new");
     }
-    else
-    {
+    else {
         int k = colorFields.size() - ulCt;
         for (int i = 0; i < k; i++)
             removeLast();
     }
 }
 
-bool ColorLegend::setColor (unsigned long ulPos, float ucRed, float ucGreen, float ucBlue)
+bool ColorLegend::setColor (std::size_t ulPos, float ucRed, float ucGreen, float ucBlue)
 {
-    if (ulPos < names.size())
-    {
+    if (ulPos < names.size()) {
         colorFields[ulPos] = Color(ucRed, ucGreen, ucBlue);
         return true;
     }
-    else
-        return false;
+
+    return false;
 }
 
 // color as 0x00rrggbb
-bool ColorLegend::setColor (unsigned long ulPos, unsigned long ulColor)
+bool ColorLegend::setColor (std::size_t ulPos, unsigned long ulColor)
 {
     unsigned char ucRed   = (unsigned char)((ulColor & 0x00ff0000) >> 16);
     unsigned char ucGreen = (unsigned char)((ulColor & 0x0000ff00) >> 8);
@@ -470,13 +503,12 @@ bool ColorLegend::setColor (unsigned long ulPos, unsigned long ulColor)
     return setColor(ulPos, ucRed, ucGreen, ucBlue);
 }
 
-bool ColorLegend::setText (unsigned long ulPos, const std::string &rclName)
+bool ColorLegend::setText (std::size_t ulPos, const std::string &rclName)
 {
-    if (ulPos < names.size())
-    {
+    if (ulPos < names.size()) {
         names[ulPos] = rclName;
         return true;
     }
-    else
-        return false;
+
+    return false;
 }

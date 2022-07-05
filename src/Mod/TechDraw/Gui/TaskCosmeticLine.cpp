@@ -58,7 +58,6 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskCosmeticLine.h>
 
-#include "DrawGuiStd.h"
 #include "PreferencesGui.h"
 #include "QGVPage.h"
 #include "QGIView.h"
@@ -291,7 +290,7 @@ TaskDlgCosmeticLine::TaskDlgCosmeticLine(TechDraw::DrawViewPart* partFeat,
 {
     widget  = new TaskCosmeticLine(partFeat, points, is3d);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-line2points"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -302,7 +301,7 @@ TaskDlgCosmeticLine::TaskDlgCosmeticLine(TechDraw::DrawViewPart* partFeat,
 {
     widget  = new TaskCosmeticLine(partFeat, edgeName);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-line2points"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

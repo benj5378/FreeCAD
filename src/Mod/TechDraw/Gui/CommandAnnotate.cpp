@@ -22,6 +22,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <QApplication>
 # include <QGraphicsView>
 # include <QMessageBox>
 # include <iostream>
@@ -31,6 +32,7 @@
 # include <exception>
 #endif  //#ifndef _PreComp_
 
+#include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <Gui/Action.h>
 #include <Gui/Application.h>
@@ -39,6 +41,7 @@
 #include <Gui/Control.h>
 #include <Gui/Document.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/MainWindow.h>
 #include <Gui/FileDialog.h>
 #include <Gui/ViewProvider.h>
@@ -67,6 +70,7 @@
 #include "TaskCosmeticLine.h"
 #include "ViewProviderPage.h"
 #include "ViewProviderViewPart.h"
+#include "QGIView.h"
 #include "QGVPage.h"
 
 using namespace TechDrawGui;
@@ -1505,11 +1509,9 @@ std::vector<std::string> getSelectedSubElements(Gui::Command* cmd,
         }
     }
     if (dvp == nullptr) {
-        std::stringstream edgeMsg;
-        edgeMsg << "No Part View in Selection";
-            QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Wrong Selection"),
-                             QObject::tr(edgeMsg.str().c_str()));
-            return selectedSubs;
+      QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Wrong Selection"),
+                           QObject::tr("No Part View in Selection"));
+      return selectedSubs;
     }
     
     for (auto& s: subNames) {
@@ -1519,10 +1521,10 @@ std::vector<std::string> getSelectedSubElements(Gui::Command* cmd,
     }
 
     if (selectedSubs.empty()) {
-        std::stringstream edgeMsg;
-        edgeMsg << "No " << subType << " in Selection";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Wrong Selection"),
-                            QObject::tr(edgeMsg.str().c_str()));
+        QMessageBox::warning(Gui::getMainWindow(),
+                             QObject::tr("Wrong Selection"),
+                             QObject::tr("No %1 in Selection")
+                                 .arg(QString::fromStdString(subType)));
         return selectedSubs;
     }
 

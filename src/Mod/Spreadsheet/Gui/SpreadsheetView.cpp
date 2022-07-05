@@ -43,7 +43,6 @@
 #include <App/PropertyStandard.h>
 #include <App/Range.h>
 #include <Base/Tools.h>
-#include <boost_bind_bind.hpp>
 #include <Gui/MainWindow.h>
 #include <Gui/Application.h>
 #include <Gui/Command.h>
@@ -481,6 +480,11 @@ std::vector<Range> SheetView::selectedRanges() const
 QModelIndexList SheetView::selectedIndexes() const
 {
     return ui->cells->selectionModel()->selectedIndexes();
+}
+
+QModelIndexList SheetView::selectedIndexesRaw() const
+{
+    return ui->cells->selectedIndexesRaw();
 }
 
 void SpreadsheetGui::SheetView::select(App::CellAddress cell, QItemSelectionModel::SelectionFlags flags)

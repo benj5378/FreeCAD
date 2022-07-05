@@ -26,9 +26,9 @@
 
 #include <App/PropertyStandard.h>
 #include <App/PropertyUnits.h>
+
 #include "PartFeature.h"
 #include "FaceMakerCheese.h"
-#include <TopoDS_Face.hxx>
 
 namespace Part
 {
@@ -119,19 +119,6 @@ public: //mode enumerations
         dmNormal
     };
     static const char* eDirModeStrings[];
-
-protected:
-    static void makeDraft(const ExtrusionParameters& params, const TopoDS_Shape&, std::list<TopoDS_Shape>&);
-
-    static void checkInnerWires(std::vector<bool>& isInnerWire, const ExtrusionParameters& params,
-                                std::vector<bool>& checklist, bool forInner, std::vector<TopoDS_Shape> prisms);
-
-    static void createTaperedPrismOffset(TopoDS_Wire sourceWire,
-                                         const gp_Vec& translation,
-                                         double offset,
-                                         int numEdges,
-                                         bool isSecond,
-                                         TopoDS_Wire& result);
 
 protected:
     virtual void setupObject() override;

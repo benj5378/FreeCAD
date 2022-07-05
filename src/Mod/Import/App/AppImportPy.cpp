@@ -20,13 +20,11 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #if defined(__MINGW32__)
 # define WNT // avoid conflict with GUID
 #endif
 #ifndef _PreComp_
-# include <Python.h>
 # include <climits>
 #if defined(__clang__)
 # pragma clang diagnostic push
@@ -135,14 +133,15 @@ private:
     Py::Object importer(const Py::Tuple& args, const Py::Dict &kwds)
     {
         char* Name;
-        char* DocName=0;
+        char* DocName=nullptr;
         PyObject *importHidden = Py_None;
         PyObject *merge = Py_None;
         PyObject *useLinkGroup = Py_None;
         int mode = -1;
-        static char* kwd_list[] = {"name", "docName","importHidden","merge","useLinkGroup","mode",0};
-        if(!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "et|sOOOi", 
-                    kwd_list,"utf-8",&Name,&DocName,&importHidden,&merge,&useLinkGroup,&mode))
+        static char* kwd_list[] = {"name", "docName","importHidden","merge","useLinkGroup","mode",nullptr};
+        if (!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "et|sO!O!O!i",
+                    kwd_list,"utf-8",&Name,&DocName,&PyBool_Type,&importHidden,&PyBool_Type,&merge,
+                    &PyBool_Type,&useLinkGroup,&mode))
             throw Py::Exception();
 
         std::string Utf8Name = std::string(Name);
@@ -153,7 +152,7 @@ private:
             //Base::Console().Log("Insert in Part with %s",Name);
             Base::FileInfo file(Utf8Name.c_str());
 
-            App::Document *pcDoc = 0;
+            App::Document *pcDoc = nullptr;
             if (DocName) {
                 pcDoc = App::GetApplication().getDocument(DocName);
             }
@@ -234,17 +233,17 @@ private:
                 }
             }
             else {
-                throw Py::Exception(Base::BaseExceptionFreeCADError, "no supported file format");
+                throw Py::Exception(PyExc_IOError, "no supported file format");
             }
 
 #if 1
             ImportOCAFExt ocaf(hDoc, pcDoc, file.fileNamePure());
             if (merge != Py_None)
-                ocaf.setMerge(PyObject_IsTrue(merge));
+                ocaf.setMerge(PyObject_IsTrue(merge) ? true : false);
             if (importHidden != Py_None)
-                ocaf.setImportHiddenObject(PyObject_IsTrue(importHidden));
+                ocaf.setImportHiddenObject(PyObject_IsTrue(importHidden) ? true : false);
             if (useLinkGroup != Py_None)
-                ocaf.setUseLinkGroup(PyObject_IsTrue(useLinkGroup));
+                ocaf.setUseLinkGroup(PyObject_IsTrue(useLinkGroup) ? true : false);
             if (mode >= 0)
                 ocaf.setMode(mode);
             ocaf.loadShapes();
@@ -275,10 +274,11 @@ private:
             }
         }
         catch (Standard_Failure& e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.GetMessageString());
+            throw Py::Exception(Base::PyExc_FC_GeneralError, e.GetMessageString());
         }
         catch (const Base::Exception& e) {
-            throw Py::RuntimeError(e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
 
         return Py::None();
@@ -290,9 +290,10 @@ private:
         PyObject *exportHidden = Py_None;
         PyObject *legacy = Py_None;
         PyObject *keepPlacement = Py_None;
-        static char* kwd_list[] = {"obj", "name", "exportHidden", "legacy", "keepPlacement",0};
-        if(!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "Oet|OOO",
-                    kwd_list,&object,"utf-8",&Name,&exportHidden,&legacy,&keepPlacement))
+        static char* kwd_list[] = {"obj", "name", "exportHidden", "legacy", "keepPlacement",nullptr};
+        if (!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "Oet|O!O!O!",
+                    kwd_list,&object,"utf-8",&Name,&PyBool_Type,&exportHidden,&PyBool_Type,&legacy,
+                    &PyBool_Type,&keepPlacement))
             throw Py::Exception();
 
         std::string Utf8Name = std::string(Name);
@@ -312,18 +313,18 @@ private:
                     objs.push_back(static_cast<App::DocumentObjectPy*>(item)->getDocumentObjectPtr());
             }
 
-            if(legacy == Py_None) {
+            if (legacy == Py_None) {
                 auto hGrp = App::GetApplication().GetParameterGroupByPath(
                         "User parameter:BaseApp/Preferences/Mod/Import");
-                legacy = hGrp->GetBool("ExportLegacy",false)?Py_True:Py_False;
+                legacy = hGrp->GetBool("ExportLegacy",false) ? Py_True : Py_False;
             }
 
             Import::ExportOCAF2 ocaf(hDoc);
-            if(!PyObject_IsTrue(legacy) || !ocaf.canFallback(objs)) {
-                if(exportHidden!=Py_None)
-                    ocaf.setExportHiddenObject(PyObject_IsTrue(exportHidden));
-                if(keepPlacement!=Py_None)
-                    ocaf.setKeepPlacement(PyObject_IsTrue(keepPlacement));
+            if ((PyObject_IsTrue(legacy)? false : true) || !ocaf.canFallback(objs)) {
+                if (exportHidden != Py_None)
+                    ocaf.setExportHiddenObject(PyObject_IsTrue(exportHidden) ? true : false);
+                if (keepPlacement != Py_None)
+                    ocaf.setKeepPlacement(PyObject_IsTrue(keepPlacement) ? true : false);
                 ocaf.exportObjects(objs);
             }
             else {
@@ -355,12 +356,7 @@ private:
                 // writer.SetColorMode(Standard_False);
                 writer.Transfer(hDoc, STEPControl_AsIs);
 
-                // edit STEP header
-#if OCC_VERSION_HEX >= 0x060500
                 APIHeaderSection_MakeHeader makeHeader(writer.ChangeWriter().Model());
-#else
-                APIHeaderSection_MakeHeader makeHeader(writer.Writer().Model());
-#endif
                 Base::Reference<ParameterGrp> hGrp = App::GetApplication().GetUserParameter()
                     .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/Part")->GetGroup("STEP");
 
@@ -395,10 +391,11 @@ private:
             hApp->Close(hDoc);
         }
         catch (Standard_Failure& e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.GetMessageString());
+            throw Py::Exception(Base::PyExc_FC_GeneralError, e.GetMessageString());
         }
         catch (const Base::Exception& e) {
-            throw Py::RuntimeError(e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
 
         return Py::None();
@@ -407,7 +404,7 @@ private:
     Py::Object readDXF(const Py::Tuple& args)
     {
         char* Name;
-        const char* DocName=0;
+        const char* DocName=nullptr;
         const char* optionSource = nullptr;
         std::string defaultOptions = "User parameter:BaseApp/Preferences/Mod/Draft";
         bool IgnoreErrors=true;
@@ -780,7 +777,7 @@ static PyObject * importAssembly(PyObject *self, PyObject *args)
 
 PyObject* initModule()
 {
-    return (new Module)->module().ptr();
+    return Base::Interpreter().addModule(new Module);
 }
 
 } // namespace Import

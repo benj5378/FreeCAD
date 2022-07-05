@@ -39,7 +39,7 @@ class TaskChamferParameters : public TaskDressUpParameters
     Q_OBJECT
 
 public:
-    TaskChamferParameters(ViewProviderDressUp *DressUpView, QWidget *parent=0);
+    TaskChamferParameters(ViewProviderDressUp *DressUpView, QWidget *parent=nullptr);
     ~TaskChamferParameters();
 
     virtual void apply();
@@ -52,6 +52,7 @@ private Q_SLOTS:
     void onFlipDirection(bool);
     void onRefDeleted(void);
     void onAddAllEdges(void);
+    void onCheckBoxUseAllEdgesToggled(bool checked);
 
 protected:
     virtual void clearButtons(const selectionModes notThis);

@@ -64,6 +64,7 @@
 #include <Gui/FileDialog.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/WaitCursor.h>
 
@@ -84,9 +85,10 @@
 #include <Mod/TechDraw/App/DrawViewDetail.h>
 #include <Mod/TechDraw/App/DrawViewArch.h>
 #include <Mod/TechDraw/App/DrawUtil.h>
-#include <Mod/TechDraw/Gui/QGVPage.h>
 
 #include "DrawGuiUtil.h"
+#include "QGSPage.h"
+#include "QGVPage.h"
 #include "MDIViewPage.h"
 #include "PreferencesGui.h"
 #include "QGIViewPart.h"
@@ -319,9 +321,9 @@ void CmdTechDrawView::activated(int iMsg)
     std::vector<App::DocumentObject*> xShapes;
     App::DocumentObject* partObj = nullptr;
     std::string faceName;
-    int resolve = 1;                                //mystery
-    bool single = false;                            //mystery
-    auto selection = getSelection().getSelectionEx(0,
+    Gui::ResolveMode resolve = Gui::ResolveMode::OldStyleElement;  //mystery
+    bool single = false;                                           //mystery
+    auto selection = getSelection().getSelectionEx(nullptr,
                                                    App::DocumentObject::getClassTypeId(),
                                                    resolve,
                                                    single);
@@ -598,9 +600,9 @@ void CmdTechDrawProjectionGroup::activated(int iMsg)
     std::vector<App::DocumentObject*> xShapes;
     App::DocumentObject* partObj = nullptr;
     std::string faceName;
-    int resolve = 1;                                //mystery
-    bool single = false;                            //mystery
-    auto selection = getSelection().getSelectionEx(0,
+    Gui::ResolveMode resolve = Gui::ResolveMode::OldStyleElement; //mystery
+    bool single = false;                                          //mystery
+    auto selection = getSelection().getSelectionEx(nullptr,
                                                    App::DocumentObject::getClassTypeId(),
                                                    resolve,
                                                    single);
@@ -889,13 +891,14 @@ void CmdTechDrawBalloon::activated(int iMsg)
 
     if (pageVP && partVP) {
         QGVPage* viewPage = pageVP->getGraphicsView();
+        QGSPage* scenePage = pageVP->getGraphicsScene();
         if (viewPage) {
             viewPage->startBalloonPlacing();
 
             QGIViewPart* viewPart = dynamic_cast<QGIViewPart*>(partVP->getQView());
             QPointF placement;
             if (viewPart && _checkDirectPlacement(viewPart, selection[0].getSubNames(), placement)) {
-                viewPage->createBalloon(placement, objFeat);
+                scenePage->createBalloon(placement, objFeat);
             }
         }
     }
@@ -975,8 +978,8 @@ void CmdTechDrawClipGroupAdd::activated(int iMsg)
         return;
     }
 
-    TechDraw::DrawViewClip* clip = 0;
-    TechDraw::DrawView* view = 0;
+    TechDraw::DrawViewClip* clip = nullptr;
+    TechDraw::DrawView* view = nullptr;
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
     for (; itSel != selection.end(); itSel++) {
         if ((*itSel).getObject()->isDerivedFrom(TechDraw::DrawViewClip::getClassTypeId())) {
@@ -1441,9 +1444,9 @@ void CmdTechDrawExportPageDXF::activated(int iMsg)
 //WF? allow more than one TD Page per Dxf file??  1 TD page = 1 DXF file = 1 drawing?
     QString defaultDir;
     QString fileName = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(),
-                                                   QString::fromUtf8(QT_TR_NOOP("Save Dxf File")),
+                                                   QString::fromUtf8(QT_TR_NOOP("Save DXF file")),
                                                    defaultDir,
-                                                   QString::fromUtf8(QT_TR_NOOP("Dxf (*.dxf)")));
+                                                   QString::fromUtf8(QT_TR_NOOP("DXF (*.dxf)")));
 
     if (fileName.isEmpty()) {
         return;

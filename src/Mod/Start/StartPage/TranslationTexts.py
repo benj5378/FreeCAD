@@ -19,7 +19,6 @@
 #*                                                                         *
 #***************************************************************************
 
-import sys
 from PySide import QtGui
 
 
@@ -32,9 +31,6 @@ def translate(context,text):
         u = QtGui.QApplication.translate(context, text, None, _encoding)
     except AttributeError:
         u = QtGui.QApplication.translate(context, text, None)
-
-    if sys.version_info.major < 3:
-        u = u.encode("utf8")
 
     return u.replace(chr(39), "&rsquo;")
 

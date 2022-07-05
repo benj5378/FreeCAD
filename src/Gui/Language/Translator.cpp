@@ -20,19 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <algorithm>
-# include <QTranslator>
-# include <QStringList>
-# include <QDir>
 # include <QApplication>
+# include <QDir>
 # include <QRegularExpression>
+# include <QStringList>
+# include <QTranslator>
+# include <QWidget>
 #endif
 
-#include "Translator.h"
 #include <App/Application.h>
+#include "Translator.h"
+
 
 using namespace Gui;
 
@@ -98,7 +99,7 @@ using namespace Gui;
 
 /* TRANSLATOR Gui::Translator */
 
-Translator* Translator::_pcSingleton = 0;
+Translator* Translator::_pcSingleton = nullptr;
 
 namespace Gui {
 class TranslatorP
@@ -123,7 +124,7 @@ void Translator::destruct (void)
 {
     if (_pcSingleton)
         delete _pcSingleton;
-    _pcSingleton=0;
+    _pcSingleton=nullptr;
 }
 
 Translator::Translator()
@@ -199,7 +200,7 @@ TStringList Translator::supportedLanguages() const
 {
     TStringList languages;
     TStringMap locales = supportedLocales();
-    for (auto it : locales)
+    for (const auto& it : locales)
         languages.push_back(it.first);
 
     return languages;
@@ -249,6 +250,32 @@ std::string Translator::locale(const std::string& lang) const
         loc = tld->second;
 
     return loc;
+}
+
+void Translator::setLocale(const std::string& language) const
+{
+    auto loc = QLocale::system(); //Defaulting to OS locale
+    if (language == "C" || language == "c") {
+        loc = QLocale::c();
+    }
+    else {
+        auto bcp47 = locale(language);
+        if (!bcp47.empty())
+            loc  = QLocale(QString::fromStdString(bcp47));
+    }
+    QLocale::setDefault(loc);
+    updateLocaleChange();
+
+#ifdef FC_DEBUG
+    Base::Console().Log("Locale changed to %s => %s\n", qPrintable(loc.bcp47Name()), qPrintable(loc.name()));
+#endif
+}
+
+void Translator::updateLocaleChange() const
+{
+    for (auto &topLevelWidget: qApp->topLevelWidgets()) {
+        topLevelWidget->setLocale(QLocale());
+    }
 }
 
 QStringList Translator::directories() const

@@ -28,6 +28,8 @@ import Path
 import PathScripts.PathLog as PathLog
 import PathScripts.PathPreferences as PathPreferences
 import PathScripts.PathToolBit as PathToolBit
+from Generators import toolchange_generator as toolchange_generator
+from Generators.toolchange_generator import SpindleDirection
 
 
 if False:
@@ -131,6 +133,7 @@ class ToolController:
             "SpindleDir": [
                 (translate("Path_ToolController", "Forward"), "Forward"),
                 (translate("Path_ToolController", "Reverse"), "Reverse"),
+                (translate("Path_ToolController", "None"), "None"),
             ],  # this is the direction that the profile runs
         }
 
@@ -152,7 +155,6 @@ class ToolController:
         obj.setEditorMode("Placement", 2)
 
     def onDelete(self, obj, arg2=None):
-        # pylint: disable=unused-argument
         if not self.usesLegacyTool(obj):
             if hasattr(obj.Tool, "InList") and len(obj.Tool.InList) == 1:
                 if hasattr(obj.Tool.Proxy, "onDelete"):
@@ -259,27 +261,31 @@ class ToolController:
     def execute(self, obj):
         PathLog.track()
 
-        commands = ""
-        commands += "(" + obj.Label + ")" + "\n"
-        commands += "M6 T" + str(obj.ToolNumber) + "\n"
+        args = {
+            "toolnumber": obj.ToolNumber,
+            "toollabel": obj.Label,
+            "spindlespeed": obj.SpindleSpeed,
+            "spindledirection": SpindleDirection.OFF,
+        }
 
-        # If a toolbit is used, check to see if spindlepower is allowed.
-        # This is to prevent accidentally spinning the spindle with an
-        # unpowered tool like probe or dragknife
-
-        allowSpindlePower = True
-        if not isinstance(obj.Tool, Path.Tool) and hasattr(obj.Tool, "SpindlePower"):
-            allowSpindlePower = obj.Tool.SpindlePower
-
-        if allowSpindlePower:
-            PathLog.debug("selected tool preventing spindle power")
-            if obj.SpindleDir == "Forward":
-                commands += "M3 S" + str(obj.SpindleSpeed) + "\n"
+        if hasattr(obj.Tool, "SpindlePower"):
+            if not obj.Tool.SpindlePower:
+                args["spindledirection"] = SpindleDirection.OFF
             else:
-                commands += "M4 S" + str(obj.SpindleSpeed) + "\n"
+                if obj.SpindleDir == "Forward":
+                    args["spindledirection"] = SpindleDirection.CW
+                else:
+                    args["spindledirection"] = SpindleDirection.CCW
 
-        if commands == "":
-            commands += "(No commands processed)"
+        elif obj.SpindleDir == "None":
+            args["spindledirection"] = SpindleDirection.OFF
+        else:
+            if obj.SpindleDir == "Forward":
+                args["spindledirection"] = SpindleDirection.CW
+            else:
+                args["spindledirection"] = SpindleDirection.CCW
+
+        commands = toolchange_generator.generate(**args)
 
         path = Path.Path(commands)
         obj.Path = path
@@ -361,12 +367,15 @@ def Create(
                 if tool.ViewObject:
                     tool.ViewObject.Visibility = False
         obj.Tool = tool
+
+        if hasattr(obj.Tool, "SpindleDirection"):
+            obj.SpindleDir = obj.Tool.SpindleDirection
+
     obj.ToolNumber = toolNumber
     return obj
 
 
 def FromTemplate(template, assignViewProvider=True):
-    # pylint: disable=unused-argument
     PathLog.track()
 
     name = template.get(ToolControllerTemplate.Name, ToolControllerTemplate.Label)

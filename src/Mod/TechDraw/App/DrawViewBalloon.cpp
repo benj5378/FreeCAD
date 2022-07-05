@@ -88,12 +88,12 @@ const char* DrawViewBalloon::balloonTypeEnums[]= {"Circular",
                                                   "Square",
                                                   "Rectangle",
                                                   "Line",
-                                                  NULL};
+                                                  nullptr};
 
 DrawViewBalloon::DrawViewBalloon(void)
 {
     ADD_PROPERTY_TYPE(Text, (""), "", App::Prop_None, "The text to be displayed");
-    ADD_PROPERTY_TYPE(SourceView, (0), "", (App::PropertyType)(App::Prop_None), "Source view for balloon");
+    ADD_PROPERTY_TYPE(SourceView, (nullptr), "", (App::PropertyType)(App::Prop_None), "Source view for balloon");
     ADD_PROPERTY_TYPE(OriginX, (0), "", (App::PropertyType)(App::Prop_None), "Balloon origin x");
     ADD_PROPERTY_TYPE(OriginY, (0), "", (App::PropertyType)(App::Prop_None), "Balloon origin y");
 
@@ -284,6 +284,21 @@ int DrawViewBalloon::prefShape(void) const
 int DrawViewBalloon::prefEnd(void) const
 {
     return Preferences::balloonArrow();
+}
+
+QPointF DrawViewBalloon::getOrigin()
+{
+    double x = OriginX.getValue();
+    double y = OriginY.getValue();
+    QPointF result(x, y);
+    return result;
+}
+
+void DrawViewBalloon::setOrigin(QPointF p)
+{
+    OriginX.setValue(p.x());
+    OriginY.setValue(p.y());
+    origin = p;
 }
 
 Base::Vector3d DrawViewBalloon::getOriginOffset() const

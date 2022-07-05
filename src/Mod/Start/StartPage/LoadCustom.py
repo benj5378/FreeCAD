@@ -20,14 +20,10 @@
 #***************************************************************************
 
 import os
-import sys
 import FreeCAD
 import FreeCADGui
 
-if sys.version_info.major < 3:
-    from urllib import unquote
-else:
-    from urllib.parse import unquote
+from urllib.parse import unquote
 
 
 # filename will be given before this script is run

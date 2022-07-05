@@ -22,20 +22,23 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <cmath>
-#include <gp_Pnt.hxx>
-#include <gp_Dir.hxx>
-#include <gp_Ax1.hxx>
-#include <gp_Circ.hxx>
-#include <Geom_Circle.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_Shape.hxx>
-#include <TopoDS_Edge.hxx>
-#include <BRepBndLib.hxx>
-#include <Bnd_Box.hxx>
-#include <Precision.hxx>
-#endif  // #ifndef _PreComp_
+# include <cmath>
+# include <boost/uuid/uuid.hpp>
+# include <boost/uuid/uuid_io.hpp>
+# include <boost/uuid/uuid_generators.hpp>
+# include <gp_Pnt.hxx>
+# include <gp_Dir.hxx>
+# include <gp_Ax1.hxx>
+# include <gp_Circ.hxx>
+# include <Geom_Circle.hxx>
+# include <BRepBuilderAPI_MakeEdge.hxx>
+# include <TopoDS.hxx>
+# include <TopoDS_Shape.hxx>
+# include <TopoDS_Edge.hxx>
+# include <BRepBndLib.hxx>
+# include <Bnd_Box.hxx>
+# include <Precision.hxx>
+#endif
 
 #include <Base/Console.h>
 #include <Base/Exception.h>
@@ -288,7 +291,7 @@ void CosmeticVertex::createNewTag()
     static bool seeded = false;
 
     if (!seeded) {
-        ran.seed(static_cast<unsigned int>(std::time(0)));
+        ran.seed(static_cast<unsigned int>(std::time(nullptr)));
         seeded = true;
     }
     static boost::uuids::basic_random_generator<boost::mt19937> gen(&ran);
@@ -552,7 +555,7 @@ void CosmeticEdge::createNewTag()
     static bool seeded = false;
 
     if (!seeded) {
-        ran.seed(static_cast<unsigned int>(std::time(0)));
+        ran.seed(static_cast<unsigned int>(std::time(nullptr)));
         seeded = true;
     }
     static boost::uuids::basic_random_generator<boost::mt19937> gen(&ran);
@@ -776,16 +779,16 @@ TechDraw::BaseGeomPtr CenterLine::scaledGeometry(TechDraw::DrawViewPart* partFea
 {
 //    Base::Console().Message("CL::scaledGeometry() - m_type: %d\n", m_type);
     double scale = partFeat->getScale();
-    if (m_faces.empty() &&
-        m_edges.empty() &&
-        m_verts.empty() ) {
-        Base::Console().Message("CL::scaledGeometry - no geometry to scale!\n");
-        return nullptr;
-    }
-    
     std::pair<Base::Vector3d, Base::Vector3d> ends;
     try {
-        if (m_type == CLTYPE::FACE) {
+        if (m_faces.empty() &&
+            m_edges.empty() &&
+            m_verts.empty() ) {
+//            Base::Console().Message("CL::scaledGeometry - no geometry to scale!\n");
+            //CenterLine was created by points without a geometry reference,
+            ends = calcEndPointsNoRef(m_start, m_end, scale, m_extendBy,
+                                      m_hShift,m_vShift, m_rotate);
+        } else if (m_type == CLTYPE::FACE) {
             ends = calcEndPoints(partFeat,
                                  m_faces,
                                  m_mode, m_extendBy,
@@ -870,6 +873,60 @@ void CenterLine::dump(const char* title)
     Base::Console().Message("CL::dump - %s \n",toString().c_str());
 }
 
+//end points for centerline with no geometry reference
+std::pair<Base::Vector3d, Base::Vector3d> CenterLine::calcEndPointsNoRef(
+                                                      Base::Vector3d start,
+                                                      Base::Vector3d end,
+                                                      double scale,
+                                                      double ext,
+                                                      double hShift, double vShift,
+                                                      double rotate)
+{
+//    Base::Console().Message("CL::calcEndPointsNoRef()\n");
+    std::pair<Base::Vector3d, Base::Vector3d> result;
+    Base::Vector3d p1 = start;
+    Base::Vector3d p2 = end;
+    Base::Vector3d mid = (p1 + p2) / 2.0;
+
+    //extend
+    Base::Vector3d clDir = p2 - p1;
+    clDir.Normalize();
+    p1 = p1 - (clDir * ext);
+    p2 = p2 + (clDir * ext);
+
+    //rotate
+    if (!DrawUtil::fpCompare(rotate, 0.0)) {
+        //rotate p1, p2 about mid point
+        double revRotate = -rotate;
+        double cosTheta = cos(revRotate * M_PI / 180.0);
+        double sinTheta = sin(revRotate * M_PI / 180.0);
+        Base::Vector3d toOrg = p1 - mid;
+        double xRot = toOrg.x * cosTheta - toOrg.y * sinTheta;
+        double yRot = toOrg.y * cosTheta + toOrg.x * sinTheta;
+        p1 = Base::Vector3d(xRot, yRot, 0.0) + mid;
+        toOrg = p2 - mid;
+        xRot = toOrg.x * cosTheta - toOrg.y * sinTheta;
+        yRot = toOrg.y * cosTheta + toOrg.x * sinTheta;
+        p2 = Base::Vector3d(xRot, yRot, 0.0) + mid;
+    }
+
+    //shift
+    if (!DrawUtil::fpCompare(hShift, 0.0)) {
+        double hss = hShift * scale;
+        p1.x = p1.x + hss;
+        p2.x = p2.x + hss;
+    }
+    if (!DrawUtil::fpCompare(vShift, 0.0)) {
+        double vss = vShift * scale;
+        p1.y = p1.y + vss;
+        p2.y = p2.y + vss;
+    }
+
+    result.first = p1 / scale;
+    result.second = p2 / scale;
+    return result;
+}
+
 //end points for face centerline
 std::pair<Base::Vector3d, Base::Vector3d> CenterLine::calcEndPoints(DrawViewPart* partFeat,
                                                       std::vector<std::string> faceNames, 
@@ -899,7 +956,7 @@ std::pair<Base::Vector3d, Base::Vector3d> CenterLine::calcEndPoints(DrawViewPart
         if (!faceEdges.empty()) {
             for (auto& fe: faceEdges) {
                 if (!fe->cosmetic) {
-                    BRepBndLib::Add(fe->occEdge, faceBox);
+                    BRepBndLib::AddOptimal(fe->occEdge, faceBox);
                 }
             }
         }
@@ -1427,7 +1484,7 @@ void CenterLine::createNewTag()
     static bool seeded = false;
 
     if (!seeded) {
-        ran.seed(static_cast<unsigned int>(std::time(0)));
+        ran.seed(static_cast<unsigned int>(std::time(nullptr)));
         seeded = true;
     }
     static boost::uuids::basic_random_generator<boost::mt19937> gen(&ran);
@@ -1617,7 +1674,7 @@ void GeomFormat::createNewTag()
     static bool seeded = false;
 
     if (!seeded) {
-        ran.seed(static_cast<unsigned int>(std::time(0)));
+        ran.seed(static_cast<unsigned int>(std::time(nullptr)));
         seeded = true;
     }
     static boost::uuids::basic_random_generator<boost::mt19937> gen(&ran);

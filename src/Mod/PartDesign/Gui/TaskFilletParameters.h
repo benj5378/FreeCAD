@@ -36,7 +36,7 @@ class TaskFilletParameters : public TaskDressUpParameters
     Q_OBJECT
 
 public:
-    TaskFilletParameters(ViewProviderDressUp *DressUpView, QWidget *parent=0);
+    TaskFilletParameters(ViewProviderDressUp *DressUpView, QWidget *parent=nullptr);
     ~TaskFilletParameters();
 
     virtual void apply();
@@ -45,6 +45,7 @@ private Q_SLOTS:
     void onLengthChanged(double);
     void onRefDeleted(void);
     void onAddAllEdges(void);
+    void onCheckBoxUseAllEdgesToggled(bool checked);
 
 protected:
     double getLength(void) const;

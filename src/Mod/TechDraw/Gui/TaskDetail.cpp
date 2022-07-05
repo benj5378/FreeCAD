@@ -32,6 +32,8 @@
 #include <Base/Quantity.h>
 #include <Base/UnitsApi.h>
 
+#include <App/Document.h>
+
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
@@ -52,7 +54,7 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskDetail.h>
 
-#include "DrawGuiStd.h"
+#include "QGSPage.h"
 #include "QGVPage.h"
 #include "QGIView.h"
 #include "QGIPrimPath.h"
@@ -115,7 +117,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewPart* baseFeat):
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
     ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
     m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->m_scene;
+    m_scene = m_mdi->getQGSPage();
     m_view = m_mdi->getQGVPage();
 
     createDetail();
@@ -201,7 +203,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
     ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
     m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->m_scene;
+    m_scene = m_mdi->getQGSPage();
     m_view = m_mdi->getQGVPage();
 
     saveDetailState();
@@ -235,7 +237,6 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
 
 TaskDetail::~TaskDetail()
 {
-    m_ghost->deleteLater();  //this might not exist if scene is destroyed before TaskDetail is deleted?
 }
 
 void TaskDetail::updateTask()
@@ -293,7 +294,7 @@ void TaskDetail::setUiFromFeat()
     double scale = detailFeat->Scale.getValue();
     QString ref = QString::fromUtf8(detailFeat->Reference.getValue());
 
-    ui->pbDragger->setText(QString::fromUtf8("Drag Highlight"));
+    ui->pbDragger->setText(tr("Drag Highlight"));
     ui->pbDragger->setEnabled(true);
     int decimals = Base::UnitsApi::getDecimals();
     ui->qsbX->setUnit(Base::Unit::Length);
@@ -620,7 +621,8 @@ bool TaskDetail::accept()
 //    Base::Console().Message("TD::accept()\n");
 
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     m_ghost->hide();
     getDetailFeat()->requestPaint();
@@ -634,7 +636,8 @@ bool TaskDetail::reject()
 {
 //    Base::Console().Message("TD::reject()\n");
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     m_ghost->hide();
     if (m_mode == CREATEMODE) {
@@ -660,7 +663,7 @@ TaskDlgDetail::TaskDlgDetail(TechDraw::DrawViewPart* baseFeat)
 {
     widget  = new TaskDetail(baseFeat);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DetailView"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -670,7 +673,7 @@ TaskDlgDetail::TaskDlgDetail(TechDraw::DrawViewDetail* detailFeat)
 {
     widget  = new TaskDetail(detailFeat);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DetailView"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

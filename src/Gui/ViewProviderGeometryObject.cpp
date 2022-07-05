@@ -20,17 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <cfloat>
-# include <QAction>
-# include <QMenu>
+# include <Inventor/SoPickedPoint.h>
+# include <Inventor/actions/SoRayPickAction.h>
 # include <Inventor/actions/SoSearchAction.h>
-# include <Inventor/draggers/SoDragger.h>
-# include <Inventor/draggers/SoCenterballDragger.h>
-# include <Inventor/manips/SoCenterballManip.h>
 # include <Inventor/nodes/SoBaseColor.h>
 # include <Inventor/nodes/SoCamera.h>
 # include <Inventor/nodes/SoDrawStyle.h>
@@ -39,35 +34,20 @@
 # include <Inventor/nodes/SoSeparator.h>
 # include <Inventor/nodes/SoSwitch.h>
 # include <Inventor/nodes/SoDirectionalLight.h>
-# include <Inventor/nodes/SoPickStyle.h>
-# include <Inventor/sensors/SoNodeSensor.h>
-# include <Inventor/SoPickedPoint.h>
-# include <Inventor/actions/SoRayPickAction.h>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
+#include <Inventor/nodes/SoResetTransform.h>
+
+#include <App/GeoFeature.h>
+#include <App/PropertyGeo.h>
+
 #include "ViewProviderGeometryObject.h"
-#include "View3DInventorViewer.h"
-#include "SoFCSelection.h"
-#include "SoFCBoundingBox.h"
 #include "Application.h"
 #include "Document.h"
-#include "Window.h"
+#include "SoFCBoundingBox.h"
+#include "SoFCSelection.h"
+#include "View3DInventorViewer.h"
 
-#include <Base/Console.h>
-#include <Base/Placement.h>
-#include <App/PropertyGeo.h>
-#include <App/GeoFeature.h>
-#include <Inventor/draggers/SoCenterballDragger.h>
-#include <Inventor/nodes/SoResetTransform.h>
-#if (COIN_MAJOR_VERSION > 2)
-#include <Inventor/nodes/SoDepthBuffer.h>
-#endif
-#include "SoFCUnifiedSelection.h"
-#include "SoFCCSysDragger.h"
-#include "Control.h"
-#include "TaskCSysDragger.h"
-#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace Gui;
 
@@ -76,8 +56,8 @@ PROPERTY_SOURCE(Gui::ViewProviderGeometryObject, Gui::ViewProviderDragger)
 const App::PropertyIntegerConstraint::Constraints intPercent = {0,100,1};
 
 ViewProviderGeometryObject::ViewProviderGeometryObject()
-    : pcBoundSwitch(0)
-    , pcBoundColor(0)
+    : pcBoundSwitch(nullptr)
+    , pcBoundColor(nullptr)
 {
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
     bool randomColor = hGrp->GetBool("RandomColor", false);
@@ -213,7 +193,7 @@ SoPickedPointList ViewProviderGeometryObject::getPickedPoints(const SbVec2s& pos
     root->ref();
     root->addChild(viewer.getHeadlight());
     root->addChild(viewer.getSoRenderManager()->getCamera());
-    root->addChild(const_cast<ViewProviderGeometryObject*>(this)->getRoot());
+    root->addChild(getRoot());
 
     SoRayPickAction rp(viewer.getSoRenderManager()->getViewportRegion());
     rp.setPickAll(pickAll);
@@ -232,7 +212,7 @@ SoPickedPoint* ViewProviderGeometryObject::getPickedPoint(const SbVec2s& pos, co
     root->ref();
     root->addChild(viewer.getHeadlight());
     root->addChild(viewer.getSoRenderManager()->getCamera());
-    root->addChild(const_cast<ViewProviderGeometryObject*>(this)->getRoot());
+    root->addChild(getRoot());
 
     SoRayPickAction rp(viewer.getSoRenderManager()->getViewportRegion());
     rp.setPoint(pos);
@@ -243,7 +223,7 @@ SoPickedPoint* ViewProviderGeometryObject::getPickedPoint(const SbVec2s& pos, co
     // returns a copy of the point
     SoPickedPoint* pick = rp.getPickedPoint();
     //return (pick ? pick->copy() : 0); // needs the same instance of CRT under MS Windows
-    return (pick ? new SoPickedPoint(*pick) : 0);
+    return (pick ? new SoPickedPoint(*pick) : nullptr);
 }
 
 unsigned long ViewProviderGeometryObject::getBoundColor() const

@@ -55,7 +55,7 @@ const char* DrawProjGroupItem::TypeEnums[] = {"Front",
                                              "FrontTopRight",
                                              "FrontBottomLeft",
                                              "FrontBottomRight",
-                                             NULL};
+                                             nullptr};
 
 
 PROPERTY_SOURCE(TechDraw::DrawProjGroupItem, TechDraw::DrawViewPart)
@@ -98,6 +98,13 @@ short DrawProjGroupItem::mustExecute() const
 
 void DrawProjGroupItem::onChanged(const App::Property *prop)
 {
+    if ((prop == &X) ||
+        (prop == &Y)) {
+        DrawProjGroup* parent = getPGroup();
+        if (parent != nullptr) {
+            parent->touch(false);
+        }
+    }
     TechDraw::DrawViewPart::onChanged(prop);
 }
 
@@ -129,6 +136,9 @@ bool DrawProjGroupItem::showLock(void) const
 App::DocumentObjectExecReturn *DrawProjGroupItem::execute(void)
 {
 //    Base::Console().Message("DPGI::execute(%s)\n",Label.getValue());
+    if (!keepUpdated()) {
+        return App::DocumentObject::StdReturn;
+    }
 
     bool haveX = checkXDirection();
     if (!haveX) {
@@ -152,17 +162,18 @@ App::DocumentObjectExecReturn *DrawProjGroupItem::execute(void)
 void DrawProjGroupItem::autoPosition()
 {
 //    Base::Console().Message("DPGI::autoPosition(%s)\n",Label.getValue());
+    if (LockPosition.getValue()) {
+        return;
+    }
     auto pgroup = getPGroup();
     Base::Vector3d newPos;
     if (pgroup != nullptr) {
         if (pgroup->AutoDistribute.getValue()) {
-            if (!LockPosition.getValue()) {
-                newPos = pgroup->getXYPosition(Type.getValueAsString());
-                X.setValue(newPos.x);
-                Y.setValue(newPos.y);
-                requestPaint();
-                purgeTouched();               //prevents "still touched after recompute" message
-            }
+            newPos = pgroup->getXYPosition(Type.getValueAsString());
+            X.setValue(newPos.x);
+            Y.setValue(newPos.y);
+            requestPaint();
+            purgeTouched();               //prevents "still touched after recompute" message
         }
     }
 }
@@ -170,6 +181,7 @@ void DrawProjGroupItem::autoPosition()
 void DrawProjGroupItem::onDocumentRestored()
 {
 //    Base::Console().Message("DPGI::onDocumentRestored() - %s\n", getNameInDocument());
+    DrawView::onDocumentRestored();
     App::DocumentObjectExecReturn* rc = DrawProjGroupItem::execute();
     if (rc) {
         delete rc;
@@ -325,7 +337,7 @@ double DrawProjGroupItem::getScale(void) const
     double result = 1.0;
     auto pgroup = getPGroup();
     if (pgroup != nullptr) {
-        result = pgroup->Scale.getValue();
+        result = pgroup->getScale();
         if (!(result > 0.0)) {
             Base::Console().Log("DPGI - %s - bad scale found (%.3f) using 1.0\n",getNameInDocument(),Scale.getValue());
             result = 1.0;                                   //kludgy protective fix. autoscale sometimes serves up 0.0!

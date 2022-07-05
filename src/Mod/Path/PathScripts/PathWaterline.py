@@ -22,7 +22,6 @@
 # ***************************************************************************
 
 from __future__ import print_function
-from PySide import QtCore
 import FreeCAD
 
 __title__ = "Path Waterline Operation"
@@ -31,11 +30,13 @@ __url__ = "http://www.freecadweb.org"
 __doc__ = "Class and implementation of Waterline operation."
 __contributors__ = ""
 
+translate = FreeCAD.Qt.translate
+
 # OCL must be installed
 try:
     import ocl
 except ImportError:
-    msg = QtCore.QCoreApplication.translate(
+    msg = translate(
         "path_waterline", "This operation requires OpenCamLib to be installed."
     )
     FreeCAD.Console.PrintError(msg + "\n")
@@ -63,8 +64,6 @@ if False:
     PathLog.trackModule(PathLog.thisModule())
 else:
     PathLog.setLevel(PathLog.Level.INFO, PathLog.thisModule())
-
-translate = FreeCAD.Qt.translate
 
 
 class ObjectWaterline(PathOp.ObjectOp):
@@ -2260,7 +2259,7 @@ class ObjectWaterline(PathOp.ObjectOp):
         PathLog.track()
 
         paths = []
-        pathParams = {}  # pylint: disable=assignment-from-no-return
+        pathParams = {}
 
         pathParams["shapes"] = [wire]
         pathParams["feedrate"] = self.horizFeed
@@ -2276,7 +2275,7 @@ class ObjectWaterline(PathOp.ObjectOp):
         (pp, end_vector) = Path.fromShapes(**pathParams)
         paths.extend(pp.Commands)
 
-        self.endVector = end_vector  # pylint: disable=attribute-defined-outside-init
+        self.endVector = end_vector
 
         return (paths, end_vector)
 

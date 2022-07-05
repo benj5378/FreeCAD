@@ -20,67 +20,63 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <BRepBuilderAPI_MakeEdge2d.hxx>
 # include <BRepBuilderAPI_MakeVertex.hxx>
-# include <Geom2dConvert_CompCurveToBSplineCurve.hxx>
 # include <Geom2dAPI_Interpolate.hxx>
 # include <Geom2dAPI_ProjectPointOnCurve.hxx>
 # include <Geom2dConvert.hxx>
+# include <Geom2dConvert_CompCurveToBSplineCurve.hxx>
 # include <Geom2dLProp_CLProps2d.hxx>
-# include <gp.hxx>
+# include <gce_ErrorType.hxx>
 # include <gp_Ax22d.hxx>
 # include <gp_Circ2d.hxx>
 # include <gp_Elips2d.hxx>
 # include <gp_Hypr2d.hxx>
 # include <gp_Lin2d.hxx>
 # include <gp_Parab2d.hxx>
-# include <gce_ErrorType.hxx>
-# include <Standard_Real.hxx>
-# include <Standard_Version.hxx>
 # include <Standard_ConstructionError.hxx>
+# include <Standard_Version.hxx>
 # include <TColgp_Array1OfPnt2d.hxx>
 # include <TColgp_Array1OfVec2d.hxx>
 # include <TColgp_HArray1OfPnt2d.hxx>
-# include <TColStd_HArray1OfBoolean.hxx>
-# include <TColStd_Array1OfReal.hxx>
 # include <TColStd_Array1OfInteger.hxx>
-# include <GCE2d_MakeCircle.hxx>
+# include <TColStd_Array1OfReal.hxx>
+# include <TColStd_HArray1OfBoolean.hxx>
 # include <GCE2d_MakeArcOfCircle.hxx>
-# include <GCE2d_MakeEllipse.hxx>
 # include <GCE2d_MakeArcOfEllipse.hxx>
-# include <GCE2d_MakeParabola.hxx>
-# include <GCE2d_MakeArcOfParabola.hxx>
-# include <GCE2d_MakeHyperbola.hxx>
 # include <GCE2d_MakeArcOfHyperbola.hxx>
+# include <GCE2d_MakeArcOfParabola.hxx>
+# include <GCE2d_MakeCircle.hxx>
+# include <GCE2d_MakeEllipse.hxx>
+# include <GCE2d_MakeHyperbola.hxx>
 # include <GCE2d_MakeLine.hxx>
+# include <GCE2d_MakeParabola.hxx>
 # include <GCE2d_MakeSegment.hxx>
 # include <Precision.hxx>
 #endif
 
-#include <Base/VectorPy.h>
-
 #include <Base/Exception.h>
-#include <Base/Writer.h>
 #include <Base/Reader.h>
-#include <Base/Tools.h>
+#include <Base/Writer.h>
 
 #include "Geometry2d.h"
-#include <Mod/Part/App/Geom2d/Circle2dPy.h>
-#include <Mod/Part/App/Geom2d/Ellipse2dPy.h>
-#include <Mod/Part/App/Geom2d/Hyperbola2dPy.h>
-#include <Mod/Part/App/Geom2d/Parabola2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfCircle2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfEllipse2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfHyperbola2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfParabola2dPy.h>
-#include <Mod/Part/App/Geom2d/BezierCurve2dPy.h>
-#include <Mod/Part/App/Geom2d/BSplineCurve2dPy.h>
-#include <Mod/Part/App/Geom2d/Line2dSegmentPy.h>
-#include <Mod/Part/App/Geom2d/Line2dPy.h>
-#include <Mod/Part/App/Geom2d/OffsetCurve2dPy.h>
+
+#include <Geom2d/ArcOfCircle2dPy.h>
+#include <Geom2d/ArcOfEllipse2dPy.h>
+#include <Geom2d/ArcOfHyperbola2dPy.h>
+#include <Geom2d/ArcOfParabola2dPy.h>
+#include <Geom2d/BezierCurve2dPy.h>
+#include <Geom2d/BSplineCurve2dPy.h>
+#include <Geom2d/Circle2dPy.h>
+#include <Geom2d/Ellipse2dPy.h>
+#include <Geom2d/Hyperbola2dPy.h>
+#include <Geom2d/Line2dSegmentPy.h>
+#include <Geom2d/Line2dPy.h>
+#include <Geom2d/OffsetCurve2dPy.h>
+#include <Geom2d/Parabola2dPy.h>
+
 
 using namespace Part;
 using namespace std;
@@ -932,20 +928,21 @@ Base::Vector2d Geom2dCircle::getCircleCenter (const Base::Vector2d &p1, const Ba
     double vv =  v*v;
     double ww =  w*w;
 
-    if (uu * vv * ww == 0)
+    double eps2 = Precision::SquareConfusion();
+    if (uu < eps2 || vv < eps2 || ww < eps2)
         THROWM(Base::ValueError,"Two points are coincident");
 
     double uv = -(u*v);
     double vw = -(v*w);
     double uw = -(u*w);
 
-    double w0 = (2 * sqrt(uu * ww - uw * uw) * uw / (uu * ww));
-    double w1 = (2 * sqrt(uu * vv - uv * uv) * uv / (uu * vv));
-    double w2 = (2 * sqrt(vv * ww - vw * vw) * vw / (vv * ww));
+    double w0 = (2 * sqrt(abs(uu * ww - uw * uw)) * uw / (uu * ww));
+    double w1 = (2 * sqrt(abs(uu * vv - uv * uv)) * uv / (uu * vv));
+    double w2 = (2 * sqrt(abs(vv * ww - vw * vw)) * vw / (vv * ww));
 
     double wx = w0 + w1 + w2;
 
-    if( wx == 0)
+    if (abs(wx) < Precision::Confusion())
         THROWM(Base::ValueError,"Points are collinear");
 
     double x = (w0*p1.x + w1*p2.x + w2*p3.x)/wx;
@@ -2295,7 +2292,7 @@ PyObject *Geom2dTrimmedCurve::getPyObject(void)
     }
 
     PyErr_SetString(PyExc_RuntimeError, "Unknown curve type");
-    return 0;
+    return nullptr;
 }
 
 // ------------------------------------------------------------------

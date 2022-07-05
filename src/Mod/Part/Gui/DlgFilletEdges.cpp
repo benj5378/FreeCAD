@@ -43,8 +43,6 @@
 # include <QItemSelection>
 # include <QItemSelectionModel>
 # include <QTimer>
-# include <boost_bind_bind.hpp>
-# include <Python.h>
 # include <Inventor/actions/SoSearchAction.h>
 # include <Inventor/details/SoLineDetail.h>
 #endif
@@ -70,6 +68,7 @@
 #include <Gui/WaitCursor.h>
 #include <Gui/Selection.h>
 #include <Gui/SelectionFilter.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/SoFCUnifiedSelection.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/Window.h>
@@ -85,7 +84,7 @@ QWidget *FilletRadiusDelegate::createEditor(QWidget *parent, const QStyleOptionV
                                             const QModelIndex & index) const
 {
     if (index.column() < 1)
-        return 0;
+        return nullptr;
 
     Gui::QuantitySpinBox *editor = new Gui::QuantitySpinBox(parent);
     editor->setUnit(Base::Unit::Length);
@@ -172,7 +171,7 @@ namespace PartGui {
         App::DocumentObject*& object;
     public:
         EdgeFaceSelection(App::DocumentObject*& obj)
-            : Gui::SelectionFilterGate((Gui::SelectionFilter*)0), allowEdge(true), object(obj)
+            : Gui::SelectionFilterGate(nullPointer()), allowEdge(true), object(obj)
         {
         }
         void selectEdges()
@@ -240,7 +239,7 @@ DlgFilletEdges::DlgFilletEdges(FilletType type, Part::FilletBase* fillet, QWidge
     ui->filletEndRadius->setMinimum(0);
     ui->filletEndRadius->setUnit(Base::Unit::Length);
 
-    d->object = 0;
+    d->object = nullptr;
     d->selection = new EdgeFaceSelection(d->object);
     Gui::Selection().addSelectionGate(d->selection);
 
@@ -263,15 +262,19 @@ DlgFilletEdges::DlgFilletEdges(FilletType type, Part::FilletBase* fillet, QWidge
 
     d->filletType = type;
     if (d->filletType == DlgFilletEdges::CHAMFER) {
+        ui->parameterName->setTitle(tr("Chamfer Parameter"));
+        ui->labelfillet->setText(tr("Chamfer type"));
         ui->labelRadius->setText(tr("Length:"));
-        ui->filletType->setItemText(0, tr("Constant Length"));
-        ui->filletType->setItemText(1, tr("Variable Length"));
+        ui->filletType->setItemText(0, tr("Equal distance"));
+        ui->filletType->setItemText(1, tr("Two distances"));
 
         model->setHeaderData(0, Qt::Horizontal, tr("Edges to chamfer"), Qt::DisplayRole);
-        model->setHeaderData(1, Qt::Horizontal, tr("Start length"), Qt::DisplayRole);
-        model->setHeaderData(2, Qt::Horizontal, tr("End length"), Qt::DisplayRole);
+        model->setHeaderData(1, Qt::Horizontal, tr("Size"), Qt::DisplayRole);
+        model->setHeaderData(2, Qt::Horizontal, tr("Size2"), Qt::DisplayRole);
     }
     else {
+        ui->parameterName->setTitle(tr("Fillet Parameter"));
+        ui->labelfillet->setText(tr("Fillet type"));
         model->setHeaderData(0, Qt::Horizontal, tr("Edges to fillet"), Qt::DisplayRole);
         model->setHeaderData(1, Qt::Horizontal, tr("Start radius"), Qt::DisplayRole);
         model->setHeaderData(2, Qt::Horizontal, tr("End radius"), Qt::DisplayRole);
@@ -455,16 +458,16 @@ void DlgFilletEdges::onSelectEdgesOfFace(const QString& subelement, int type)
 void DlgFilletEdges::onDeleteObject(const App::DocumentObject& obj)
 {
     if (d->fillet == &obj) {
-        d->fillet = 0;
+        d->fillet = nullptr;
     }
     else if (d->fillet && d->fillet->Base.getValue() == &obj) {
-        d->fillet = 0;
-        d->object = 0;
+        d->fillet = nullptr;
+        d->object = nullptr;
         ui->shapeObject->setCurrentIndex(0);
         on_shapeObject_activated(0);
     }
     else if (d->object == &obj) {
-        d->object = 0;
+        d->object = nullptr;
         ui->shapeObject->removeItem(ui->shapeObject->currentIndex());
         ui->shapeObject->setCurrentIndex(0);
         on_shapeObject_activated(0);
@@ -528,7 +531,8 @@ void DlgFilletEdges::toggleCheckState(const QModelIndex& index)
 void DlgFilletEdges::findShapes()
 {
     App::Document* activeDoc = App::GetApplication().getActiveDocument();
-    if (!activeDoc) return;
+    if (!activeDoc)
+        return;
 
     std::vector<App::DocumentObject*> objs = activeDoc->getObjectsOfType
         (Part::Feature::getClassTypeId());
@@ -694,7 +698,7 @@ void DlgFilletEdges::changeEvent(QEvent *e)
 
 void DlgFilletEdges::on_shapeObject_activated(int itemPos)
 {
-    d->object = 0;
+    d->object = nullptr;
     QStandardItemModel *model = qobject_cast<QStandardItemModel*>(ui->treeView->model());
     model->removeRows(0, model->rowCount());
 
@@ -999,7 +1003,7 @@ TaskFilletEdges::TaskFilletEdges(Part::Fillet* fillet)
     widget = new DlgFilletEdges(DlgFilletEdges::FILLET, fillet);
     taskbox = new Gui::TaskView::TaskBox(
         Gui::BitmapFactory().pixmap("Part_Fillet"),
-        widget->windowTitle(), true, 0);
+        widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -1058,7 +1062,7 @@ TaskChamferEdges::TaskChamferEdges(Part::Chamfer* chamfer)
     widget = new DlgChamferEdges(chamfer);
     taskbox = new Gui::TaskView::TaskBox(
         Gui::BitmapFactory().pixmap("Part_Chamfer"),
-        widget->windowTitle(), true, 0);
+        widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

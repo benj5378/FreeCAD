@@ -49,14 +49,14 @@ PyObject *BRepOffsetAPI_MakePipeShellPy::PyMake(struct _typeobject *, PyObject *
     // create a new instance of BRepOffsetAPI_MakePipeShellPy and the Twin object 
     PyObject* obj;
     if (!PyArg_ParseTuple(args, "O!",&(TopoShapePy::Type),&obj))
-        return 0;
+        return nullptr;
     const TopoDS_Shape& wire = static_cast<TopoShapePy*>(obj)->getTopoShapePtr()->getShape();
     if (!wire.IsNull() && wire.ShapeType() == TopAbs_WIRE) {
         return new BRepOffsetAPI_MakePipeShellPy(new BRepOffsetAPI_MakePipeShell(TopoDS::Wire(wire)));
     }
 
     PyErr_SetString(PartExceptionOCCError, "A valid wire is needed as argument");
-    return 0;
+    return nullptr;
 }
 
 // constructor method
@@ -75,7 +75,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setFrenetMode(PyObject *args)
 {
     PyObject *obj;
     if (!PyArg_ParseTuple(args, "O!",&PyBool_Type,&obj))
-        return 0;
+        return nullptr;
 
     try {
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetMode(PyObject_IsTrue(obj) ? Standard_True : Standard_False);
@@ -83,7 +83,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setFrenetMode(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -92,7 +92,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTrihedronMode(PyObject *args)
     PyObject *pnt, *dir;
     if (!PyArg_ParseTuple(args, "O!O!",&Base::VectorPy::Type,&pnt
                                       ,&Base::VectorPy::Type,&dir))
-        return 0;
+        return nullptr;
 
     try {
         gp_Pnt p = Base::convertTo<gp_Pnt>(Py::Vector(pnt,false).toVector());
@@ -102,7 +102,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTrihedronMode(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -110,7 +110,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setBiNormalMode(PyObject *args)
 {
     PyObject *dir;
     if (!PyArg_ParseTuple(args, "O!",&Base::VectorPy::Type,&dir))
-        return 0;
+        return nullptr;
 
     try {
         gp_Dir d = Base::convertTo<gp_Dir>(Py::Vector(dir,false).toVector());
@@ -119,7 +119,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setBiNormalMode(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -127,7 +127,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setSpineSupport(PyObject *args)
 {
     PyObject *shape;
     if (!PyArg_ParseTuple(args, "O!",&Part::TopoShapePy::Type,&shape))
-        return 0;
+        return nullptr;
 
     try {
         const TopoDS_Shape& s = static_cast<Part::TopoShapePy*>(shape)->getTopoShapePtr()->getShape();
@@ -136,24 +136,23 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setSpineSupport(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::setAuxiliarySpine(PyObject *args)
 {
-#if OCC_VERSION_HEX >= 0x060700
     PyObject *spine, *curv, *keep;
     if (!PyArg_ParseTuple(args, "O!O!O!",&Part::TopoShapePy::Type,&spine
                                         ,&PyBool_Type,&curv
                                         ,&PyLong_Type,&keep))
-        return 0;
+        return nullptr;
 
     try {
         const TopoDS_Shape& s = static_cast<Part::TopoShapePy*>(spine)->getTopoShapePtr()->getShape();
         if (s.IsNull() || s.ShapeType() != TopAbs_WIRE) {
             PyErr_SetString(PyExc_TypeError, "spine is not a wire");
-            return 0;
+            return nullptr;
         }
 
         BRepFill_TypeOfContact typeOfCantact;
@@ -176,39 +175,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setAuxiliarySpine(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
-#else
-    PyObject *spine, *curv, *keep;
-    if (!PyArg_ParseTuple(args, "O!O!O!",&Part::TopoShapePy::Type,&spine
-                                        ,&PyBool_Type,&curv
-                                        ,&PyBool_Type,&keep))
-        return 0;
-
-    try {
-        const TopoDS_Shape& s = static_cast<Part::TopoShapePy*>(spine)->getTopoShapePtr()->getShape();
-        if (s.IsNull() || s.ShapeType() != TopAbs_WIRE) {
-            PyErr_SetString(PyExc_TypeError, "spine is not a wire");
-            return 0;
-        }
-
-        this->getBRepOffsetAPI_MakePipeShellPtr()->SetMode(
-            TopoDS::Wire(s),
-            PyObject_IsTrue(curv) ? Standard_True : Standard_False,
-            PyObject_IsTrue(keep) ? Standard_True : Standard_False);
-        Py_Return;
-    }
-    catch (Standard_Failure& e) {
-        PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
-    }
-#endif
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::add(PyObject *args, PyObject *kwds)
 {
     PyObject *prof, *curv=Py_False, *keep=Py_False;
-    static char* keywords_pro[] = {"Profile","WithContact","WithCorrection",NULL};
+    static char* keywords_pro[] = {"Profile","WithContact","WithCorrection",nullptr};
     if (PyArg_ParseTupleAndKeywords(args,kwds, "O!|O!O!", keywords_pro
                                         ,&Part::TopoShapePy::Type,&prof
                                         ,&PyBool_Type,&curv
@@ -222,13 +196,13 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::add(PyObject *args, PyObject *kwds)
         }
         catch (Standard_Failure& e) {
             PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-            return 0;
+            return nullptr;
         }
     }
 
     PyErr_Clear();
     PyObject *loc;
-    static char* keywords_loc[] = {"Profile","Location","WithContact","WithCorrection",NULL};
+    static char* keywords_loc[] = {"Profile","Location","WithContact","WithCorrection",nullptr};
     if (PyArg_ParseTupleAndKeywords(args,kwds, "O!O!|O!O!", keywords_loc
                                         ,&Part::TopoShapePy::Type,&prof
                                         ,&Part::TopoShapeVertexPy::Type,&loc
@@ -244,7 +218,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::add(PyObject *args, PyObject *kwds)
         }
         catch (Standard_Failure& e) {
             PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-            return 0;
+            return nullptr;
         }
     }
 
@@ -252,14 +226,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::add(PyObject *args, PyObject *kwds)
                     "add(Profile, WithContact=False, WithCorrection=False)\n"
                     "add(Profile, Location, WithContact=False, WithCorrection=False)"
     );
-    return 0;
+    return nullptr;
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::remove(PyObject *args)
 {
     PyObject *prof;
     if (!PyArg_ParseTuple(args, "O!",&Part::TopoShapePy::Type,&prof))
-        return 0;
+        return nullptr;
 
     try {
         const TopoDS_Shape& s = static_cast<Part::TopoShapePy*>(prof)->getTopoShapePtr()->getShape();
@@ -268,14 +242,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::remove(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::isReady(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         Standard_Boolean ok = this->getBRepOffsetAPI_MakePipeShellPtr()->IsReady();
@@ -283,14 +257,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::isReady(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::getStatus(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         Standard_Integer val = this->getBRepOffsetAPI_MakePipeShellPtr()->GetStatus();
@@ -298,14 +272,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::getStatus(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::makeSolid(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         Standard_Boolean ok = this->getBRepOffsetAPI_MakePipeShellPtr()->MakeSolid();
@@ -313,14 +287,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::makeSolid(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::build(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         this->getBRepOffsetAPI_MakePipeShellPtr()->Build();
@@ -328,14 +302,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::build(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::shape(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         const TopoDS_Shape& shape = this->getBRepOffsetAPI_MakePipeShellPtr()->Shape();
@@ -343,14 +317,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::shape(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::firstShape(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         TopoDS_Shape shape = this->getBRepOffsetAPI_MakePipeShellPtr()->FirstShape();
@@ -358,14 +332,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::firstShape(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* BRepOffsetAPI_MakePipeShellPy::lastShape(PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     try {
         TopoDS_Shape shape = this->getBRepOffsetAPI_MakePipeShellPtr()->LastShape();
@@ -373,7 +347,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::lastShape(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -381,7 +355,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::generated(PyObject *args)
 {
     PyObject *shape;
     if (!PyArg_ParseTuple(args, "O!",&Part::TopoShapePy::Type,&shape))
-        return 0;
+        return nullptr;
 
     try {
         const TopoDS_Shape& s = static_cast<Part::TopoShapePy*>(shape)->getTopoShapePtr()->getShape();
@@ -397,7 +371,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::generated(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -405,7 +379,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTolerance(PyObject *args)
 {
     double tol3d, boundTol, tolAngular;
     if (!PyArg_ParseTuple(args, "ddd",&tol3d,&boundTol,&tolAngular))
-        return 0;
+        return nullptr;
 
     try {
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetTolerance(tol3d, boundTol, tolAngular);
@@ -413,7 +387,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTolerance(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -421,7 +395,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTransitionMode(PyObject *args)
 {
     int mode;
     if (!PyArg_ParseTuple(args, "i",&mode))
-        return 0;
+        return nullptr;
 
     try {
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetTransitionMode(BRepBuilderAPI_TransitionMode(mode));
@@ -429,7 +403,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setTransitionMode(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -437,21 +411,15 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setMaxDegree(PyObject *args)
 {
     int degree;
     if (!PyArg_ParseTuple(args, "i",&degree))
-        return 0;
+        return nullptr;
 
     try {
-#if OCC_VERSION_HEX >= 0x060800
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetMaxDegree(degree);
         Py_Return;
-#else
-        (void)args;
-        PyErr_SetString(PyExc_RuntimeError, "requires OCC >= 6.8");
-        return 0;
-#endif
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -459,21 +427,15 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setMaxSegments(PyObject *args)
 {
     int nbseg;
     if (!PyArg_ParseTuple(args, "i",&nbseg))
-        return 0;
+        return nullptr;
 
     try {
-#if OCC_VERSION_HEX >= 0x060800
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetMaxSegments(nbseg);
         Py_Return;
-#else
-        (void)args;
-        PyErr_SetString(PyExc_RuntimeError, "requires OCC >= 6.8");
-        return 0;
-#endif
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -481,20 +443,15 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::setForceApproxC1(PyObject *args)
 {
     PyObject *obj;
     if (!PyArg_ParseTuple(args, "O!",&PyBool_Type,&obj))
-        return 0;
+        return nullptr;
 
     try {
-#if OCC_VERSION_HEX >= 0x060700
         this->getBRepOffsetAPI_MakePipeShellPtr()->SetForceApproxC1(PyObject_IsTrue(obj) ? Standard_True : Standard_False);
         Py_Return;
-#else
-        PyErr_SetString(PyExc_RuntimeError, "requires OCC >= 6.7");
-        return 0;
-#endif
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
@@ -503,7 +460,7 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::simulate(PyObject *args)
 {
     int nbsec;
     if (!PyArg_ParseTuple(args, "i",&nbsec))
-        return 0;
+        return nullptr;
 
     try {
         TopTools_ListOfShape list; 
@@ -519,14 +476,14 @@ PyObject* BRepOffsetAPI_MakePipeShellPy::simulate(PyObject *args)
     }
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 }
 
 
 PyObject *BRepOffsetAPI_MakePipeShellPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int BRepOffsetAPI_MakePipeShellPy::setCustomAttributes(const char* , PyObject *)

@@ -23,10 +23,6 @@
 
 #include "PreCompiled.h"
 
-#include <climits>
-#include <cmath>
-#include "Base/Matrix.h"
-
 // inclusion of the generated files (generated out of MatrixPy.xml)
 #include "RotationPy.h"
 #include "VectorPy.h"
@@ -34,6 +30,7 @@
 #include "QuantityPy.h"
 #include "MatrixPy.h"
 #include "MatrixPy.cpp"
+
 
 using namespace Base;
 
@@ -71,7 +68,7 @@ int MatrixPy::PyInit(PyObject* args, PyObject* /*kwd*/)
                           &a21,&a22,&a23,&a24,
                           &a31,&a32,&a33,&a34,
                           &a41,&a42,&a43,&a44)) {
-        MatrixPy::PointerType ptr = reinterpret_cast<MatrixPy::PointerType>(_pcTwinPointer);
+        MatrixPy::PointerType ptr = getMatrixPtr();
         (*ptr) = Matrix4D(a11,a12,a13,a14,
                           a21,a22,a23,a24,
                           a31,a32,a33,a34,
@@ -82,7 +79,7 @@ int MatrixPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     PyErr_Clear();
     PyObject *o;
     if (PyArg_ParseTuple(args, "O!", &(Base::MatrixPy::Type), &o)) {
-        MatrixPy::PointerType ptr = reinterpret_cast<MatrixPy::PointerType>(_pcTwinPointer);
+        MatrixPy::PointerType ptr = getMatrixPtr();
         (*ptr) = static_cast<MatrixPy*>(o)->value();
         return 0;
     }
@@ -123,7 +120,7 @@ int MatrixPy::PyInit(PyObject* args, PyObject* /*kwd*/)
         return 0;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "matrix or up to 16 floats expected");
+    PyErr_SetString(PyExc_TypeError, "Base.Matrix, four Base.Vector or up to 16 floats expected");
     return -1;
 }
 
@@ -185,9 +182,8 @@ PyObject* MatrixPy::number_multiply_handler(PyObject *self, PyObject *other)
         }
 
         if (PyNumber_Check(other)) {
-            double v = PyFloat_AsDouble(self);
-            a.scale(v,v,v);
-            return new MatrixPy(a);
+            double v = PyFloat_AsDouble(other);
+            return new MatrixPy(a * v);
         }
     }
 
@@ -210,14 +206,14 @@ PyObject * MatrixPy::number_power_handler (PyObject* self, PyObject* other, PyOb
     Base::Matrix4D a = static_cast<MatrixPy*>(self)->value();
 
     long b = Py::Int(other);
-    if (!b)
+    if (b == 0)
         return new MatrixPy(Matrix4D());
 
     if (b < 0) {
         if (fabs(a.determinant()) > DBL_EPSILON)
             a.inverseGauss();
         else {
-            PyErr_SetString(Base::BaseExceptionFreeCADError, "Cannot invert singular matrix");
+            PyErr_SetString(PyExc_RuntimeError, "Cannot invert singular matrix");
             return nullptr;
         }
         b = -b;
@@ -266,34 +262,38 @@ PyObject* MatrixPy::move(PyObject * args)
     Base::Vector3d vec;
     PyObject *pcVecObj;
 
-    if (PyArg_ParseTuple(args, "ddd", &x,&y,&z)) {   // convert args: Python->C
-        vec.x = x;
-        vec.y = y;
-        vec.z = z;
-    }
-    else if (PyArg_ParseTuple(args, "O!:three floats or a vector is needed",
+    do { // dummy do..while for cascaded if
+        if (PyArg_ParseTuple(args, "ddd", &x,&y,&z)) {
+            vec.x = x;
+            vec.y = y;
+            vec.z = z;
+            break;
+        }
+        // clears the error from previous PyArg_ParseTuple()
+        PyErr_Clear();
+        if (PyArg_ParseTuple(args, "O!",
         &PyTuple_Type, &pcVecObj)) {
-        vec = getVectorFromTuple<double>(pcVecObj);
-        // clears the error from the first PyArg_ParseTuple()6
+            vec = getVectorFromTuple<double>(pcVecObj);
+            break;
+        }
+        // clears the error from previous PyArg_ParseTuple()
         PyErr_Clear();
-    }
-    else if (PyArg_ParseTuple(args, "O!:three floats or a vector is needed",
+        if (PyArg_ParseTuple(args, "O!;three floats, or a tuple, or a vector is needed",
         &(Base::VectorPy::Type), &pcVecObj)) {
-        Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
-        Base::Vector3d* val = pcObject->getVectorPtr();
-        vec.Set(val->x,val->y,val->z);
-        // clears the error from the first PyArg_ParseTuple()6
-        PyErr_Clear();
-    }
-    else
+            Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
+            Base::Vector3d* val = pcObject->getVectorPtr();
+            vec.Set(val->x,val->y,val->z);
+            break;
+        }
         return nullptr;
+    }
+    while(false);
 
     PY_TRY {
         getMatrixPtr()->move(vec);
+        Py_Return;
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::scale(PyObject * args)
@@ -302,34 +302,43 @@ PyObject* MatrixPy::scale(PyObject * args)
     Base::Vector3d vec;
     PyObject *pcVecObj;
 
-    if (PyArg_ParseTuple(args, "ddd", &x,&y,&z)) {   // convert args: Python->C
-        vec.x = x;
-        vec.y = y;
-        vec.z = z;
-    }
-    else if (PyArg_ParseTuple(args, "O!:three floats or a vector is needed",
-        &PyTuple_Type, &pcVecObj)) {
-        vec = getVectorFromTuple<double>(pcVecObj);
-        // clears the error from the first PyArg_ParseTuple()6
+    do { // dummy do..while for cascaded if
+        if (PyArg_ParseTuple(args, "ddd", &x,&y,&z)) {
+            vec.x = x;
+            vec.y = y;
+            vec.z = z;
+            break;
+        }
+        // clears the error from previous PyArg_ParseTuple()
         PyErr_Clear();
-    }
-    else if (PyArg_ParseTuple(args, "O!:three floats or a vector is needed", &(Base::VectorPy::Type), &pcVecObj)) {
-        // convert args: Python->C
-        Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
-        Base::Vector3d* val = pcObject->getVectorPtr();
-        vec.Set(val->x,val->y,val->z);
-        // clears the error from the first PyArg_ParseTuple()6
+        if (PyArg_ParseTuple(args, "d", &x)) {
+            vec.x = vec.y = vec.z = x;
+            break;
+        }
+        // clears the error from previous PyArg_ParseTuple()
         PyErr_Clear();
-    }
-    else
+        if (PyArg_ParseTuple(args, "O!", &PyTuple_Type, &pcVecObj)) {
+            vec = getVectorFromTuple<double>(pcVecObj);
+            break;
+        }
+        // clears the error from previous PyArg_ParseTuple()
+        PyErr_Clear();
+        if (PyArg_ParseTuple(args, "O!;one or three floats, or a tuple, or a vector is needed",
+        &(Base::VectorPy::Type), &pcVecObj)) {
+            Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
+            Base::Vector3d* val = pcObject->getVectorPtr();
+            vec.Set(val->x,val->y,val->z);
+            break;
+        }
         return nullptr;
+    }
+    while(false);
 
     PY_TRY {
         getMatrixPtr()->scale(vec);
+        Py_Return;
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::hasScale(PyObject * args)
@@ -337,19 +346,58 @@ PyObject* MatrixPy::hasScale(PyObject * args)
     double tol=0;
     if (!PyArg_ParseTuple(args, "|d", &tol))
         return nullptr;
-    return Py::new_reference_to(Py::Int(getMatrixPtr()->hasScale(tol)));
+
+    ScaleType type = getMatrixPtr()->hasScale(tol);
+    Py::Module mod("FreeCAD");
+    return Py::new_reference_to(mod.callMemberFunction("ScaleType", Py::TupleN(Py::Int(static_cast<int>(type)))));
+}
+
+PyObject* MatrixPy::nullify(PyObject * args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+      return nullptr;
+
+    PY_TRY {
+        getMatrixPtr()->nullify();
+        Py_Return;
+    }
+    PY_CATCH;
+}
+
+PyObject* MatrixPy::isNull(PyObject * args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+      return nullptr;
+
+    PY_TRY {
+        bool ok = getMatrixPtr()->isNull();
+        return Py::new_reference_to(Py::Boolean(ok));
+    }
+    PY_CATCH;
 }
 
 PyObject* MatrixPy::unity(PyObject * args)
 {
-    if (!PyArg_ParseTuple(args, ""))     // convert args: Python->C
-      return nullptr;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, ""))
+      return nullptr;
+
     PY_TRY {
         getMatrixPtr()->setToUnity();
+        Py_Return;
     }
     PY_CATCH;
+}
 
-    Py_Return;
+PyObject* MatrixPy::isUnity(PyObject * args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+      return nullptr;
+
+    PY_TRY {
+        bool ok = getMatrixPtr()->isUnity();
+        return Py::new_reference_to(Py::Boolean(ok));
+    }
+    PY_CATCH;
 }
 
 PyObject* MatrixPy::transform(PyObject * args)
@@ -358,109 +406,107 @@ PyObject* MatrixPy::transform(PyObject * args)
     Matrix4D mat;
     PyObject *pcVecObj,*pcMatObj;
 
-    if (PyArg_ParseTuple(args, "O!O!: a transform point (Vector) and a transform matrix (Matrix) is needed",
-        &(Base::VectorPy::Type), &pcVecObj, &(MatrixPy::Type), &pcMatObj) ) {   // convert args: Python->C
-        Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
-        Base::Vector3d* val = pcObject->getVectorPtr();
-        vec.Set(val->x,val->y,val->z);
-        mat = *(static_cast<MatrixPy*>(pcMatObj)->getMatrixPtr());
-        // clears the error from the first PyArg_ParseTuple()6
-        PyErr_Clear();
-    }
-    else
-        return nullptr;                                 // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "O!O!: a transform point (Vector) and a transform matrix (Matrix) is needed",
+        &(Base::VectorPy::Type), &pcVecObj, &(MatrixPy::Type), &pcMatObj))
+        return nullptr;
 
-    PY_TRY {
-        getMatrixPtr()->transform(vec,mat);
-    }
-    PY_CATCH;
+    Base::VectorPy  *pcObject = static_cast<Base::VectorPy*>(pcVecObj);
+    Base::Vector3d* val = pcObject->getVectorPtr();
+    vec.Set(val->x,val->y,val->z);
+    mat = *(static_cast<MatrixPy*>(pcMatObj)->getMatrixPtr());
 
+    getMatrixPtr()->transform(vec,mat);
     Py_Return;
 }
 
 PyObject* MatrixPy::col(PyObject * args)
 {
     int index;
-    if (PyArg_ParseTuple(args, "i", &index)) {
-        index = index % 4;
-        Matrix4D* mat = getMatrixPtr();
-        Base::Vector3d v = mat->getCol(index);
-        return Py::new_reference_to(Py::Vector(v));
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+
+    if (index < 0 || index > 3) {
+        PyErr_SetString(PyExc_ValueError, "Index expected in the range [0, 3]");
+        return nullptr;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "int expected");
-    return nullptr;
+    Matrix4D* mat = getMatrixPtr();
+    Base::Vector3d v = mat->getCol(index);
+    return Py::new_reference_to(Py::Vector(v));
 }
 
 PyObject* MatrixPy::setCol(PyObject * args)
 {
     int index;
     PyObject* o;
-    if (PyArg_ParseTuple(args, "iO!", &index, &(VectorPy::Type), &o)) {
-        index = index % 4;
-        Base::Vector3d v = Py::Vector(o, false).toVector();
-        Matrix4D* mat = getMatrixPtr();
-        mat->setCol(index, v);
-        Py_Return;
+    if (!PyArg_ParseTuple(args, "iO!", &index, &(VectorPy::Type), &o))
+        return nullptr;
+
+    if (index < 0 || index > 3) {
+        PyErr_SetString(PyExc_ValueError, "Index expected in the range [0, 3]");
+        return nullptr;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "int and Vector expected");
-    return nullptr;
+    Base::Vector3d v = Py::Vector(o, false).toVector();
+    Matrix4D* mat = getMatrixPtr();
+    mat->setCol(index, v);
+    Py_Return;
 }
 
 PyObject* MatrixPy::row(PyObject * args)
 {
     int index;
-    if (PyArg_ParseTuple(args, "i", &index)) {
-        index = index % 4;
-        Matrix4D* mat = getMatrixPtr();
-        Base::Vector3d v = mat->getRow(index);
-        return Py::new_reference_to(Py::Vector(v));
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+
+    if (index < 0 || index > 3) {
+        PyErr_SetString(PyExc_ValueError, "Index expected in the range [0, 3]");
+        return nullptr;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "int expected");
-    return nullptr;
+    Matrix4D* mat = getMatrixPtr();
+    Base::Vector3d v = mat->getRow(index);
+    return Py::new_reference_to(Py::Vector(v));
 }
 
 PyObject* MatrixPy::setRow(PyObject * args)
 {
     int index;
     PyObject* o;
-    if (PyArg_ParseTuple(args, "iO!", &index, &(VectorPy::Type), &o)) {
-        index = index % 4;
-        Base::Vector3d v = Py::Vector(o, false).toVector();
-        Matrix4D* mat = getMatrixPtr();
-        mat->setRow(index, v);
-        Py_Return;
+    if (!PyArg_ParseTuple(args, "iO!", &index, &(VectorPy::Type), &o))
+        return nullptr;
+
+    if (index < 0 || index > 3) {
+        PyErr_SetString(PyExc_ValueError, "Index expected in the range [0, 3]");
+        return nullptr;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "int and Vector expected");
-    return nullptr;
+    Base::Vector3d v = Py::Vector(o, false).toVector();
+    Matrix4D* mat = getMatrixPtr();
+    mat->setRow(index, v);
+    Py_Return;
 }
 
 PyObject* MatrixPy::trace(PyObject * args)
 {
-    if (PyArg_ParseTuple(args, "")) {
-        Matrix4D* mat = getMatrixPtr();
-        Base::Vector3d v = mat->trace();
-        return Py::new_reference_to(Py::Vector(v));
-    }
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
 
-    return nullptr;
+    Matrix4D* mat = getMatrixPtr();
+    Base::Vector3d v = mat->trace();
+    return Py::new_reference_to(Py::Vector(v));
 }
 
 PyObject* MatrixPy::setTrace(PyObject * args)
 {
     PyObject* o;
-    if (PyArg_ParseTuple(args, "O!", &(VectorPy::Type), &o)) {
-        Base::Vector3d v = Py::Vector(o, false).toVector();
-        Matrix4D* mat = getMatrixPtr();
-        mat->setTrace(v);
-        Py_Return;
-    }
+    if (!PyArg_ParseTuple(args, "O!", &(VectorPy::Type), &o))
+        return nullptr;
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "Vector expected");
-    return nullptr;
+    Base::Vector3d v = Py::Vector(o, false).toVector();
+    Matrix4D* mat = getMatrixPtr();
+    mat->setTrace(v);
+    Py_Return;
 }
 
 PyObject* MatrixPy::rotateX(PyObject * args)
@@ -488,10 +534,9 @@ PyObject* MatrixPy::rotateX(PyObject * args)
 
     PY_TRY {
         getMatrixPtr()->rotX(angle);
+        Py_Return;
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::rotateY(PyObject * args)
@@ -519,10 +564,9 @@ PyObject* MatrixPy::rotateY(PyObject * args)
 
     PY_TRY {
         getMatrixPtr()->rotY(angle);
+        Py_Return;
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::rotateZ(PyObject * args)
@@ -550,10 +594,9 @@ PyObject* MatrixPy::rotateZ(PyObject * args)
 
     PY_TRY {
         getMatrixPtr()->rotZ(angle);
+        Py_Return;
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::multiply(PyObject * args)
@@ -570,7 +613,7 @@ PyObject* MatrixPy::multiply(PyObject * args)
         return new VectorPy(new Vector3d(vec));
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "either vector or matrix expected");
+    PyErr_SetString(PyExc_TypeError, "either vector or matrix expected");
     return nullptr;
 }
 
@@ -579,6 +622,7 @@ PyObject* MatrixPy::multVec(PyObject * args)
     PyObject *obj;
     if (!PyArg_ParseTuple(args, "O!", &(VectorPy::Type), &obj))
         return nullptr;
+
     Base::Vector3d vec(static_cast<VectorPy*>(obj)->value());
     getMatrixPtr()->multVec(vec, vec);
     return new VectorPy(new Vector3d(vec));
@@ -590,16 +634,16 @@ PyObject* MatrixPy::invert(PyObject * args)
         return nullptr;
 
     PY_TRY {
-        if (fabs(getMatrixPtr()->determinant()) > DBL_EPSILON)
+        if (fabs(getMatrixPtr()->determinant()) > DBL_EPSILON) {
             getMatrixPtr()->inverseGauss();
+            Py_Return;
+        }
         else {
-            PyErr_SetString(Base::BaseExceptionFreeCADError, "Cannot invert singular matrix");
+            PyErr_SetString(Base::PyExc_FC_GeneralError, "Cannot invert singular matrix");
             return nullptr;
         }
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::inverse(PyObject * args)
@@ -614,19 +658,18 @@ PyObject* MatrixPy::inverse(PyObject * args)
             return new MatrixPy(m);
         }
         else {
-            PyErr_SetString(Base::BaseExceptionFreeCADError, "Cannot invert singular matrix");
+            PyErr_SetString(Base::PyExc_FC_GeneralError, "Cannot invert singular matrix");
             return nullptr;
         }
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::determinant(PyObject * args)
 {
     if (!PyArg_ParseTuple(args, ""))
         return nullptr;
+
     return PyFloat_FromDouble(getMatrixPtr()->determinant());
 }
 
@@ -635,6 +678,7 @@ PyObject* MatrixPy::submatrix(PyObject * args)
     int dim;
     if (!PyArg_ParseTuple(args, "i", &dim))
         return nullptr;
+
     if (dim < 1 || dim > 4) {
         PyErr_SetString(PyExc_IndexError, "Dimension out of range");
         return nullptr;
@@ -669,6 +713,7 @@ PyObject* MatrixPy::isOrthogonal(PyObject * args)
     double eps=1.0e-06;
     if (!PyArg_ParseTuple(args, "|d",&eps))
         return nullptr;
+
     const Base::Matrix4D& mat = *getMatrixPtr();
     Base::Matrix4D trp = mat;
     trp.transpose();
@@ -707,8 +752,6 @@ PyObject* MatrixPy::transposed(PyObject * args)
         return new MatrixPy(m);
     }
     PY_CATCH;
-
-    Py_Return;
 }
 
 PyObject* MatrixPy::transpose(PyObject * args)
@@ -963,16 +1006,26 @@ PyObject * MatrixPy::number_divmod_handler (PyObject* /*self*/, PyObject* /*othe
     return nullptr;
 }
 
-PyObject * MatrixPy::number_negative_handler (PyObject* /*self*/)
+PyObject * MatrixPy::number_negative_handler (PyObject* self)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "Not implemented");
-    return nullptr;
+    if (!PyObject_TypeCheck(self, &(MatrixPy::Type))) {
+        PyErr_SetString(PyExc_TypeError, "arg must be Matrix");
+        return nullptr;
+    }
+
+    Base::Matrix4D a = static_cast<MatrixPy*>(self)->value();
+    return new MatrixPy(a * -1);
 }
 
-PyObject * MatrixPy::number_positive_handler (PyObject* /*self*/)
+PyObject * MatrixPy::number_positive_handler (PyObject* self)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "Not implemented");
-    return nullptr;
+    if (!PyObject_TypeCheck(self, &(MatrixPy::Type))) {
+        PyErr_SetString(PyExc_TypeError, "arg must be Matrix");
+        return nullptr;
+    }
+
+    Base::Matrix4D a = static_cast<MatrixPy*>(self)->value();
+    return new MatrixPy(a);
 }
 
 PyObject * MatrixPy::number_absolute_handler (PyObject* /*self*/)

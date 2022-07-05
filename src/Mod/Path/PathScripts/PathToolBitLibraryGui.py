@@ -73,15 +73,13 @@ def checkWorkingDir():
 
     qm = PySide.QtGui.QMessageBox
     ret = qm.question(
-        None, "", "Toolbit working directory not set up. Do that now?", qm.Yes | qm.No
+        None, "", translate("Path_ToolBit","Toolbit working directory not set up. Do that now?"), qm.Yes | qm.No
     )
 
     if ret == qm.No:
         return False
 
-    msg = translate(
-        "Path_ToolBit", "Choose a writable location for your toolbits", None
-    )
+    msg = translate("Path_ToolBit", "Choose a writable location for your toolbits")
     while not dirOK():
         workingdir = PySide.QtGui.QFileDialog.getExistingDirectory(
             None, msg, PathPreferences.filePath()
@@ -119,7 +117,7 @@ def checkWorkingDir():
         ret = qm.question(
             None,
             "",
-            "Toolbit Working directory {} needs these sudirectories:\n {} \n Create them?".format(
+            translate("Path_ToolBit","Toolbit Working directory {} needs these sudirectories:\n {} \n Create them?").format(
                 workingdir, needed
             ),
             qm.Yes | qm.No,
@@ -138,7 +136,7 @@ def checkWorkingDir():
                     ret = qm.question(
                         None,
                         "",
-                        "Copy example files to new {} directory?".format(dir),
+                        translate("Path_ToolBit","Copy example files to new {} directory?").format(dir),
                         qm.Yes | qm.No,
                     )
                     if ret == qm.Yes:
@@ -223,7 +221,6 @@ class _TableView(PySide.QtGui.QTableView):
         stream = PySide.QtCore.QDataStream(data)
         srcRows = []
         while not stream.atEnd():
-            # pylint: disable=unused-variable
             row = stream.readInt32()
             srcRows.append(row)
 
@@ -665,7 +662,7 @@ class ToolBitLibrary(object):
 
         filename = PySide.QtGui.QFileDialog.getSaveFileName(
             self.form,
-            translate("Path_ToolBit", "Save toolbit library", None),
+            translate("Path_ToolBit", "Save toolbit library"),
             PathPreferences.lastPathToolLibrary(),
             "{}".format(TooltableTypeJSON),
         )
@@ -794,7 +791,7 @@ class ToolBitLibrary(object):
 
         filename = PySide.QtGui.QFileDialog.getSaveFileName(
             self.form,
-            translate("Path_ToolBit", "Save toolbit library", None),
+            translate("Path_ToolBit", "Save toolbit library"),
             PathPreferences.lastPathToolLibrary(),
             "{};;{}".format(TooltableTypeJSON, TooltableTypeLinuxCNC),
         )

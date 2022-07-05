@@ -26,12 +26,11 @@
 #include <cmath>
 #include <BRepBndLib.hxx>
 #include <Bnd_Box.hxx>
-
-#endif // #ifndef _PreComp_
-
 #include <QButtonGroup>
 #include <QStatusBar>
 #include <QGraphicsScene>
+#endif // #ifndef _PreComp_
+
 
 #include <Base/Console.h>
 #include <Base/Tools.h>
@@ -56,7 +55,6 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskCenterLine.h>
 
-#include "DrawGuiStd.h"
 #include "PreferencesGui.h"
 #include "QGVPage.h"
 #include "QGIView.h"
@@ -479,8 +477,6 @@ bool TaskCenterLine::accept()
 
 bool TaskCenterLine::reject()
 {
-    Gui::Command::abortCommand();
-
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
     if (!doc)
         return false;
@@ -521,7 +517,7 @@ TaskDlgCenterLine::TaskDlgCenterLine(TechDraw::DrawViewPart* partFeat,
 {
     widget  = new TaskCenterLine(partFeat,page,subNames, editMode);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_FaceCenterLine"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
     setAutoCloseOnTransactionChange(true);
@@ -535,7 +531,7 @@ TaskDlgCenterLine::TaskDlgCenterLine(TechDraw::DrawViewPart* partFeat,
 {
     widget  = new TaskCenterLine(partFeat,page, edgeName, editMode);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_FaceCenterLine"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
     setAutoCloseOnTransactionChange(true);

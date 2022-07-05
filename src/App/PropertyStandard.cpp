@@ -23,31 +23,25 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-# include <sstream>
-# include <boost/version.hpp>
-# include <boost/filesystem/path.hpp>
-#endif
-
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <boost/math/special_functions/round.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/math/special_functions/round.hpp>
 
 #include <Base/Console.h>
 #include <Base/Exception.h>
+#include <Base/Interpreter.h>
 #include <Base/Reader.h>
 #include <Base/Writer.h>
-#include <Base/Stream.h>
 #include <Base/Quantity.h>
+#include <Base/Stream.h>
 #include <Base/Tools.h>
 
 #include "PropertyStandard.h"
-#include "PropertyLinks.h"
-#include "MaterialPy.h"
-#include "ObjectIdentifier.h"
 #include "Application.h"
 #include "Document.h"
 #include "DocumentObject.h"
+#include "MaterialPy.h"
+#include "ObjectIdentifier.h"
+
 
 using namespace App;
 using namespace Base;
@@ -398,9 +392,9 @@ void PropertyEnumeration::setEnumVector(const std::vector<std::string> &values)
         hasSetValue();
 }
 
-const char ** PropertyEnumeration::getEnums() const
+bool PropertyEnumeration::hasEnums() const
 {
-    return _enum.getEnums();
+    return _enum.hasEnums();
 }
 
 bool PropertyEnumeration::isValid() const
@@ -453,7 +447,7 @@ void PropertyEnumeration::Restore(Base::XMLReader &reader)
 
     if (val < 0) {
         // If the enum is empty at this stage do not print a warning
-        if (_enum.getEnums())
+        if (_enum.hasEnums())
             Base::Console().Warning("Enumeration index %d is out of range, ignore it\n", val);
         val = getValue();
     }
@@ -604,13 +598,13 @@ bool PropertyEnumeration::getPyPathValue(const ObjectIdentifier &path, Py::Objec
     if (p == ".Enum" || p == ".All") {
         Base::PyGILStateLocker lock;
         Py::Tuple res(_enum.maxValue()+1);
-        const char **enums = _enum.getEnums();
+        std::vector<std::string> enums = _enum.getEnumVector();
         PropertyString tmp;
-        for(int i=0;i<=_enum.maxValue();++i) {
+        for(int i=0;i< int(enums.size());++i) {
             tmp.setValue(enums[i]);
             res.setItem(i,Py::asObject(tmp.getPyObject()));
         }
-        if(p == ".Enum")
+        if (p == ".Enum")
             r = res;
         else {
             Py::Tuple tuple(2);
@@ -1380,7 +1374,8 @@ PropertyString::~PropertyString()
 
 void PropertyString::setValue(const char* newLabel)
 {
-    if(!newLabel) return;
+    if(!newLabel)
+        return;
 
     if(_cValue == newLabel)
         return;
@@ -2070,10 +2065,9 @@ PyObject *PropertyBool::getPyObject()
 
 void PropertyBool::setPyObject(PyObject *value)
 {
-    if (PyBool_Check(value))
-        setValue(PyObject_IsTrue(value)!=0);
-    else if(PyLong_Check(value))
-        setValue(PyLong_AsLong(value)!=0);
+    if (PyBool_Check(value) || PyLong_Check(value)) {
+        setValue(PyObject_IsTrue(value) ? true : false);
+    }
     else {
         std::string error = std::string("type must be bool, not ");
         error += value->ob_type->tp_name;

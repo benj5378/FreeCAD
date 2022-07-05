@@ -29,7 +29,7 @@
 # include <QTextStream>
 #endif
 
-#include <time.h>
+#include <ctime>
 #if defined(FC_OS_WIN32)
 #include <sys/timeb.h>
 #endif
@@ -105,9 +105,11 @@ bool CmdSpreadsheetMergeCells::isActive()
 {
     if (getActiveGuiDocument()) {
         Gui::MDIView* activeWindow = Gui::getMainWindow()->activeWindow();
-        if (activeWindow && freecad_dynamic_cast<SpreadsheetGui::SheetView>(activeWindow))
-            return true;
+        SpreadsheetGui::SheetView * sheetView = freecad_dynamic_cast<SpreadsheetGui::SheetView>(activeWindow);
 
+        if (sheetView) {
+            return (sheetView->selectedIndexesRaw().size() > 1);
+        }
     }
     return false;
 }
@@ -162,7 +164,10 @@ bool CmdSpreadsheetSplitCell::isActive()
             Sheet * sheet = sheetView->getSheet();
 
             if (current.isValid())
-                return sheet->isMergedCell(CellAddress(current.row(), current.column()));
+            {
+                return (sheetView->selectedIndexesRaw().size() == 1 &&
+                    sheet->isMergedCell(CellAddress(current.row(), current.column())));
+            }
         }
     }
     return false;

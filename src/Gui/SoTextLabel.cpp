@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -33,28 +32,26 @@
 # include <GL/gl.h>
 # endif
 # include <cfloat>
-# include <algorithm>
 # include <QFontMetrics>
 # include <QPainter>
 # include <QPen>
 # include <Inventor/actions/SoGLRenderAction.h>
 # include <Inventor/bundles/SoMaterialBundle.h>
 # include <Inventor/elements/SoLazyElement.h>
-# include <Inventor/nodes/SoSurroundScale.h>
 # include <Inventor/misc/SoState.h>
 #endif
 
 #include <Inventor/C/basic.h>
 #include <Inventor/draggers/SoTranslate2Dragger.h>
-#include <Inventor/elements/SoFontNameElement.h>
-#include <Inventor/elements/SoFontSizeElement.h>
 #include <Inventor/elements/SoCullElement.h>
+#include <Inventor/elements/SoFontNameElement.h>
+#include <Inventor/elements/SoGLTextureEnabledElement.h>
 #include <Inventor/elements/SoModelMatrixElement.h>
 #include <Inventor/elements/SoProjectionMatrixElement.h>
 #include <Inventor/elements/SoViewingMatrixElement.h>
-#include <Inventor/elements/SoViewVolumeElement.h>
 #include <Inventor/elements/SoViewportRegionElement.h>
-#include <Inventor/elements/SoGLTextureEnabledElement.h>
+#include <Inventor/elements/SoViewVolumeElement.h>
+
 #if COIN_MAJOR_VERSION > 3
 #include <Inventor/elements/SoMultiTextureEnabledElement.h>
 #else
@@ -62,10 +59,12 @@
 #endif
 
 #include <QtOpenGL.h>
+
 #include "SoTextLabel.h"
-#include "SoFCInteractiveElement.h"
 #include "BitmapFactory.h"
+#include "SoFCInteractiveElement.h"
 #include "Tools.h"
+
 
 using namespace Gui;
 
@@ -115,7 +114,8 @@ SoTextLabel::SoTextLabel()
  */
 void SoTextLabel::GLRender(SoGLRenderAction *action)
 {
-    if (!this->shouldGLRender(action)) return;
+    if (!this->shouldGLRender(action))
+        return;
 
     // only draw text without background
     if (!this->background.getValue()) {
@@ -294,6 +294,33 @@ void SoTextLabel::GLRender(SoGLRenderAction *action)
     state->pop();
 
     inherited::GLRender(action);
+}
+
+// ------------------------------------------------------
+
+SO_NODE_SOURCE(SoColorBarLabel)
+
+void SoColorBarLabel::initClass()
+{
+    SO_NODE_INIT_CLASS(SoColorBarLabel, SoText2, "Text2");
+}
+
+SoColorBarLabel::SoColorBarLabel()
+{
+    SO_NODE_CONSTRUCTOR(SoColorBarLabel);
+}
+
+void SoColorBarLabel::computeBBox(SoAction * action, SbBox3f & box, SbVec3f & center)
+{
+    inherited::computeBBox(action, box, center);
+    if (!box.hasVolume()) {
+        SbViewVolume vv = SoViewVolumeElement::get(action->getState());
+        // workaround for https://github.com/coin3d/coin/issues/417:
+        // extend by 2 percent
+        vv.scaleWidth(1.02f);
+        SoViewVolumeElement::set(action->getState(), this, vv);
+        inherited::computeBBox(action, box, center);
+    }
 }
 
 // ------------------------------------------------------

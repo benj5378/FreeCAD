@@ -270,7 +270,7 @@ class DraftToolBar:
         self.textbuffer = []
         self.crossedViews = []
         self.isTaskOn = False
-        self.fillmode = Draft.getParam("fillmode",False)
+        self.fillmode = Draft.getParam("fillmode", True)
         self.mask = None
         self.alock = False
         self.x = 0
@@ -2153,12 +2153,21 @@ class DraftToolBar:
             return None
         self.update_cartesian_coords()
         if self.angleLock.isChecked():
-            FreeCADGui.Snapper.setAngle(self.angle)
+            if not self.globalMode:
+                angle_vec = FreeCAD.DraftWorkingPlane.getGlobalRot(self.angle)
+            else:
+                angle_vec = self.angle
+            FreeCADGui.Snapper.setAngle(angle_vec)
 
     def toggleAngle(self,b):
         self.alock = self.angleLock.isChecked()
-        if b:
-            FreeCADGui.Snapper.setAngle(self.angle)
+        self.update_cartesian_coords()
+        if self.alock:
+            if not self.globalMode:
+                angle_vec = FreeCAD.DraftWorkingPlane.getGlobalRot(self.angle)
+            else:
+                angle_vec = self.angle
+            FreeCADGui.Snapper.setAngle(angle_vec)
         else:
             FreeCADGui.Snapper.setAngle()
             self.angle = None

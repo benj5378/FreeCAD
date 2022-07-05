@@ -297,15 +297,15 @@ std::pair<Base::Vector3d, Base::Vector3d> DrawUtil::boxIntersect2d(Base::Vector3
     // y = mx + b
     // m = (y1 - y0) / (x1 - x0)
     if (DrawUtil::fpCompare(dir.x, 0.0) ) {                 //vertical case
-        p1 = Base::Vector3d(point.x, - yRange / 2.0, 0.0);  
-        p2 = Base::Vector3d(point.x, yRange / 2.0, 0.0);
+        p1 = Base::Vector3d(point.x, point.y - (yRange / 2.0), 0.0);
+        p2 = Base::Vector3d(point.x, point.y + (yRange / 2.0), 0.0);
     } else {
         double slope = dir.y / dir.x;
         double left = -xRange / 2.0;
         double right = xRange / 2.0;
         if (DrawUtil::fpCompare(slope, 0.0)) {               //horizontal case
-            p1 = Base::Vector3d(left, point.y);
-            p2 = Base::Vector3d(right, point.y);
+            p1 = Base::Vector3d(point.x - (xRange / 2.0), point.y);
+            p2 = Base::Vector3d(point.x + (xRange / 2.0), point.y);
         } else {                                           //normal case
             double top = yRange / 2.0;
             double bottom = -yRange / 2.0;
@@ -596,9 +596,9 @@ Base::Vector3d DrawUtil::Intersect2d(Base::Vector3d p1, Base::Vector3d d1,
     double C2 = A2*p2.x + B2*p2.y;
 
     double det = A1*B2 - A2*B1;
-    if(det == 0){
+    if (fpCompare(det, 0.0, Precision::Confusion())) {
         Base::Console().Message("Lines are parallel\n");
-    }else{
+    } else {
         double x = (B2*C1 - B1*C2)/det;
         double y = (A1*C2 - A2*C1)/det;
         result.x = x;
@@ -623,7 +623,7 @@ Base::Vector2d DrawUtil::Intersect2d(Base::Vector2d p1, Base::Vector2d d1,
     double C2 = A2*p2.x + B2*p2.y;
 
     double det = A1*B2 - A2*B1;
-    if(det == 0){
+    if (fpCompare(det, 0.0, Precision::Confusion())) {
         Base::Console().Message("Lines are parallel\n");
     }else{
         double x = (B2*C1 - B1*C2)/det;
@@ -801,6 +801,17 @@ bool  DrawUtil::isCrazy(TopoDS_Edge e)
     return result;
 } 
 
+//construct a compound shape from a list of edges
+TopoDS_Shape DrawUtil::vectorToCompound(std::vector<TopoDS_Edge> vecIn)
+{
+    BRep_Builder builder;
+    TopoDS_Compound compOut;
+    builder.MakeCompound(compOut);
+    for (auto& v : vecIn) {
+        builder.Add(compOut, v);
+    }
+    return compOut;
+}
 //get 3d position of a face's center
 Base::Vector3d DrawUtil::getFaceCenter(TopoDS_Face f)
 {
@@ -825,6 +836,20 @@ bool DrawUtil::circulation(Base::Vector3d A, Base::Vector3d B, Base::Vector3d C)
     else
         return false;
 }
+
+int DrawUtil::countSubShapes(TopoDS_Shape shape, TopAbs_ShapeEnum subShape)
+{
+    int count = 0;
+    TopExp_Explorer Ex(shape, subShape);
+    while (Ex.More())
+    {
+        count++;
+        Ex.Next();
+    }
+    return count;
+}
+
+
 
 // Supplementary mathematical functions
 // ====================================

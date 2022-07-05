@@ -42,8 +42,11 @@
 # include <GL/glext.h>
 # endif
 # include <Inventor/actions/SoGLRenderAction.h>
+# include <Inventor/actions/SoSearchAction.h>
 # include <Inventor/bundles/SoMaterialBundle.h>
+# include <Inventor/bundles/SoTextureCoordinateBundle.h>
 # include <Inventor/elements/SoCoordinateElement.h>
+# include <Inventor/elements/SoGLCacheContextElement.h>
 # include <Inventor/elements/SoGLCoordinateElement.h>
 # include <Inventor/elements/SoGLLazyElement.h>
 # include <Inventor/elements/SoMaterialBindingElement.h>
@@ -51,6 +54,7 @@
 # include <Inventor/elements/SoProjectionMatrixElement.h>
 # include <Inventor/elements/SoViewingMatrixElement.h>
 # include <Inventor/errors/SoDebugError.h>
+# include <Inventor/nodes/SoCoordinate3.h>
 #endif
 
 #include <Inventor/C/glue/gl.h>
@@ -561,7 +565,7 @@ void SoFCIndexedFaceSet::drawFaces(SoGLRenderAction *action)
     SbBool mode = Gui::SoFCInteractiveElement::get(state);
 
     unsigned int num = this->coordIndex.getNum()/4;
-    if (mode == false || num <= this->renderTriangleLimit) {
+    if (!mode || num <= this->renderTriangleLimit) {
 #ifdef RENDER_GLARRAYS
         SoMaterialBindingElement::Binding matbind =
             SoMaterialBindingElement::get(state);
@@ -905,7 +909,8 @@ void SoFCIndexedFaceSet::doAction(SoAction * action)
 {
     if (action->getTypeId() == Gui::SoGLSelectAction::getClassTypeId()) {
         SoNode* node = action->getNodeAppliedTo();
-        if (!node) return; // on no node applied
+        if (!node) // on no node applied
+            return;
 
         // The node we have is the parent of this node and the coordinate node
         // thus we search there for it.
@@ -915,7 +920,8 @@ void SoFCIndexedFaceSet::doAction(SoAction * action)
         sa.setType(SoCoordinate3::getClassTypeId(), 1);
         sa.apply(node);
         SoPath * path = sa.getPath();
-        if (!path) return;
+        if (!path)
+            return;
 
         // make sure we got the node we wanted
         SoNode* coords = path->getNodeFromTail(0);
@@ -927,7 +933,8 @@ void SoFCIndexedFaceSet::doAction(SoAction * action)
     }
     else if (action->getTypeId() == Gui::SoVisibleFaceAction::getClassTypeId()) {
         SoNode* node = action->getNodeAppliedTo();
-        if (!node) return; // on no node applied
+        if (!node) // on no node applied
+            return;
 
         // The node we have is the parent of this node and the coordinate node
         // thus we search there for it.
@@ -937,7 +944,8 @@ void SoFCIndexedFaceSet::doAction(SoAction * action)
         sa.setType(SoCoordinate3::getClassTypeId(), 1);
         sa.apply(node);
         SoPath * path = sa.getPath();
-        if (!path) return;
+        if (!path)
+            return;
 
         // make sure we got the node we wanted
         SoNode* coords = path->getNodeFromTail(0);

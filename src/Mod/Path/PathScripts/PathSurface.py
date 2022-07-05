@@ -30,13 +30,14 @@ __doc__ = "Class and implementation of 3D Surface operation."
 __contributors__ = "russ4262 (Russell Johnson)"
 
 import FreeCAD
-from PySide import QtCore
+
+translate = FreeCAD.Qt.translate
 
 # OCL must be installed
 try:
     import ocl
 except ImportError:
-    msg = QtCore.QCoreApplication.translate(
+    msg = translate(
         "PathSurface", "This operation requires OpenCamLib to be installed."
     )
     FreeCAD.Console.PrintError(msg + "\n")
@@ -61,8 +62,6 @@ Part = LazyLoader("Part", globals(), "Part")
 if FreeCAD.GuiUp:
     import FreeCADGui
 
-
-translate = FreeCAD.Qt.translate
 
 if False:
     PathLog.setLevel(PathLog.Level.DEBUG, PathLog.thisModule())
@@ -111,12 +110,6 @@ class ObjectSurface(PathOp.ObjectOp):
         # Set enumeration lists for enumeration properties
         for n in self.propertyEnumerations():
             setattr(obj, n[0], n[1])
-
-            # if warn:
-            #     newPropMsg = translate("PathSurface", "New property added to")
-            #     newPropMsg += ' "{}": {}'.format(obj.Label, self.addNewProps) + ". "
-            #     newPropMsg += translate("PathSurface", "Check default value(s).")
-            #     FreeCAD.Console.PrintWarning(newPropMsg + "\n")
 
         self.propertiesReady = True
 
@@ -440,7 +433,7 @@ class ObjectSurface(PathOp.ObjectOp):
         ]
 
     @classmethod
-    def propertyEnumerations(self, dataType="data"):
+    def propertyEnumerations(cls, dataType="data"):
         """propertyEnumerations(dataType="data")... return property enumeration lists of specified dataType.
         Args:
             dataType = 'data', 'raw', 'translated'
@@ -614,15 +607,14 @@ class ObjectSurface(PathOp.ObjectOp):
         obj.setEditorMode("ShowTempObjects", mode)
 
         # Repopulate enumerations in case of changes
-        ENUMS = self.opPropertyEnumerations()
-        for n in ENUMS:
+        for prop, enums in ObjectSurface.propertyEnumerations():
             restore = False
-            if hasattr(obj, n):
-                val = obj.getPropertyByName(n)
+            if hasattr(obj, prop):
+                val = obj.getPropertyByName(prop)
                 restore = True
-            setattr(obj, n, ENUMS[n])
+            setattr(obj, prop, enums)
             if restore:
-                setattr(obj, n, val)
+                setattr(obj, prop, val)
 
         self.setEditorProperties(obj)
 
@@ -1588,9 +1580,15 @@ class ObjectSurface(PathOp.ObjectOp):
                     for i in range(0, lenAdjPrts):
                         prt = ADJPRTS[i]
                         lenPrt = len(prt)
-                        if prt == "BRK" and prtsHasCmds is True:
-                            nxtStart = ADJPRTS[i + 1][0]
-                            prtsCmds.append(Path.Command("N (--Break)", {}))
+                        if prt == "BRK" and prtsHasCmds:
+                            if i + 1 < lenAdjPrts:
+                                nxtStart = ADJPRTS[i + 1][0]
+                                prtsCmds.append(Path.Command("N (--Break)", {}))
+                            else:
+                                # Transition straight up to Safe Height if no more parts
+                                nxtStart = FreeCAD.Vector(
+                                    last.x, last.y, obj.SafeHeight.Value
+                                )
                             prtsCmds.extend(
                                 self._stepTransitionCmds(
                                     obj, last, nxtStart, safePDC, tolrnc

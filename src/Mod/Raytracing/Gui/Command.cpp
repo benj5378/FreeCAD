@@ -57,6 +57,7 @@
 #include <Gui/View.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/FileDialog.h>
 #include <Gui/MainWindow.h>
 
@@ -91,7 +92,7 @@ CmdRaytracingWriteCamera::CmdRaytracingWriteCamera()
 
 void CmdRaytracingWriteCamera::activated(int)
 {
-    const char* ppReturn=0;
+    const char* ppReturn=nullptr;
     getGuiApplication()->sendMsgToActiveView("GetCamera",&ppReturn);
     if (ppReturn) {
         std::string str(ppReturn);
@@ -195,7 +196,8 @@ void CmdRaytracingWritePart::activated(int)
     // name of the objects in the pov file
     std::string Name = "Part";
     std::vector<App::DocumentObject*> obj = Gui::Selection().getObjectsOfType(Part::Feature::getClassTypeId());
-    if (obj.empty()) return;
+    if (obj.empty())
+        return;
 
     std::stringstream out;
     //Raytracing.writePartFile(App.document().GetActiveFeature().getShape())
@@ -230,7 +232,7 @@ CmdRaytracingWriteView::CmdRaytracingWriteView()
 
 void CmdRaytracingWriteView::activated(int)
 {
-    const char* ppReturn=0;
+    const char* ppReturn=nullptr;
     Gui::Application::Instance->sendMsgToActiveView("GetCamera",&ppReturn);
     if (ppReturn) {
         std::string str(ppReturn);
@@ -327,7 +329,7 @@ CmdRaytracingNewPovrayProject::CmdRaytracingNewPovrayProject()
 
 void CmdRaytracingNewPovrayProject::activated(int iMsg)
 {
-    const char* ppReturn=0;
+    const char* ppReturn=nullptr;
     Gui::Application::Instance->sendMsgToActiveView("GetCamera",&ppReturn);
     if (ppReturn) {
         std::string str(ppReturn);
@@ -640,7 +642,7 @@ void CmdRaytracingRender::activated(int)
         }
     }
 
-    std::vector<Gui::SelectionObject> Sel = getSelection().getSelectionEx(0, renderType);
+    std::vector<Gui::SelectionObject> Sel = getSelection().getSelectionEx(nullptr, renderType);
 
     if (renderType == Raytracing::RayProject::getClassTypeId()) {
         Raytracing::RayProject* proj = static_cast<Raytracing::RayProject*>(Sel[0].getObject());
@@ -773,7 +775,7 @@ CmdRaytracingNewLuxProject::CmdRaytracingNewLuxProject()
 
 void CmdRaytracingNewLuxProject::activated(int iMsg)
 {
-    const char* ppReturn=0;
+    const char* ppReturn=nullptr;
     Gui::Application::Instance->sendMsgToActiveView("GetCamera",&ppReturn);
     if (ppReturn) {
         std::string str(ppReturn);

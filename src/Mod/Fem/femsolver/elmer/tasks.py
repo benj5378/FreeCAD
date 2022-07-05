@@ -161,6 +161,7 @@ class Results(run.Results):
             self._createResults()
         postPath = self._getResultFile()
         self.solver.ElmerResult.read(postPath)
+        self.solver.ElmerResult.scale(1000)
         self.solver.ElmerResult.getLastPostObject().touch()
         self.solver.Document.recompute()
 
@@ -169,6 +170,8 @@ class Results(run.Results):
             "Fem::FemPostPipeline", self.solver.Name + "Result")
         self.solver.ElmerResult.Label = self.solver.Label + "Result"
         self.analysis.addObject(self.solver.ElmerResult)
+        # to assure the user sees something, set the default to Surface
+        self.solver.ElmerResult.ViewObject.DisplayMode = "Surface"
 
     def _getResultFile(self):
         postPath = None

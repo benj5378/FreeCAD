@@ -23,6 +23,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <memory>
 # include <Precision.hxx>
 # include <Standard_Failure.hxx>
 #endif
@@ -247,7 +248,7 @@ PyObject* UnifySameDomainPy::shape(PyObject *args)
 
 PyObject *UnifySameDomainPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int UnifySameDomainPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

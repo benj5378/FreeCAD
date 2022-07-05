@@ -29,16 +29,13 @@
 #   include <boost/regex.hpp>
 #endif
 
-#include "Console.h"
 #include "Interpreter.h"
-#include "FileInfo.h"
-#include "Stream.h"
-#include "PyTools.h"
-#include "Exception.h"
-#include "PyObjectBase.h"
-#include <CXX/Extensions.hxx>
-
+#include "Console.h"
 #include "ExceptionFactory.h"
+#include "FileInfo.h"
+#include "PyObjectBase.h"
+#include "PyTools.h"
+#include "Stream.h"
 
 
 char format2[1024];  //Warning! Can't go over 512 characters!!!
@@ -83,7 +80,7 @@ PyException::PyException()
         // destroyed, so we don't keep reference here to save book-keeping in
         // our copy constructor and destructor
         Py_DECREF(PP_last_exception_type);
-        PP_last_exception_type = 0;
+        PP_last_exception_type = nullptr;
 
     }
 
@@ -115,7 +112,7 @@ void PyException::raiseException() {
         PP_PyDict_Object = nullptr;
 
         std::string exceptionname;
-        if (_exceptionType == Base::BaseExceptionFreeCADAbort)
+        if (_exceptionType == Base::PyExc_FC_FreeCADAbort)
             edict.setItem("sclassname",
                     Py::String(typeid(Base::AbortException).name()));
         if (_isReported)
@@ -123,7 +120,7 @@ void PyException::raiseException() {
         Base::ExceptionFactory::Instance().raiseException(edict.ptr());
     }
 
-    if (_exceptionType == Base::BaseExceptionFreeCADAbort) {
+    if (_exceptionType == Base::PyExc_FC_FreeCADAbort) {
         Base::AbortException e(_sErrMsg.c_str());
         e.setReported(_isReported);
         throw e;
@@ -490,14 +487,33 @@ bool InterpreterSingleton::loadModule(const char* psModName)
     return true;
 }
 
+PyObject* InterpreterSingleton::addModule(Py::ExtensionModuleBase* mod)
+{
+    _modules.push_back(mod);
+    return mod->module().ptr();
+}
+
+void InterpreterSingleton::cleanupModules()
+{
+    // This is only needed to make the address sanitizer happy
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+    for (auto it : _modules) {
+        delete it;
+    }
+    _modules.clear();
+#  endif
+#endif
+}
+
 void InterpreterSingleton::addType(PyTypeObject* Type,PyObject* Module, const char * Name)
 {
     // NOTE: To finish the initialization of our own type objects we must
     // call PyType_Ready, otherwise we run into a segmentation fault, later on.
     // This function is responsible for adding inherited slots from a type's base class.
-    if (PyType_Ready(Type) < 0) return;
-    union PyType_Object pyType = {Type};
-    PyModule_AddObject(Module, Name, pyType.o);
+    if (PyType_Ready(Type) < 0)
+        return;
+    PyModule_AddObject(Module, Name, Base::getTypeAsObject(Type));
 }
 
 void InterpreterSingleton::addPythonPath(const char* Path)
@@ -507,6 +523,7 @@ void InterpreterSingleton::addPythonPath(const char* Path)
     list.append(Py::String(Path));
 }
 
+#if PY_VERSION_HEX < 0x030b0000
 const char* InterpreterSingleton::init(int argc,char *argv[])
 {
     if (!Py_IsInitialized()) {
@@ -549,6 +566,61 @@ const char* InterpreterSingleton::init(int argc,char *argv[])
     PyGILStateLocker lock;
     return Py_EncodeLocale(Py_GetPath(),nullptr);
 }
+#else
+namespace {
+void initInterpreter(int argc,char *argv[])
+{
+    PyStatus status;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+
+    status = PyConfig_SetBytesArgv(&config, argc, argv);
+    if (PyStatus_Exception(status)) {
+        throw Base::RuntimeError("Failed to set config");
+    }
+
+    status = Py_InitializeFromConfig(&config);
+    if (PyStatus_Exception(status)) {
+        throw Base::RuntimeError("Failed to init from config");
+    }
+
+    PyConfig_Clear(&config);
+
+    Py_Initialize();
+    const char* virtualenv = getenv("VIRTUAL_ENV");
+    if (virtualenv) {
+        PyRun_SimpleString(
+            "# Check for virtualenv, and activate if present.\n"
+            "# See https://virtualenv.pypa.io/en/latest/userguide/#using-virtualenv-without-bin-python\n"
+            "import os\n"
+            "import sys\n"
+            "base_path = os.getenv(\"VIRTUAL_ENV\")\n"
+            "if not base_path is None:\n"
+            "    activate_this = os.path.join(base_path, \"bin\", \"activate_this.py\")\n"
+            "    exec(open(activate_this).read(), {'__file__':activate_this})\n"
+        );
+    }
+}
+}
+const char* InterpreterSingleton::init(int argc,char *argv[])
+{
+    try {
+        if (!Py_IsInitialized()) {
+            initInterpreter(argc, argv);
+
+            PythonStdOutput::init_type();
+            this->_global = PyEval_SaveThread();
+        }
+
+        PyGILStateLocker lock;
+        return Py_EncodeLocale(Py_GetPath(),nullptr);
+    }
+    catch (const Base::Exception& e) {
+        e.ReportException();
+        throw;
+    }
+}
+#endif
 
 void InterpreterSingleton::replaceStdOutput()
 {
@@ -567,6 +639,7 @@ void InterpreterSingleton::finalize()
 {
     try {
         PyEval_RestoreThread(this->_global);
+        cleanupModules();
         Py_Finalize();
     }
     catch (...) {
@@ -589,24 +662,24 @@ void InterpreterSingleton::runStringArg(const char * psCom,...)
 }
 
 
-// Singelton:
+// Singleton:
 
-InterpreterSingleton * InterpreterSingleton::_pcSingelton = nullptr;
+InterpreterSingleton * InterpreterSingleton::_pcSingleton = nullptr;
 
 InterpreterSingleton & InterpreterSingleton::Instance()
 {
     // not initialized!
-    if (!_pcSingelton)
-        _pcSingelton = new InterpreterSingleton();
-    return *_pcSingelton;
+    if (!_pcSingleton)
+        _pcSingleton = new InterpreterSingleton();
+    return *_pcSingleton;
 }
 
 void InterpreterSingleton::Destruct()
 {
     // not initialized or double destruct!
-    assert(_pcSingelton);
-    delete _pcSingelton;
-    _pcSingelton = nullptr;
+    assert(_pcSingleton);
+    delete _pcSingleton;
+    _pcSingleton = nullptr;
 }
 
 int InterpreterSingleton::runCommandLine(const char *prompt)
@@ -807,7 +880,12 @@ int getSWIGVersionFromModule(const std::string& module)
 }
 
 #if (defined(HAVE_SWIG) && (HAVE_SWIG == 1))
-namespace Swig_python { extern int createSWIGPointerObj_T(const char* TypeName, void* obj, PyObject** ptr, int own); }
+namespace Swig_python {
+extern int createSWIGPointerObj_T(const char* TypeName, void* obj, PyObject** ptr, int own);
+extern int convertSWIGPointerObj_T(const char* TypeName, PyObject* obj, void** ptr, int flags);
+extern void cleanupSWIG_T(const char* TypeName);
+extern int getSWIGPointerTypeObj_T(const char* TypeName, PyTypeObject** ptr);
+}
 #endif
 
 PyObject* InterpreterSingleton::createSWIGPointerObj(const char* Module, const char* TypeName, void* Pointer, int own)
@@ -832,10 +910,6 @@ PyObject* InterpreterSingleton::createSWIGPointerObj(const char* Module, const c
     throw Base::RuntimeError("No SWIG wrapped library loaded");
 }
 
-#if (defined(HAVE_SWIG) && (HAVE_SWIG == 1))
-namespace Swig_python { extern int convertSWIGPointerObj_T(const char* TypeName, PyObject* obj, void** ptr, int flags); }
-#endif
-
 bool InterpreterSingleton::convertSWIGPointerObj(const char* Module, const char* TypeName, PyObject* obj, void** ptr, int flags)
 {
     int result = 0;
@@ -858,10 +932,6 @@ bool InterpreterSingleton::convertSWIGPointerObj(const char* Module, const char*
     throw Base::RuntimeError("No SWIG wrapped library loaded");
 }
 
-#if (defined(HAVE_SWIG) && (HAVE_SWIG == 1))
-namespace Swig_python { extern void cleanupSWIG_T(const char* TypeName); }
-#endif
-
 void InterpreterSingleton::cleanupSWIG(const char* TypeName)
 {
     PyGILStateLocker locker;
@@ -870,4 +940,24 @@ void InterpreterSingleton::cleanupSWIG(const char* TypeName)
 #else
     (void)TypeName;
 #endif
+}
+
+PyTypeObject* InterpreterSingleton::getSWIGPointerTypeObj(const char* Module, const char* TypeName)
+{
+    int result = 0;
+    PyTypeObject* proxy = nullptr;
+    PyGILStateLocker locker;
+    (void)Module;
+#if (defined(HAVE_SWIG) && (HAVE_SWIG == 1))
+    result = Swig_python::getSWIGPointerTypeObj_T(TypeName, &proxy);
+#else
+    (void)TypeName;
+    result = -1; // indicates error
+#endif
+
+    if (result == 0)
+        return proxy;
+
+    // none of the SWIG's succeeded
+    throw Base::RuntimeError("No SWIG wrapped library loaded");
 }

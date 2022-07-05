@@ -133,7 +133,7 @@ const char* AttachEngine::eMapModeStrings[]= {
     "OYZ",
     "OYX",
 
-    NULL};
+    nullptr};
 
 //this list must be in sync with eRefType enum.
 //These strings are used only by Py interface of Attacher. Strings for use in Gui are in Mod/Part/Gui/AttacherTexts.cpp
@@ -161,7 +161,7 @@ const char* AttachEngine::eRefTypeStrings[]= {
     "Object",
     "Solid",
     "Wire",
-    NULL
+    nullptr
 };
 
 
@@ -433,7 +433,8 @@ eRefType AttachEngine::getShapeType(const TopoDS_Shape& sh)
     case TopAbs_COMPOUND:{
         const TopoDS_Compound &cmpd = TopoDS::Compound(sh);
         TopoDS_Iterator it (cmpd, Standard_False, Standard_False);//don't mess with placements, to hopefully increase speed
-        if (! it.More()) return rtAnything;//empty compound
+        if (! it.More())//empty compound
+            return rtAnything;
         const TopoDS_Shape &sh1 = it.Value();
         it.Next();
         if (it.More()){
@@ -494,10 +495,8 @@ eRefType AttachEngine::getShapeType(const TopoDS_Shape& sh)
         case GeomAbs_BezierCurve:
         case GeomAbs_BSplineCurve:
         case GeomAbs_OtherCurve:
-#if OCC_VERSION_HEX >= 0x070000
         case GeomAbs_OffsetCurve:
-#endif
-            return rtCurve;
+        return rtCurve;
         }
     }break;
     case TopAbs_WIRE:

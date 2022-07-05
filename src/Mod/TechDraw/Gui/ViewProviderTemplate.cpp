@@ -31,27 +31,19 @@
 # endif
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
-#include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-
 #include <Gui/Application.h>
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
-#include <Gui/ViewProvider.h>
 
+#include <Mod/TechDraw/App/DrawPage.h>
 #include <Mod/TechDraw/App/DrawTemplate.h>
 #include <Mod/TechDraw/App/DrawSVGTemplate.h>
-#include <Mod/TechDraw/App/DrawPage.h>
 
 #include "QGITemplate.h"
 #include "QGISVGTemplate.h"
 #include "QGVPage.h"
+#include "QGSPage.h"
 #include "MDIViewPage.h"
 #include "TemplateTextField.h"
 #include "ViewProviderPage.h"
@@ -103,6 +95,7 @@ void ViewProviderTemplate::updateData(const App::Property* prop)
             if (mdi != nullptr) {
                 mdi->attachTemplate(t);
                 mdi->viewAll();
+                mdi->getViewProviderPage()->setGrid();
             }
        }
     }
@@ -160,7 +153,7 @@ QGITemplate* ViewProviderTemplate::getQTemplate(void)
     if (dt) {
         MDIViewPage* mdi = getMDIViewPage();
         if (mdi != nullptr) {
-            result = mdi->getQGVPage()->getTemplate();
+            result = mdi->getQGSPage()->getTemplate();
         }
     }
     return result;

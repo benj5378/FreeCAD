@@ -22,16 +22,11 @@
 
 
 #include "PreCompiled.h"
-#ifndef _PreComp_
-# include <stdexcept>
-#endif
 
-
-#include <Base/Console.h>
 #include <Base/Exception.h>
 #include <Base/Unit.h>
+
 #include "FeatureTest.h"
-#include "Material.h"
 #include "Material.h"
 
 #ifdef _MSC_VER
@@ -44,7 +39,7 @@ using namespace App;
 
 PROPERTY_SOURCE(App::FeatureTest, App::DocumentObject)
 
-const char* enums[]= {"Zero","One","Two","Three","Four",NULL};
+const char* enums[]= {"Zero","One","Two","Three","Four",nullptr};
 const PropertyIntegerConstraint::Constraints intPercent = {0,100,1};
 const PropertyFloatConstraint::Constraints floatPercent = {0.0,100.0,1.0};
 
@@ -79,10 +74,10 @@ FeatureTest::FeatureTest()
   ADD_PROPERTY(IntegerList,(4711)  );
   ADD_PROPERTY(FloatList  ,(47.11f) );
 
-  ADD_PROPERTY(Link       ,(0));
-  ADD_PROPERTY(LinkSub    ,(0));
-  ADD_PROPERTY(LinkList   ,(0));
-  ADD_PROPERTY(LinkSubList,(0));
+  ADD_PROPERTY(Link       ,(nullptr));
+  ADD_PROPERTY(LinkSub    ,(nullptr));
+  ADD_PROPERTY(LinkList   ,(nullptr));
+  ADD_PROPERTY(LinkSubList,(nullptr));
 
   ADD_PROPERTY(Vector    ,(1.0,2.0,3.0));
   ADD_PROPERTY(VectorList,(3.0,2.0,1.0));
@@ -91,9 +86,9 @@ FeatureTest::FeatureTest()
 
   // properties for recompute testing
   static const char* group = "Feature Test";
-  ADD_PROPERTY_TYPE(Source1       ,(0),group,Prop_None,"Source for testing links");
-  ADD_PROPERTY_TYPE(Source2       ,(0),group,Prop_None,"Source for testing links");
-  ADD_PROPERTY_TYPE(SourceN       ,(0),group,Prop_None,"Source for testing links");
+  ADD_PROPERTY_TYPE(Source1       ,(nullptr),group,Prop_None,"Source for testing links");
+  ADD_PROPERTY_TYPE(Source2       ,(nullptr),group,Prop_None,"Source for testing links");
+  ADD_PROPERTY_TYPE(SourceN       ,(nullptr),group,Prop_None,"Source for testing links");
   ADD_PROPERTY_TYPE(ExecResult    ,("empty"),group,Prop_None,"Result of the execution");
   ADD_PROPERTY_TYPE(ExceptionType ,(0),group,Prop_None,"The type of exception the execution method throws");
   ADD_PROPERTY_TYPE(ExecCount     ,(0),group,Prop_None,"Number of executions");
@@ -105,7 +100,7 @@ FeatureTest::FeatureTest()
   ADD_PROPERTY_TYPE(TypeTransient,(4711),group,Prop_Transient ,"An example property which has the type 'Transient'"  );
   ADD_PROPERTY_TYPE(TypeNoRecompute,(4711),group,Prop_NoRecompute,"An example property which has the type 'NoRecompute'");
   ADD_PROPERTY_TYPE(TypeAll     ,(4711),group,(App::PropertyType) (Prop_Output|Prop_ReadOnly |Prop_Hidden ),
-      "An example property which has the types 'Output', 'ReadOnly', and 'Hidden'");
+      "An example property which has the types 'Output', 'ReadOnly' and 'Hidden'");
 
   ADD_PROPERTY(QuantityLength,(1.0));
   QuantityLength.setUnit(Base::Unit::Length);
@@ -123,13 +118,46 @@ FeatureTest::~FeatureTest()
 
 }
 
-short FeatureTest::mustExecute(void) const
+short FeatureTest::mustExecute() const
 {
     return DocumentObject::mustExecute();
 }
 
-DocumentObjectExecReturn *FeatureTest::execute(void)
+DocumentObjectExecReturn *FeatureTest::execute()
 {
+    // Enum handling
+    Enumeration enumObj1 = Enum.getEnum();
+    enumObj1.setValue(7, false);
+    enumObj1.setValue(4, true);
+
+    Enumeration enumObj2 = Enum.getEnum();
+    enumObj2.setValue(4, true);
+
+    Enumeration enumObj3(enumObj2);
+    const char* val = enumObj3.getCStr();
+    enumObj3.isValue(val);
+    enumObj3.getEnumVector();
+
+    Enumeration enumObj4("Single item");
+    enumObj4.setEnums(enums);
+    std::ignore = enumObj4 == enumObj2;
+    enumObj4.setEnums(nullptr);
+    enumObj4 = enumObj2;
+    std::ignore = enumObj4 == enumObj4.getCStr();
+
+    Enumeration enumObj5(enums, enums[3]);
+    enumObj5.isValue(enums[2]);
+    enumObj5.isValue(enums[3]);
+    enumObj5.contains(enums[1]);
+
+    Enumeration enumObj6;
+    enumObj6.setEnums(enums);
+    enumObj6.setValue(enums[1]);
+    std::vector<std::string> list;
+    list.emplace_back("Hello");
+    list.emplace_back("World");
+    enumObj6.setEnums(list);
+    enumObj6.setValue(list.back());
     /*
 doc=App.newDocument()
 obj=doc.addObject("App::FeatureTest")
@@ -155,7 +183,7 @@ doc.recompute()
 obj.ExceptionType=6 # float division by zero
 doc.recompute()
      */
-    int *i=0,j;
+    int *i=nullptr,j;
     float f;
     void *s;
     std::string t;
@@ -194,10 +222,10 @@ FeatureTestException::FeatureTestException()
     ADD_PROPERTY(ExceptionType,(Base::Exception::getClassTypeId().getKey())  );
 }
 
-DocumentObjectExecReturn *FeatureTestException::execute(void)
+DocumentObjectExecReturn *FeatureTestException::execute()
 {
     //ExceptionType;
     throw Base::RuntimeError("FeatureTestException::execute(): Testexception  ;-)");
 
-    return 0;
+    return nullptr;
 }

@@ -127,7 +127,7 @@ PROPERTY_SOURCE_WITH_EXTENSIONS(TechDraw::DrawViewPart,
                                 TechDraw::DrawView)
 
 DrawViewPart::DrawViewPart(void) :
-    geometryObject(0)
+    geometryObject(nullptr)
 {
     static const char *group = "Projection";
     static const char *sgroup = "HLR Parameters";
@@ -142,10 +142,10 @@ DrawViewPart::DrawViewPart(void) :
     double defDist = hGrp->GetFloat("FocusDistance",100.0);
 
     //properties that affect Geometry
-    ADD_PROPERTY_TYPE(Source ,(0),group,App::Prop_None,"3D Shape to view");
+    ADD_PROPERTY_TYPE(Source ,(nullptr),group,App::Prop_None,"3D Shape to view");
     Source.setScope(App::LinkScope::Global);
     Source.setAllowExternal(true);
-    ADD_PROPERTY_TYPE(XSource ,(0),group,App::Prop_None,"External 3D Shape to view");
+    ADD_PROPERTY_TYPE(XSource ,(nullptr),group,App::Prop_None,"External 3D Shape to view");
 
 
     ADD_PROPERTY_TYPE(Direction ,(0.0,-1.0,0.0),
@@ -417,8 +417,11 @@ GeometryObject* DrawViewPart::makeGeometryForShape(TopoDS_Shape shape)
 
     gp_Ax2 viewAxis = getProjectionCS(stdOrg);
 
+//    BRepTools::Write(shape, "DVPShape.brep");            //debug
+
     inputCenter = TechDraw::findCentroid(shape,
                                          viewAxis);
+
     Base::Vector3d centroid(inputCenter.X(),
                             inputCenter.Y(),
                             inputCenter.Z());
@@ -536,7 +539,7 @@ void DrawViewPart::extractFaces()
         TopoDS_Vertex v1 = TopExp::FirstVertex((*itOuter));
         TopoDS_Vertex v2 = TopExp::LastVertex((*itOuter));
         Bnd_Box sOuter;
-        BRepBndLib::Add(*itOuter, sOuter);
+        BRepBndLib::AddOptimal(*itOuter, sOuter);
         sOuter.SetGap(0.1);
         if (sOuter.IsVoid()) {
             Base::Console().Log("DVP::Extract Faces - outer Bnd_Box is void for %s\n",getNameInDocument());
@@ -557,7 +560,7 @@ void DrawViewPart::extractFaces()
             }
 
             Bnd_Box sInner;
-            BRepBndLib::Add(*itInner, sInner);
+            BRepBndLib::AddOptimal(*itInner, sInner);
             sInner.SetGap(0.1);
             if (sInner.IsVoid()) {
                 Base::Console().Log("INFO - DVP::Extract Faces - inner Bnd_Box is void for %s\n",getNameInDocument());
@@ -721,11 +724,11 @@ TechDraw::BaseGeomPtr DrawViewPart::getGeomByIndex(int idx) const
     const std::vector<TechDraw::BaseGeomPtr> &geoms = getEdgeGeometry();
     if (geoms.empty()) {
         Base::Console().Log("INFO - getGeomByIndex(%d) - no Edge Geometry. Probably restoring?\n",idx);
-        return NULL;
+        return nullptr;
     }
     if ((unsigned)idx >= geoms.size()) {
         Base::Console().Log("INFO - getGeomByIndex(%d) - invalid index\n",idx);
-        return NULL;
+        return nullptr;
     }
     return geoms.at(idx);
 }
@@ -736,11 +739,11 @@ TechDraw::VertexPtr DrawViewPart::getProjVertexByIndex(int idx) const
     const std::vector<TechDraw::VertexPtr> &geoms = getVertexGeometry();
     if (geoms.empty()) {
         Base::Console().Log("INFO - getProjVertexByIndex(%d) - no Vertex Geometry. Probably restoring?\n",idx);
-        return NULL;
+        return nullptr;
     }
     if ((unsigned)idx >= geoms.size()) {
         Base::Console().Log("INFO - getProjVertexByIndex(%d) - invalid index\n",idx);
-        return NULL;
+        return nullptr;
     }
     return geoms.at(idx);
 }
@@ -926,6 +929,14 @@ gp_Ax2 DrawViewPart::getViewAxis(const Base::Vector3d& pt,
 Base::Vector3d DrawViewPart::getOriginalCentroid(void) const
 {
     return m_saveCentroid;
+}
+
+Base::Vector3d DrawViewPart::getCurrentCentroid(void) const
+{
+    TopoDS_Shape shape = getSourceShape();
+    gp_Ax2 cs = getProjectionCS(Base::Vector3d(0.0, 0.0, 0.0));
+    Base::Vector3d center = TechDraw::findCentroidVec(shape, cs);
+    return center;
 }
 
 std::vector<DrawViewSection*> DrawViewPart::getSectionRefs(void) const

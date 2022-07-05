@@ -23,29 +23,26 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-#include <QContextMenuEvent>
-#include <QStandardItem>
-#include <QStandardItemModel>
-#include <QLineEdit>
-#include <QAbstractItemView>
-#include <QMenu>
-#include <QTextBlock>
+# include <boost/algorithm/string/predicate.hpp>
+# include <QAbstractItemView>
+# include <QContextMenuEvent>
+# include <QLineEdit>
+# include <QMenu>
+# include <QTextBlock>
 #endif
 
-#include <boost/algorithm/string/predicate.hpp>
-
-#include <Base/Tools.h>
-#include <Base/Console.h>
 #include <App/Application.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
-#include <App/DocumentObserver.h>
-#include <App/ObjectIdentifier.h>
-#include "ExpressionCompleter.h"
 #include <App/ExpressionParser.h>
-#include <App/PropertyLinks.h>
+#include <App/ObjectIdentifier.h>
+#include <Base/Tools.h>
+#include <CXX/Extensions.hxx>
 
-FC_LOG_LEVEL_INIT("Completer",true,true)
+#include "ExpressionCompleter.h"
+
+
+FC_LOG_LEVEL_INIT("Completer", true, true)
 
 Q_DECLARE_METATYPE(App::ObjectIdentifier)
 
@@ -146,7 +143,7 @@ public:
             return QVariant();
         QVariant v;
         Info info = getInfo(index);
-        _data(info,index.row(),&v,0,role==Qt::UserRole);
+        _data(info,index.row(),&v,nullptr,role==Qt::UserRole);
         FC_TRACE(info.d.doc << "," << info.d.obj << "," << index.row()
                 << ": " << v.toString().toUtf8().constData());
         return v;
@@ -160,8 +157,8 @@ public:
         int objSize = 0;
         int propSize = 0;
         std::vector<std::pair<const char*, App::Property*> > props;
-        App::Document *doc = 0;
-        App::DocumentObject *obj = 0;
+        App::Document *doc = nullptr;
+        App::DocumentObject *obj = nullptr;
         const char *propName = nullptr;
         if(idx>=0 && idx<docSize)
             doc = docs[idx/2];
@@ -316,7 +313,7 @@ public:
                 return 0;
         }
         int count = 0;
-        _data(info,row,0,&count);
+        _data(info,row,nullptr,&count);
         FC_TRACE(info.d.doc << "," << info.d.obj << "," << row << " row count " << count);
         return count;
     }
@@ -491,7 +488,7 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
         trim = prefixEnd - pos;
 
     // Extract last tokens that can be rebuilt to a variable
-    ssize_t i = static_cast<ssize_t>(tokens.size()) - 1;
+    long i = static_cast<long>(tokens.size()) - 1;
 
     // First, check if we have unclosing string starting from the end
     bool stringing = false;
@@ -518,7 +515,7 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
     }
 
     if(!stringing) {
-        i = static_cast<ssize_t>(tokens.size()) - 1;
+        i = static_cast<long>(tokens.size()) - 1;
         for(;i>=0;--i) {
             int token = get<0>(tokens[i]);
             if (token != '.' && token != '#' &&
@@ -532,13 +529,13 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
     }
 
     // Set prefix start for use when replacing later
-    if (i == static_cast<ssize_t>(tokens.size()))
+    if (i == static_cast<long>(tokens.size()))
         prefixStart = prefixEnd;
     else
         prefixStart = start + get<1>(tokens[i]);
 
     // Build prefix from tokens
-    while (i < static_cast<ssize_t>(tokens.size())) {
+    while (i < static_cast<long>(tokens.size())) {
         completionPrefix += get<2>(tokens[i]);
         ++i;
     }
@@ -580,7 +577,7 @@ void ExpressionLineEdit::setDocumentObject(const App::DocumentObject * currentDo
         completer->setDocumentObject(currentDocObj, checkInList);
         return;
     }
-    if (currentDocObj != 0) {
+    if (currentDocObj != nullptr) {
         completer = new ExpressionCompleter(currentDocObj, this, noProperty, checkInList);
         completer->setWidget(this);
         completer->setCaseSensitivity(Qt::CaseInsensitive);

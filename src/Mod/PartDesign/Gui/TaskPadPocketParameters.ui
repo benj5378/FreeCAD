@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>436</height>
+    <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,6 +44,9 @@
        <property name="keyboardTracking">
         <bool>false</bool>
        </property>
+       <property name="unit" stdset="0">
+        <string notr="true">mm</string>
+       </property>
        <property name="minimum">
         <double>0.000000000000000</double>
        </property>
@@ -60,6 +63,9 @@
       <widget class="Gui::PrefQuantitySpinBox" name="offsetEdit">
        <property name="keyboardTracking">
         <bool>false</bool>
+       </property>
+       <property name="unit" stdset="0">
+        <string notr="true">mm</string>
        </property>
       </widget>
      </item>
@@ -128,7 +134,14 @@ the sketch plane's normal vector will be used</string>
          <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="1">
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelXSkew">
+           <property name="text">
+            <string>x</string>
+           </property>
+          </widget>
+         </item>
+        <item row="0" column="1">
           <widget class="Gui::DoubleSpinBox" name="XDirectionEdit">
            <property name="toolTip">
             <string>x-component of direction vector</string>
@@ -150,10 +163,10 @@ the sketch plane's normal vector will be used</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="labelZSkew">
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelYSkew">
            <property name="text">
-            <string>z</string>
+            <string>y</string>
            </property>
           </widget>
          </item>
@@ -179,10 +192,10 @@ the sketch plane's normal vector will be used</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="labelYSkew">
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelZSkew">
            <property name="text">
-            <string>y</string>
+            <string>z</string>
            </property>
           </widget>
          </item>
@@ -211,14 +224,7 @@ the sketch plane's normal vector will be used</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="labelXSkew">
-           <property name="text">
-            <string>x</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         </layout>
        </widget>
       </item>
       <item row="3" column="0">
@@ -259,6 +265,30 @@ measured along the specified direction</string>
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="labelTaperAngle">
+       <property name="toolTip">
+        <string>Angle to taper the extrusion</string>
+       </property>
+       <property name="text">
+        <string>Taper angle</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Gui::PrefQuantitySpinBox" name="taperEdit">
+       <property name="keyboardTracking">
+        <bool>false</bool>
+       </property>
+       <property name="unit" stdset="0">
+        <string notr="true">deg</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <widget class="QLabel" name="labelLength2">
@@ -271,6 +301,33 @@ measured along the specified direction</string>
       <widget class="Gui::PrefQuantitySpinBox" name="lengthEdit2">
        <property name="keyboardTracking">
         <bool>false</bool>
+       </property>
+       <property name="unit" stdset="0">
+        <string notr="true">mm</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="labelTaperAngle2">
+       <property name="toolTip">
+        <string>Angle to taper the extrusion</string>
+       </property>
+       <property name="text">
+        <string>2nd taper angle</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Gui::PrefQuantitySpinBox" name="taperEdit2">
+       <property name="keyboardTracking">
+        <bool>false</bool>
+       </property>
+       <property name="unit" stdset="0">
+        <string notr="true">deg</string>
        </property>
       </widget>
      </item>

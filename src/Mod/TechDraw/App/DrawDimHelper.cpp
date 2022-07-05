@@ -27,7 +27,7 @@
 # include <cstring>
 # include <cstdlib>
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 #include <string>
 # include <exception>
 
@@ -35,6 +35,7 @@
 #include <Bnd_Box2d.hxx>
 #include <BndLib_Add2dCurve.hxx>
 #include <Bnd_Box.hxx>
+#include <BRep_Tool.hxx>
 #include <BRepBndLib.hxx>
 #include <Extrema_ExtCC2d.hxx>
 #include <Geom2dAdaptor_Curve.hxx>
@@ -194,7 +195,7 @@ std::pair<Base::Vector3d, Base::Vector3d> DrawDimHelper::minMax(DrawViewPart* dv
     std::vector<hTrimCurve> hTCurve2dList;
     for (auto& bg: selEdges) {
         TopoDS_Edge e = bg->occEdge;
-        BRepBndLib::Add(e, edgeBbx);
+        BRepBndLib::AddOptimal(e, edgeBbx);
         double first = 0.0;
         double last = 0.0;
         Handle(Geom_Curve) hCurve = BRep_Tool::Curve(e, first, last);
@@ -343,7 +344,7 @@ DrawViewDimension* DrawDimHelper::makeDistDim(DrawViewPart* dvp,
     TechDraw::DrawPage* page = dvp->findParentPage();
     std::string pageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     App::Document* doc = dvp->getDocument();
     std::string dimName = doc->getUniqueObjectName("Dimension");
     if (extent) {

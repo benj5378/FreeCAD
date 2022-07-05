@@ -48,9 +48,6 @@ else:
 translate = FreeCAD.Qt.translate
 
 
-failures = []
-
-
 def debugEdge(edge, prefix, force=False):
     if force or PathLog.getLevel(PathLog.thisModule()) == PathLog.Level.DEBUG:
         pf = edge.valueAt(edge.FirstParameter)
@@ -134,10 +131,8 @@ class Tag:
         self.height = math.fabs(height)
         self.actualHeight = self.height
         self.angle = math.fabs(angle)
-        self.radius = (
-            radius
-            if FreeCAD.Units.Quantity == type(radius)
-            else FreeCAD.Units.Quantity(radius, FreeCAD.Units.Length)
+        self.radius = getattr(
+            radius, "Value", FreeCAD.Units.Quantity(radius, FreeCAD.Units.Length).Value
         )
         self.enabled = enabled
         self.isSquare = False
@@ -209,7 +204,7 @@ class Tag:
         self.solid.translate(orig)
         radius = min(self.radius, radius)
         self.realRadius = radius
-        if not PathGeom.isRoughly(0, radius.Value):
+        if not PathGeom.isRoughly(0, radius):
             PathLog.debug("makeFillet(%.4f)" % radius)
             self.solid = self.solid.makeFillet(radius, [self.solid.Edges[0]])
 
@@ -570,7 +565,6 @@ class MapWireToTag:
         return shell
 
     def commandsForEdges(self):
-        global failures  # pylint: disable=global-statement
         if self.edges:
             try:
                 shape = self.shell().common(self.tag.solid)
@@ -610,7 +604,7 @@ class MapWireToTag:
                     )
                     # rapid = None  # commented out per LGTM suggestion
                 return commands
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception as e:
                 PathLog.error(
                     "Exception during processing tag @(%.2f, %.2f) (%s) - disabling the tag"
                     % (self.tag.x, self.tag.y, e.args[0])
@@ -625,7 +619,6 @@ class MapWireToTag:
                     commands.extend(
                         PathGeom.cmdsForEdge(e, hSpeed=self.hSpeed, vSpeed=self.vSpeed)
                     )
-                failures.append(self)
                 return commands
         return []
 
@@ -711,7 +704,7 @@ class PathData:
             wire = Part.Wire(bottom)
             if wire.isClosed():
                 return wire
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             # if sys.version_info.major < 3:
             #    traceback.print_exc(e)
             # else:
@@ -742,7 +735,6 @@ class PathData:
     def generateTags(
         self, obj, count, width=None, height=None, angle=None, radius=None, spacing=None
     ):
-        # pylint: disable=unused-argument
         PathLog.track(count, width, height, angle, spacing)
         # for e in self.baseWire.Edges:
         #    debugMarker(e.Vertexes[0].Point, 'base', (0.0, 1.0, 1.0), 0.2)
@@ -1006,7 +998,6 @@ class ObjectTagDressup:
             ),
         )
 
-        # for pylint ...
         self.obj = obj
         self.solids = []
         self.tags = []
@@ -1280,7 +1271,7 @@ class ObjectTagDressup:
 
         try:
             self.processTags(obj)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             PathLog.error(
                 "processing tags failed clearing all tags ... '%s'" % (e.args[0])
             )
@@ -1303,8 +1294,6 @@ class ObjectTagDressup:
 
     @waiting_effects
     def processTags(self, obj):
-        global failures  # pylint: disable=global-statement
-        failures = []
         tagID = 0
         if PathLog.getLevel(PathLog.thisModule()) == PathLog.Level.DEBUG:
             for tag in self.tags:
