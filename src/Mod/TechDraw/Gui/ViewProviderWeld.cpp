@@ -112,25 +112,22 @@ std::vector<App::DocumentObject*> ViewProviderWeld::claimChildren(void) const
         }
       return temp;
     } catch (...) {
-        std::vector<App::DocumentObject*> tmp;
-        return tmp;
+        return std::vector<App::DocumentObject*>();
     }
 }
 
 bool ViewProviderWeld::setEdit(int ModNum)
 {
 //    Base::Console().Message("VPW::setEdit(%d)\n",ModNum);
-    if (ModNum == ViewProvider::Default ) {
-        if (Gui::Control().activeDialog())  {         //TaskPanel already open!
-            return false;
-        }
-        // clear the selection (convenience)
-        Gui::Selection().clearSelection();
-        Gui::Control().showDialog(new TaskDlgWeldingSymbol(getFeature()));
-        return true;
-    } else {
+    if (ModNum != ViewProvider::Default ) {
         return ViewProviderDrawingView::setEdit(ModNum);
     }
+    if (Gui::Control().activeDialog())  {         //TaskPanel already open!
+        return false;
+    }
+    // clear the selection (convenience)
+    Gui::Selection().clearSelection();
+    Gui::Control().showDialog(new TaskDlgWeldingSymbol(getFeature()));
     return true;
 }
 
@@ -178,19 +175,17 @@ bool ViewProviderWeld::onDelete(const std::vector<std::string> &)
     // get childs
     auto childs = claimChildren();
 
-    if (!childs.empty()) {
-        QString bodyMessage;
-        QTextStream bodyMessageStream(&bodyMessage);
-        bodyMessageStream << qApp->translate("Std_Delete",
-            "You cannot delete this weld symbol because\nit has a tile weld that would become broken.");
-        QMessageBox::warning(Gui::getMainWindow(),
-            qApp->translate("Std_Delete", "Object dependencies"), bodyMessage,
-            QMessageBox::Ok);
-        return false;
-    }
-    else {
+    if (childs.empty()) {
         return true;
     }
+    QString bodyMessage;
+    QTextStream bodyMessageStream(&bodyMessage);
+    bodyMessageStream << qApp->translate("Std_Delete",
+        "You cannot delete this weld symbol because\nit has a tile weld that would become broken.");
+    QMessageBox::warning(Gui::getMainWindow(),
+        qApp->translate("Std_Delete", "Object dependencies"), bodyMessage,
+        QMessageBox::Ok);
+    return false;
 }
 
 bool ViewProviderWeld::canDelete(App::DocumentObject *obj) const
