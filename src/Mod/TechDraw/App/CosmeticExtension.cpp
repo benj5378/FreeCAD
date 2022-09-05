@@ -482,10 +482,11 @@ TechDraw::GeomFormat* CosmeticExtension::getGeomFormatBySelection(int index) con
     return getGeomFormatBySelection(edgeName.str());
 }
 
-<<<<<<< HEAD
-void CosmeticExtension::removeGeomFormat(std::string delTag)
-=======
-bool CosmeticExtension::replaceGeomFormat(GeomFormat* newGF)
+/** Removes a GeomFormat.
+ *
+ * @param tag is the tag for the GeomFormat to be removed.
+ */
+void CosmeticExtension::removeGeomFormat(std::string tag)
 {
     (void) newGF;
     Base::Console().Message("CX::replaceGeomFormat() - deprecated. do not use.\n");
