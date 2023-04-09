@@ -51,6 +51,9 @@ public:
     TechDraw::PropertyCenterLineList     CenterLines;
     TechDraw::PropertyGeomFormatList     GeomFormats;          //formats for geometric edges
 
+    template<typename cosmeticType, typename PL>
+    cosmeticType* getCosmeticObject(std::string tag, const PL& propertyList) const;
+
     virtual std::string     addCosmeticVertex(Base::Vector3d pos);
     virtual CosmeticVertex* getCosmeticVertexBySelection(std::string name) const;
     virtual CosmeticVertex* getCosmeticVertexBySelection(int i) const;

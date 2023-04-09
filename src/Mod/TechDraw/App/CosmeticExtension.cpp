@@ -59,6 +59,24 @@ CosmeticExtension::~CosmeticExtension()
 //{
 //}
 
+// TODO: change propertylist to type App::PropertyLists by making all
+// TechDrawPropertyLists inheret it... hardcore.
+/**
+ * Returns the object of typename cosmeticType that has the passed tag
+ */
+template <typename cosmeticType, typename PL>
+cosmeticType* CosmeticExtension::getCosmeticObject(std::string tag, const PL& propertyList) const
+{
+    const std::vector<cosmeticType*> objects = propertyList.getValues();
+    for (auto& object: objects) {
+        std::string objectTag = object->getTagAsString();
+        if (objectTag == tag) {
+            return object;
+        }
+    }
+    return nullptr;
+}
+
 //==============================================================================
 //CosmeticVertex x, y are stored as unscaled, but mirrored (inverted Y) values.
 //if you are creating a CV based on calculations of scaled geometry, you need to
@@ -85,16 +103,7 @@ std::string CosmeticExtension::addCosmeticVertex(Base::Vector3d pos)
 TechDraw::CosmeticVertex* CosmeticExtension::getCosmeticVertex(std::string tagString) const
 {
 //    Base::Console().Message("CEx::getCosmeticVertex(%s)\n", tagString.c_str());
-    CosmeticVertex* result = nullptr;
-    const std::vector<TechDraw::CosmeticVertex*> verts = CosmeticVertexes.getValues();
-    for (auto& cv: verts) {
-        std::string cvTag = cv->getTagAsString();
-        if (cvTag == tagString) {
-            result = cv;
-            break;
-        }
-    }
-    return result;
+    return getCosmeticObject<CosmeticVertex, PropertyCosmeticVertexList>(tagString, CosmeticVertexes);
 }
 
 // find the cosmetic vertex corresponding to selection name (Vertex5)
@@ -176,22 +185,7 @@ std::string CosmeticExtension::addCosmeticEdge(TechDraw::BaseGeomPtr bg)
 //get CE by unique id
 TechDraw::CosmeticEdge* CosmeticExtension::getCosmeticEdge(std::string tagString) const
 {
-//    Base::Console().Message("CEx::getCosmeticEdge(%s)\n", tagString.c_str());
-    CosmeticEdge* result = nullptr;
-    bool found = false;
-    const std::vector<TechDraw::CosmeticEdge*> edges = CosmeticEdges.getValues();
-    for (auto& ce: edges) {
-        std::string ceTag = ce->getTagAsString();
-        if (ceTag == tagString) {
-            result = ce;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        Base::Console().Message("CEx::getCosmeticEdge - CE for tag: %s not found.\n", tagString.c_str());
-    }
-    return result;
+    return getCosmeticObject<CosmeticEdge, PropertyCosmeticEdgeList>(tagString, CosmeticEdges);
 }
 
 // find the cosmetic edge corresponding to selection name (Edge5)
@@ -288,17 +282,7 @@ std::string CosmeticExtension::addCenterLine(TechDraw::BaseGeomPtr bg)
 //get CL by unique id
 TechDraw::CenterLine* CosmeticExtension::getCenterLine(std::string tagString) const
 {
-//    Base::Console().Message("CEx::getCenterLine(%s)\n", tagString.c_str());
-    CenterLine* result = nullptr;
-    const std::vector<TechDraw::CenterLine*> cLines = CenterLines.getValues();
-    for (auto& cl: cLines) {
-        std::string clTag = cl->getTagAsString();
-        if (clTag == tagString) {
-            result = cl;
-            break;
-        }
-    }
-    return result;
+    return getCosmeticObject<CenterLine, PropertyCenterLineList>(tagString, CenterLines);
 }
 
 // find the center line corresponding to selection name (Edge5)
@@ -370,16 +354,7 @@ std::string CosmeticExtension::addGeomFormat(TechDraw::GeomFormat* gf)
 TechDraw::GeomFormat* CosmeticExtension::getGeomFormat(std::string tagString) const
 {
 //    Base::Console().Message("CEx::getGeomFormat(%s)\n", tagString.c_str());
-    GeomFormat* result = nullptr;
-    const std::vector<TechDraw::GeomFormat*> formats = GeomFormats.getValues();
-    for (auto& gf: formats) {
-        std::string gfTag = gf->getTagAsString();
-        if (gfTag == tagString) {
-            result = gf;
-            break;
-        }
-    }
-    return result;
+    return getCosmeticObject<GeomFormat, PropertyGeomFormatList>(tagString, GeomFormats);
 }
 
 // find the cosmetic edge corresponding to selection name (Edge5)
