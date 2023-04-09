@@ -53,6 +53,8 @@ public:
 
     template<typename cosmeticType, typename PL>
     cosmeticType* getCosmeticObject(std::string tag, const PL& propertyList) const;
+    template<typename cosmeticType, typename PL>
+    void removeCosmeticObject(std::string tag, PL& propertyList);
 
     virtual std::string     addCosmeticVertex(Base::Vector3d pos);
     virtual CosmeticVertex* getCosmeticVertexBySelection(std::string name) const;

@@ -77,6 +77,22 @@ cosmeticType* CosmeticExtension::getCosmeticObject(std::string tag, const PL& pr
     return nullptr;
 }
 
+/**
+ * Removes the object of typename cosmeticType that has the passed tag
+ */
+template <typename cosmeticType, typename PL>
+void CosmeticExtension::removeCosmeticObject(std::string tag, PL& propertyList)
+{
+    std::vector<cosmeticType*> oldObjects = propertyList.getValues();
+    std::vector<cosmeticType*> newObjects;
+    for (auto& oldObject: oldObjects) {
+        if (oldObject->getTagAsString() != tag)  {
+            newObjects.push_back(oldObject);
+        }
+    }
+    propertyList.setValues(newObjects);
+}
+
 //==============================================================================
 //CosmeticVertex x, y are stored as unscaled, but mirrored (inverted Y) values.
 //if you are creating a CV based on calculations of scaled geometry, you need to
@@ -138,14 +154,7 @@ TechDraw::CosmeticVertex* CosmeticExtension::getCosmeticVertexBySelection(int i)
 void CosmeticExtension::removeCosmeticVertex(std::string delTag)
 {
 //    Base::Console().Message("DVP::removeCV(%s)\n", delTag.c_str());
-    std::vector<CosmeticVertex*> cVerts = CosmeticVertexes.getValues();
-    std::vector<CosmeticVertex*> newVerts;
-    for (auto& cv: cVerts) {
-        if (cv->getTagAsString() != delTag)  {
-            newVerts.push_back(cv);
-        }
-    }
-    CosmeticVertexes.setValues(newVerts);
+    removeCosmeticObject<CosmeticVertex, PropertyCosmeticVertexList>(delTag, CosmeticVertexes);
 }
 
 void CosmeticExtension::removeCosmeticVertex(std::vector<std::string> delTags)
@@ -221,14 +230,7 @@ TechDraw::CosmeticEdge* CosmeticExtension::getCosmeticEdgeBySelection(int i) con
 void CosmeticExtension::removeCosmeticEdge(std::string delTag)
 {
 //    Base::Console().Message("DVP::removeCE(%s)\n", delTag.c_str());
-    std::vector<CosmeticEdge*> cEdges = CosmeticEdges.getValues();
-    std::vector<CosmeticEdge*> newEdges;
-    for (auto& ce: cEdges) {
-        if (ce->getTagAsString() != delTag)  {
-            newEdges.push_back(ce);
-        }
-    }
-    CosmeticEdges.setValues(newEdges);
+    removeCosmeticObject<CosmeticEdge, PropertyCosmeticEdgeList>(delTag, CosmeticEdges);
 }
 
 void CosmeticExtension::removeCosmeticEdge(std::vector<std::string> delTags)
@@ -317,14 +319,7 @@ TechDraw::CenterLine* CosmeticExtension::getCenterLineBySelection(int i) const
 void CosmeticExtension::removeCenterLine(std::string delTag)
 {
 //    Base::Console().Message("DVP::removeCL(%s)\n", delTag.c_str());
-    std::vector<CenterLine*> cLines = CenterLines.getValues();
-    std::vector<CenterLine*> newLines;
-    for (auto& cl: cLines) {
-        if (cl->getTagAsString() != delTag)  {
-            newLines.push_back(cl);
-        }
-    }
-    CenterLines.setValues(newLines);
+    removeCosmeticObject<CenterLine, PropertyCenterLineList>(delTag, CenterLines);
 }
 
 void CosmeticExtension::removeCenterLine(std::vector<std::string> delTags)
@@ -391,14 +386,7 @@ TechDraw::GeomFormat* CosmeticExtension::getGeomFormatBySelection(int i) const
 void CosmeticExtension::removeGeomFormat(std::string delTag)
 {
 //    Base::Console().Message("DVP::removeCE(%s)\n", delTag.c_str());
-    std::vector<GeomFormat*> cFormats = GeomFormats.getValues();
-    std::vector<GeomFormat*> newFormats;
-    for (auto& gf: cFormats) {
-        if (gf->getTagAsString() != delTag)  {
-            newFormats.push_back(gf);
-        }
-    }
-    GeomFormats.setValues(newFormats);
+    removeCosmeticObject<GeomFormat, PropertyGeomFormatList>(delTag, GeomFormats);
 }
 
 //================================================================================
