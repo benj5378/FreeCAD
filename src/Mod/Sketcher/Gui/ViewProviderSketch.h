@@ -28,6 +28,7 @@
 #include <QCoreApplication>
 #include <boost_signals2.hpp>
 #include <memory>
+#include <csignal>
 
 #include <Base/Parameter.h>
 #include <Base/Placement.h>
@@ -526,6 +527,8 @@ public:
     /// is called by GuiCommands to set the drawing mode
     void setSketchMode(SketchMode mode)
     {
+        Base::Console().Message("azzzzz");
+        if(mode == 10 || mode == 9) raise(SIGINT);
         Mode = mode;
     }
     /// get the sketch mode

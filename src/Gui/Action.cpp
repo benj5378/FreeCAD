@@ -161,6 +161,15 @@ bool Action::isChecked() const
 void Action::setEnabled(bool enable)
 {
     _action->setEnabled(enable);
+    if(_tooltip.compare(QString::fromUtf8("Create a circle in the sketcher")) == 0) {
+        Base::Console().Message("setEnabled %d in %s\n", enable, _tooltip.toStdString().c_str());
+        if(!enable) {
+            raise(SIGINT);
+        }
+        else if (!_action->isEnabled() && enable) {
+            raise(SIGINT);
+        }
+    }
 }
 
 bool Action::isEnabled() const
@@ -508,6 +517,7 @@ void ActionGroup::setDisabled (bool check)
 {
     Action::setEnabled(!check);
     groupAction()->setDisabled(check);
+    // Base::Console().Message("setDisabled %d in %s", check, _tooltip.toStdString().c_str());
 }
 
 void ActionGroup::setExclusive (bool check)

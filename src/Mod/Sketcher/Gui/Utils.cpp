@@ -392,18 +392,26 @@ bool SketcherGui::isSketchInEdit(Gui::Document* doc)
     return false;
 }
 
-bool SketcherGui::isCommandActive(Gui::Document* doc, bool actsOnSelection)
+bool SketcherGui::isCommandActive(Gui::Document* doc, bool actsOnSelection, bool debug)
 {
+    if (debug) Base::Console().Message("inSketchInEdit evaluates %d\n", isSketchInEdit(doc));
     if (isSketchInEdit(doc)) {
         auto mode =
             static_cast<SketcherGui::ViewProviderSketch*>(doc->getInEdit())->getSketchMode();
 
+        if (debug) Base::Console().Message("mode is %d\n", mode);
+
+        if (debug) Base::Console().Message("mode == ViewProviderSketch::STATUS_SKETCH_UseRubberBand evaluates %d\n", mode == ViewProviderSketch::STATUS_SKETCH_UseRubberBand);
+        if (debug) Base::Console().Message("mode == ViewProviderSketch::STATUS_NONE evaluates %d\n", mode == ViewProviderSketch::STATUS_NONE);
+        if (debug) Base::Console().Message("mode == ViewProviderSketch::STATUS_SKETCH_UseHandler evaluates %d\n", mode == ViewProviderSketch::STATUS_SKETCH_UseHandler);
         if (mode == ViewProviderSketch::STATUS_NONE
             || mode == ViewProviderSketch::STATUS_SKETCH_UseHandler) {
 
+            if (debug) Base::Console().Message("!actsOnSelection evaluates %d\n", !actsOnSelection);
             if (!actsOnSelection) {
                 return true;
             }
+            if (debug) Base::Console().Message("Gui::Selection().countObjectsOfType(Sketcher::SketchObject::getClassTypeId()) > 0 evaluates %d\n", Gui::Selection().countObjectsOfType(Sketcher::SketchObject::getClassTypeId()) > 0);
             else if (Gui::Selection().countObjectsOfType(Sketcher::SketchObject::getClassTypeId())
                      > 0) {
                 return true;

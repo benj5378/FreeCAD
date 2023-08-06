@@ -1322,7 +1322,7 @@ void CmdSketcherCompCreateCircle::languageChange()
 
 bool CmdSketcherCompCreateCircle::isActive()
 {
-    return isCommandActive(getActiveGuiDocument());
+    return isCommandActive(getActiveGuiDocument(), false, true);
 }
 
 

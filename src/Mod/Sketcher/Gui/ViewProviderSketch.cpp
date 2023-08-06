@@ -71,6 +71,7 @@
 #include "ViewProviderSketchGeometryExtension.h"
 #include "Workbench.h"
 
+#include <csignal>
 
 FC_LOG_LEVEL_INIT("Sketch", true, true)
 
@@ -854,8 +855,10 @@ bool ViewProviderSketch::mouseButtonPressed(int Button, bool pressed, const SbVe
                         DoubleClick::prvClickPos = cursorPos;
                         DoubleClick::prvCursorPos = cursorPos;
                         DoubleClick::newCursorPos = cursorPos;
-                        if (!done)
+                        if (!done) {
                             Mode = STATUS_SKETCH_StartRubberBand;
+                            raise(SIGINT);
+                        }
                     }
 
                     return done;
@@ -1550,6 +1553,7 @@ bool ViewProviderSketch::mouseMove(const SbVec2s& cursorPos, Gui::View3DInventor
             return true;
         case STATUS_SKETCH_StartRubberBand: {
             Mode = STATUS_SKETCH_UseRubberBand;
+            raise(SIGINT);
             rubberband->setWorking(true);
             return true;
         }
