@@ -2,6 +2,7 @@
 
  /****************************************************************************
  *   Copyright (c) 2020 Chris Hennes (chennes@pioneerlibrarysystem.org)     *
+ *   Copyright (c) 2023 Benjamin Bræstrup Sayoc (benj5378@outlook.com)      *
  *   Copyright (c) 2023 FreeCAD Project Association                         *
  *                                                                          *
  *   This file is part of FreeCAD.                                          *
@@ -46,11 +47,12 @@ class wbListItem : public QWidget
     Q_OBJECT
 
 public:
-    explicit wbListItem(const QString& wbName, bool enabled, bool startupWb, bool autoLoad, int index, QWidget* parent = nullptr);
+    explicit wbListItem(const QString& wbName, bool enabled, bool startupWb, bool autoLoad, int index, bool onlyShowEnabledCheckBox = false, QWidget* parent = nullptr);
     ~wbListItem() override;
 
     bool isEnabled();
     bool isAutoLoading();
+    void setEnabled(bool enabled);
     void setStartupWb(bool val);
 
     void setShortcutLabel(int index);
@@ -73,7 +75,7 @@ private:
 };
 }
 
-wbListItem::wbListItem(const QString& wbName, bool enabled, bool startupWb, bool autoLoad, int index, QWidget* parent) : QWidget(parent)
+wbListItem::wbListItem(const QString& wbName, bool enabled, bool startupWb, bool autoLoad, int index, bool onlyShowEnabledCheckBox, QWidget* parent) : QWidget(parent)
 {
     this->setObjectName(wbName);
 
@@ -152,6 +154,12 @@ wbListItem::wbListItem(const QString& wbName, bool enabled, bool startupWb, bool
         loadLabel->setVisible(false);
     }
 
+    if(onlyShowEnabledCheckBox) {
+        autoloadCheckBox->hide();
+        loadButton->hide();
+        loadLabel->hide();
+    }
+
     auto layout = new QHBoxLayout(this);
     layout->addWidget(enableCheckBox);
     layout->addWidget(subWidget);
@@ -169,6 +177,11 @@ wbListItem::~wbListItem()
 bool wbListItem::isEnabled()
 {
     return enableCheckBox->isChecked();
+}
+
+void wbListItem::setEnabled(bool enabled)
+{
+    enableCheckBox->setChecked(enabled);
 }
 
 bool wbListItem::isAutoLoading()
@@ -340,9 +353,9 @@ void DlgSettingsWorkbenchesImp::loadSettings()
     }
 }
 
-WorkbenchList::WorkbenchList(QWidget* parent) : ListWidgetDragBugFix(parent)
+WorkbenchList::WorkbenchList(bool onlyShowEnabledCheckBox, QWidget* parent) : ListWidgetDragBugFix(parent)
 {
-
+    m_onlyShowEnabledCheckBox = onlyShowEnabledCheckBox;
 }
 
 void WorkbenchList::loadSettings()
@@ -395,7 +408,7 @@ void WorkbenchList::addWorkbench(const QString& wbName, bool enabled)
     bool isStartupWb = false;// wbName.toStdString() == _startupModule;
     bool autoLoad = std::find(_backgroundAutoloadedModules.begin(), _backgroundAutoloadedModules.end(),
         wbName.toStdString()) != _backgroundAutoloadedModules.end();
-    wbListItem* widget = new wbListItem(wbName, enabled, isStartupWb, autoLoad, count(), this);
+    wbListItem* widget = new wbListItem(wbName, enabled, isStartupWb, autoLoad, count(), m_onlyShowEnabledCheckBox, this);
     connect(widget, &wbListItem::wbToggled, this, &WorkbenchList::onWbToggled);
     auto wItem = new QListWidgetItem();
     wItem->setSizeHint(widget->sizeHint());
@@ -504,8 +517,44 @@ void DlgSettingsWorkbenchesImp::loadWorkbenchSelector()
     ui->WorkbenchSelectorPosition->setCurrentIndex(WorkbenchSwitcher::getIndex());
 }
 
+QList<wbListItem*> WorkbenchList::getAllItems()
+{
+    QList<wbListItem*> result;
+    for (int i = 0; i < count(); i++) {
+        result.append(static_cast<wbListItem*>(itemWidget(item(i))));
+    }
+    return result;
+}
+
+//! Disables all workbenches
+void WorkbenchList::disableWorkbenches()
+{
+    for (wbListItem* wbItem : getAllItems()) {
+        wbItem->setEnabled(false);
+    }
+}
+
+//! Enables all workbenches
+void WorkbenchList::enableWorkbenches()
+{
+    for (wbListItem* wbItem : getAllItems()) {
+        wbItem->setEnabled(true);
+    }
+}
+
+//! Enables workbenches specified
+void WorkbenchList::enableWorkbenches(QStringList workbenchNames)
+{
+    for (wbListItem* wbItem : getAllItems()) {
+        if (workbenchNames.contains(wbItem->objectName())) {
+            wbItem->setEnabled(true);
+        }
+    }
+}
+
 void WorkbenchList::onWbToggled(const QString& wbName, bool enabled)
 {
+    Base::Console().Message("%s\n", wbName.toStdString().c_str());
 
     //reorder the list of items.
     int wbIndex = 0;
