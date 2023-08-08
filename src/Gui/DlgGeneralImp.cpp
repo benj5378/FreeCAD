@@ -84,13 +84,9 @@ DlgGeneralImp::DlgGeneralImp( QWidget* parent )
     connect(ui->RevertToSavedConfig, &QPushButton::clicked, this, &DlgGeneralImp::revertToSavedConfig);
 
     connect(ui->comboBox_UnitSystem, qOverload<int>(&QComboBox::currentIndexChanged), this, &DlgGeneralImp::onUnitSystemIndexChanged);
-    ui->spinBoxDecimals->setMaximum(std::numeric_limits<double>::digits10 + 1);
+    setupSchemaSelector(ui->comboBox_UnitSystem);
 
-    int num = static_cast<int>(Base::UnitSystem::NumUnitSystemTypes);
-    for (int i = 0; i < num; i++) {
-        QString item = Base::UnitsApi::getDescription(static_cast<Base::UnitSystem>(i));
-        ui->comboBox_UnitSystem->addItem(item, i);
-    }
+    ui->spinBoxDecimals->setMaximum(std::numeric_limits<double>::digits10 + 1);
 
     // Enable/disable the fractional inch option depending on system
     if (UnitsApi::getSchema() == UnitSystem::ImperialBuilding)
@@ -126,12 +122,12 @@ void DlgGeneralImp::setRecentFileSize()
     }
 }
 
-bool DlgGeneralImp::setLanguage()
+bool DlgGeneralImp::setLanguage(QComboBox* languageSelector)
 {
     ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
     QString lang = QLocale::languageToString(QLocale().language());
     QByteArray language = hGrp->GetASCII("Language", (const char*)lang.toLatin1()).c_str();
-    QByteArray current = ui->Languages->itemData(ui->Languages->currentIndex()).toByteArray();
+    QByteArray current = languageSelector->itemData(languageSelector->currentIndex()).toByteArray();
     if (current != language) {
         hGrp->SetASCII("Language", current.constData());
         Translator::instance()->activateLanguage(current.constData());
@@ -172,17 +168,46 @@ void DlgGeneralImp::setDecimalPointConversion(bool on)
         Translator::instance()->enableDecimalPointConversion(on);
     }
 }
+//! Sets user schema (units) from the value of a QComboBox setup with setupUnitSelector
+void DlgGeneralImp::setSchema(QComboBox* schemaSelector)
+{
+    int schemaIndex = schemaSelector->currentIndex(); // currently selected View System (unit system)
+    ParameterGrp::handle hGrpu = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Units");
+    hGrpu->SetInt("UserSchema", schemaIndex);
+
+    // Set and save the Unit System
+    UnitsApi::setSchema(static_cast<UnitSystem>(schemaIndex));
+}
+
+void DlgGeneralImp::setStyleSheet(QComboBox* styleSheetSelector)
+{
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
+    QVariant sheet = styleSheetSelector->itemData(styleSheetSelector->currentIndex());
+    hGrp->SetASCII("StyleSheet", (const char*)sheet.toByteArray());
+
+    hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
+    bool tiledBackground = hGrp->GetBool("TiledBackground", false);
+
+    Application::Instance->setStyleSheet(sheet.toString(), tiledBackground);
+}
+
+void DlgGeneralImp::setIconSize(QComboBox* iconSizeSelector)
+{
+    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
+    QVariant size = iconSizeSelector->itemData(iconSizeSelector->currentIndex());
+    int pixel = size.toInt();
+    hGrp->SetInt("ToolbarIconSize", pixel);
+    getMainWindow()->setIconSize(QSize(pixel,pixel));
+}
 
 void DlgGeneralImp::saveSettings()
 {
     // must be done as very first because we create a new instance of NavigatorStyle
     // where we set some attributes afterwards
     int FracInch;  // minimum fractional inch to display
-    int viewSystemIndex; // currently selected View System (unit system)
 
     ParameterGrp::handle hGrpu = App::GetApplication().GetParameterGroupByPath
     ("User parameter:BaseApp/Preferences/Units");
-    hGrpu->SetInt("UserSchema", ui->comboBox_UnitSystem->currentIndex());
     hGrpu->SetInt("Decimals", ui->spinBoxDecimals->value());
 
     // Set actual value
@@ -200,9 +225,8 @@ void DlgGeneralImp::saveSettings()
     // Set the actual format value
     Base::QuantityFormat::setDefaultDenominator(FracInch);
 
-    // Set and save the Unit System
-    viewSystemIndex = ui->comboBox_UnitSystem->currentIndex();
-    UnitsApi::setSchema(static_cast<UnitSystem>(viewSystemIndex));
+    setSchema(ui->comboBox_UnitSystem);
+
 
     ui->SubstituteDecimal->onSave();
     ui->UseLocaleFormatting->onSave();
@@ -211,17 +235,14 @@ void DlgGeneralImp::saveSettings()
     ui->SplashScreen->onSave();
 
     setRecentFileSize();
-    bool force = setLanguage();
+    bool force = setLanguage(ui->Languages);
     // In case type is "Selected language", we need to force locale change
     setNumberLocale(force);
     setDecimalPointConversion(ui->SubstituteDecimal->isChecked());
 
-    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
-    QVariant size = ui->toolbarIconSize->itemData(ui->toolbarIconSize->currentIndex());
-    int pixel = size.toInt();
-    hGrp->SetInt("ToolbarIconSize", pixel);
-    getMainWindow()->setIconSize(QSize(pixel,pixel));
+    setIconSize(ui->toolbarIconSize);
 
+    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
     int blinkTime{hGrp->GetBool("EnableCursorBlinking", true) ? -1 : 0};
     qApp->setCursorFlashTime(blinkTime);
 
@@ -246,9 +267,7 @@ void DlgGeneralImp::saveSettings()
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
     hGrp->SetBool("TiledBackground", ui->tiledBackground->isChecked());
 
-    QVariant sheet = ui->StyleSheets->itemData(ui->StyleSheets->currentIndex());
-    hGrp->SetASCII("StyleSheet", (const char*)sheet.toByteArray());
-    Application::Instance->setStyleSheet(sheet.toString(), ui->tiledBackground->isChecked());
+    setStyleSheet(ui->StyleSheets);
 }
 
 void DlgGeneralImp::loadSettings()
@@ -276,58 +295,11 @@ void DlgGeneralImp::loadSettings()
     ui->EnableCursorBlinking->onRestore();
     ui->SplashScreen->onRestore();
 
-    // search for the language files
-    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
-    auto langToStr = Translator::instance()->activeLanguage();
-    QByteArray language = hGrp->GetASCII("Language", langToStr.c_str()).c_str();
 
     localeIndex = ui->UseLocaleFormatting->currentIndex();
 
-    int index = 1;
-    TStringMap list = Translator::instance()->supportedLocales();
-    ui->Languages->clear();
-    ui->Languages->addItem(QString::fromLatin1("English"), QByteArray("English"));
-    for (auto it = list.begin(); it != list.end(); ++it, index++) {
-        QByteArray lang = it->first.c_str();
-        QString langname = QString::fromLatin1(lang.constData());
-
-        if (it->second == "sr-CS") {
-            // Qt does not treat sr-CS (Serbian, Latin) as a Latin-script variant by default: this
-            // forces it to do so.
-            it->second = "sr_Latn";
-        }
-
-        QLocale locale(QString::fromLatin1(it->second.c_str()));
-        QString native = locale.nativeLanguageName();
-        if (!native.isEmpty()) {
-            if (native[0].isLetter())
-                native[0] = native[0].toUpper();
-            langname = native;
-        }
-
-        ui->Languages->addItem(langname, lang);
-        if (language == lang) {
-            ui->Languages->setCurrentIndex(index);
-        }
-    }
-
-    QAbstractItemModel* model = ui->Languages->model();
-    if (model)
-        model->sort(0);
-
-    int current = getMainWindow()->iconSize().width();
-    current = hGrp->GetInt("ToolbarIconSize", current);
-    ui->toolbarIconSize->clear();
-    ui->toolbarIconSize->addItem(tr("Small (%1px)").arg(16), QVariant((int)16));
-    ui->toolbarIconSize->addItem(tr("Medium (%1px)").arg(24), QVariant((int)24));
-    ui->toolbarIconSize->addItem(tr("Large (%1px)").arg(32), QVariant((int)32));
-    ui->toolbarIconSize->addItem(tr("Extra large (%1px)").arg(48), QVariant((int)48));
-    index = ui->toolbarIconSize->findData(QVariant(current));
-    if (index < 0) {
-        ui->toolbarIconSize->addItem(tr("Custom (%1px)").arg(current), QVariant((int)current));
-        index = ui->toolbarIconSize->findData(QVariant(current));
-    }
-    ui->toolbarIconSize->setCurrentIndex(index);
+    setupLanguageSelector(ui->Languages);
+    setupIconSizeSelector(ui->toolbarIconSize);
 
     //TreeMode combobox setup.
     ui->treeMode->clear();
@@ -335,11 +307,11 @@ void DlgGeneralImp::loadSettings()
     ui->treeMode->addItem(tr("TreeView and PropertyView"));
     ui->treeMode->addItem(tr("Both"));
 
-    hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/DockWindows");
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/DockWindows");
     bool propertyView = hGrp->GetGroup("PropertyView")->GetBool("Enabled",false);
     bool treeView = hGrp->GetGroup("TreeView")->GetBool("Enabled",false);
     bool comboView = hGrp->GetGroup("ComboView")->GetBool("Enabled",true);
-    index = 0;
+    int index = 0;
     if(propertyView || treeView) {
         index = comboView?2:1;
     }
@@ -348,6 +320,29 @@ void DlgGeneralImp::loadSettings()
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
     ui->tiledBackground->setChecked(hGrp->GetBool("TiledBackground", false));
 
+    setupStyleSheetSelector(ui->StyleSheets);
+}
+
+void DlgGeneralImp::setupIconSizeSelector(QComboBox* iconSizeSelector)
+{
+    int current = getMainWindow()->iconSize().width();
+    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
+    current = hGrp->GetInt("ToolbarIconSize", current);
+    iconSizeSelector->clear();
+    iconSizeSelector->addItem(tr("Small (%1px)").arg(16), QVariant((int)16));
+    iconSizeSelector->addItem(tr("Medium (%1px)").arg(24), QVariant((int)24));
+    iconSizeSelector->addItem(tr("Large (%1px)").arg(32), QVariant((int)32));
+    iconSizeSelector->addItem(tr("Extra large (%1px)").arg(48), QVariant((int)48));
+    int index = iconSizeSelector->findData(QVariant(current));
+    if (index < 0) {
+        iconSizeSelector->addItem(tr("Custom (%1px)").arg(current), QVariant((int)current));
+        index = iconSizeSelector->findData(QVariant(current));
+    }
+    iconSizeSelector->setCurrentIndex(index);
+}
+
+void DlgGeneralImp::setupStyleSheetSelector(QComboBox* styleSheetSelector)
+{
     // List all .qss/.css files
     QMap<QString, QString> cssFiles;
     QDir dir;
@@ -368,14 +363,15 @@ void DlgGeneralImp::loadSettings()
     }
 
     // now add all unique items
-    ui->StyleSheets->clear();
-    ui->StyleSheets->addItem(tr("No style sheet"), QString::fromLatin1(""));
+    styleSheetSelector->clear();
+    styleSheetSelector->addItem(tr("No style sheet"), QString::fromLatin1(""));
     for (QMap<QString, QString>::iterator it = cssFiles.begin(); it != cssFiles.end(); ++it) {
-        ui->StyleSheets->addItem(it.key(), it.value());
+        styleSheetSelector->addItem(it.key(), it.value());
     }
 
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
     QString selectedStyleSheet = QString::fromLatin1(hGrp->GetASCII("StyleSheet").c_str());
-    index = ui->StyleSheets->findData(selectedStyleSheet);
+    int index = styleSheetSelector->findData(selectedStyleSheet);
 
     // might be an absolute path name
     if (index < 0 && !selectedStyleSheet.isEmpty()) {
@@ -387,15 +383,68 @@ void DlgGeneralImp::loadSettings()
             }
             else {
                 selectedStyleSheet = fi.absoluteFilePath();
-                ui->StyleSheets->addItem(fi.baseName(), selectedStyleSheet);
+                styleSheetSelector->addItem(fi.baseName(), selectedStyleSheet);
             }
 
-            index = ui->StyleSheets->findData(selectedStyleSheet);
+            index = styleSheetSelector->findData(selectedStyleSheet);
         }
     }
 
     if (index > -1)
-        ui->StyleSheets->setCurrentIndex(index);
+        styleSheetSelector->setCurrentIndex(index);
+}
+
+//! Sets up a QComboBox for unit schema selection
+void DlgGeneralImp::setupSchemaSelector(QComboBox* schemaSelector)
+{
+    int num = static_cast<int>(Base::UnitSystem::NumUnitSystemTypes);
+    for (int i = 0; i < num; i++) {
+        QString item = Base::UnitsApi::getDescription(static_cast<Base::UnitSystem>(i));
+        schemaSelector->addItem(item, i);
+    }
+}
+
+
+//! Sets up a QComboBox for language selection
+void DlgGeneralImp::setupLanguageSelector(QComboBox* languageSelector)
+{
+    // search for the language files
+    ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
+    
+    auto langToStr = Translator::instance()->activeLanguage();
+    QByteArray language = hGrp->GetASCII("Language", langToStr.c_str()).c_str();
+    
+    TStringMap list = Translator::instance()->supportedLocales();
+    languageSelector->clear();
+    languageSelector->addItem(QString::fromLatin1("English"), QByteArray("English"));
+    int index = 1;
+    for (auto it = list.begin(); it != list.end(); ++it, index++) {
+        QByteArray lang = it->first.c_str();
+        QString langname = QString::fromLatin1(lang.constData());
+
+        if (it->second == "sr-CS") {
+            // Qt does not treat sr-CS (Serbian, Latin) as a Latin-script variant by default: this
+            // forces it to do so.
+            it->second = "sr_Latn";
+        }
+
+        QLocale locale(QString::fromLatin1(it->second.c_str()));
+        QString native = locale.nativeLanguageName();
+        if (!native.isEmpty()) {
+            if (native[0].isLetter())
+                native[0] = native[0].toUpper();
+            langname = native;
+        }
+
+        languageSelector->addItem(langname, lang);
+        if (language == lang) {
+            languageSelector->setCurrentIndex(index);
+        }
+    }
+
+    QAbstractItemModel* model = languageSelector->model();
+    if (model)
+        model->sort(0);
 }
 
 void DlgGeneralImp::changeEvent(QEvent *event)
