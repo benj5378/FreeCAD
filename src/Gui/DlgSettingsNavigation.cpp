@@ -58,7 +58,7 @@ DlgSettingsNavigation::DlgSettingsNavigation(QWidget* parent)
 {
     ui->setupUi(this);
     ui->naviCubeBaseColor->setAllowTransparency(true);
-    retranslate();
+    setupNavigationSelector(ui->comboNavigationStyle);
 }
 
 /**
@@ -68,15 +68,22 @@ DlgSettingsNavigation::~DlgSettingsNavigation()
 {
 }
 
+void DlgSettingsNavigation::setNavigation(QComboBox* navigationSeletor)
+{
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath
+        ("User parameter:BaseApp/Preferences/View");
+    QVariant data = navigationSeletor->itemData(navigationSeletor->currentIndex(),
+        Qt::UserRole);
+    hGrp->SetASCII("NavigationStyle", (const char*)data.toByteArray());
+}
+
 void DlgSettingsNavigation::saveSettings()
 {
     // must be done as very first because we create a new instance of NavigatorStyle
     // where we set some attributes afterwards
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath
         ("User parameter:BaseApp/Preferences/View");
-    QVariant data = ui->comboNavigationStyle->itemData(ui->comboNavigationStyle->currentIndex(),
-        Qt::UserRole);
-    hGrp->SetASCII("NavigationStyle", (const char*)data.toByteArray());
+    setNavigation(ui->comboNavigationStyle);
 
     int index = ui->comboOrbitStyle->currentIndex();
     hGrp->SetInt("OrbitStyle", index);
@@ -242,14 +249,18 @@ void DlgSettingsNavigation::changeEvent(QEvent *e)
 void DlgSettingsNavigation::retranslate()
 {
     ui->comboNavigationStyle->clear();
+    setupNavigationSelector(ui->comboNavigationStyle);
+}
 
+void DlgSettingsNavigation::setupNavigationSelector(QComboBox* navigationSelector)
+{
     // add submenu at the end to select navigation style
     std::map<Base::Type, std::string> styles = UserNavigationStyle::getUserFriendlyNames();
-    for (const auto & style : styles) {
+    for (const auto& style : styles) {
         QByteArray data(style.first.getName());
         QString name = QApplication::translate(style.first.getName(), style.second.c_str());
 
-        ui->comboNavigationStyle->addItem(name, data);
+        navigationSelector->addItem(name, data);
     }
 }
 
