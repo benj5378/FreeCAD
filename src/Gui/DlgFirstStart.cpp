@@ -1,6 +1,15 @@
 #include <QtWidgets>
 
 #include "DlgFirstStart.h"
+#include "DlgGeneralImp.h"
+#include "DlgSettingsNavigation.h"
+#include "DlgSettingsWorkbenchesImp.h"
+#include <Base/UnitsApi.h>
+#include <QComboBox>
+
+
+using namespace Gui::Dialog;
+
 
 FirstStartWizard::FirstStartWizard(QWidget *parent)
     : QWizard(parent)
@@ -10,10 +19,14 @@ FirstStartWizard::FirstStartWizard(QWidget *parent)
     addPage(new WorkbenchesPage);
     addPage(new ConclusionPage);
 
-    setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner_big.png"));
-    setPixmap(QWizard::BackgroundPixmap, QPixmap(""));
+    resize(500, 650);
 
-    setWindowTitle(tr("Freecad Getting started"));
+    // setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner_big.png"));
+    // setPixmap(QWizard::BackgroundPixmap, QPixmap(""));
+
+    setWindowTitle(tr("First start wizard"));
+
+
 }
 
 IntroPage::IntroPage(QWidget *parent)
@@ -21,105 +34,139 @@ IntroPage::IntroPage(QWidget *parent)
 {
     setPixmap(QWizard::LogoPixmap, QPixmap(""));
     setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner_big.png"));
-    setTitle(tr(" "));
-    setSubTitle(tr(" "));
-    label = new QLabel(tr("Press next to start your configuration process!"));
+    // setTitle(tr("Welcome"));
+    // setSubTitle(tr(" "));
+
+    QLabel* label2 = new QLabel();
+    label2->setTextFormat(Qt::MarkdownText);
+    label2->setText(tr("# Welcome to FreeCAD"));
+
+    QLabel* label = new QLabel();
+    label->setTextFormat(Qt::MarkdownText);
+    label->setText(tr(R"""(
+## Localization
+
+It looks like it's your first time here?
+Let's start by setting up the your locale
+    )"""));
     label->setWordWrap(true);
 
+    QLabel* langLabel = new QLabel(tr("Select Language:"));
+    QComboBox* selectLanguage = new QComboBox();
+    DlgGeneralImp::setupLanguageSelector(selectLanguage);
+
+    // QGroupBox* languageBox = new QGroupBox(tr("Language"));
+
+    QLabel* setUnitLabel = new QLabel(tr("Select Units:"));
+    QComboBox* selectUnitSchema = new QComboBox();
+    DlgGeneralImp::setupSchemaSelector(selectUnitSchema);
+
+
+    QLabel* setNavigationStyle = new QLabel(tr("Select Navigation Style"));
+    QComboBox* selectNavigationStyle = new QComboBox();
+    DlgSettingsNavigation::setupNavigationSelector(selectNavigationStyle);
+    selectNavigationStyle->setCurrentIndex(1);
+
+    QGridLayout* localizationBoxLayout = new QGridLayout;
+    localizationBoxLayout->addWidget(langLabel, 0, 0);
+    localizationBoxLayout->addWidget(selectLanguage, 0, 1);
+    localizationBoxLayout->addWidget(setUnitLabel, 1, 0);
+    localizationBoxLayout->addWidget(selectUnitSchema, 1, 1);
+    localizationBoxLayout->addWidget(setNavigationStyle, 2, 0);
+    localizationBoxLayout->addWidget(selectNavigationStyle, 2, 1);
+
+    QGroupBox* localizationBox = new QGroupBox();
+    localizationBox->setLayout(localizationBoxLayout);
+
+    connect(
+        selectLanguage,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        [selectLanguage]() { DlgGeneralImp::setLanguage(selectLanguage); }
+    );
+    connect(
+        selectUnitSchema,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        [selectUnitSchema]() { DlgGeneralImp::setSchema(selectUnitSchema); }
+    );
+    connect(
+        selectNavigationStyle,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        [selectNavigationStyle]() { DlgSettingsNavigation::setNavigation(selectNavigationStyle); }
+    );
+
+    selectUnitSchema->setCurrentIndex(0);
+
     QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(label2);
     layout->addWidget(label);
+    layout->addWidget(localizationBox);
     setLayout(layout);
 }
 
 LookAndFeelPage::LookAndFeelPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("Look and Feel"));
+    // setTitle(tr("Look and Feel"));
    //* FirstStartWizard::setTitleFormat(BOLD_FONTTYPE)
-    setSubTitle(tr("Set the look and feel of freecad"));
+    // setSubTitle(tr("Set the look and feel of freecad"));
     setPixmap(QWizard::LogoPixmap, QPixmap(":/images/icon-freecad.png"));
     setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner.png"));
 
-    langLabel = new QLabel(tr("Select Language:"));
-    selectlangcom = new QComboBox();
-    selectlangcom->addItem("Auto");
-    selectlangcom->addItem("Dutch");
-    selectlangcom->addItem("English");
-    selectlangcom ->setCurrentIndex(2);
+    QLabel* label = new QLabel();
+    label->setTextFormat(Qt::MarkdownText);
+    label->setText(R"""(
+# Visuals
 
-    languageBox = new QGroupBox(tr("Language"));
+Now, how should it look and feel?
+    )""");
 
-    setUnitLabel = new QLabel(tr("Select Units:"));
-    selectUnitcom = new QComboBox();
-    selectUnitcom ->addItem("mm/g/s");
-    selectUnitcom ->addItem("mm/kg/s");
-    selectUnitcom ->addItem("In/Pound/s");
-    selectUnitcom ->addItem("m/kg/h");
-    selectUnitcom ->setCurrentIndex(0);
+    setthemeLabel = new QLabel(tr("Select theme mode"), this);
+    QComboBox* selectTheme = new QComboBox(this);
+    DlgGeneralImp::setupStyleSheetSelector(selectTheme);
 
-    unitsBox = new QGroupBox(tr("Units"));
+    // setHighlights = new QLabel(tr("Select Highlight"));
+    // selectHighlightsCom = new QComboBox();
+    // selectHighlightsCom->addItem("Blue");
+    // selectHighlightsCom->addItem("Red");
+    // selectHighlightsCom->addItem("Pink");
+    // selectHighlightsCom->setCurrentIndex(0);
 
-    setthemeLabel = new QLabel(tr("Select theme mode"));
-    selectthemecom = new QComboBox();
-    selectthemecom ->addItem("System");
-    selectthemecom ->addItem("Dark");
-    selectthemecom ->addItem("Light");
-    selectthemecom ->setCurrentIndex(0);
+    QLabel* setIconSize = new QLabel(tr("Select Icon size"), this);
+    QComboBox* selectIconSize = new QComboBox(this);
+    DlgGeneralImp::setupIconSizeSelector(selectIconSize);
+    selectIconSize->setCurrentIndex(1);
 
-    setHighlights = new QLabel(tr("Select Highlight"));
-    selectHighlightsCom = new QComboBox();
-    selectHighlightsCom ->addItem("Blue");
-    selectHighlightsCom ->addItem("Red");
-    selectHighlightsCom ->addItem("Pink");
-    selectHighlightsCom ->setCurrentIndex(0);
+    // QComboBox* selectGraphics = new QComboBox();
+    // selectGraphics->addItem(tr("Potato"));
+    // selectGraphics->addItem(tr("Normal"));
 
-    setIconSize = new QLabel(tr("Select Icon size"));
-    selectIconsSizeCom = new QComboBox();
-    selectIconsSizeCom->addItem("Small");
-    selectIconsSizeCom->addItem("Medium");
-    selectIconsSizeCom->addItem("Big");
-    selectIconsSizeCom ->setCurrentIndex(1);
+    connect(
+        selectIconSize,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        [selectIconSize]() { DlgGeneralImp::setIconSize(selectIconSize); }
+    );
+    connect(
+        selectTheme,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        [selectTheme]() { DlgGeneralImp::setStyleSheet(selectTheme); }
+    );
+    selectTheme->setCurrentIndex(1);
 
-    ThemeAndStyleBox = new QGroupBox(tr("Themes and Styles"));
-
-    setNavigationStyle = new QLabel(tr("Select Navigation Style"));
-    selectNavigationStyleCom = new QComboBox();
-    selectNavigationStyleCom->addItem("CAD");
-    selectNavigationStyleCom->addItem("Blender");
-    selectNavigationStyleCom->addItem("Inventor");
-    selectNavigationStyleCom ->setCurrentIndex(1);
-
-    NavigationStyleBox = new QGroupBox(tr("Navigation"));
-
-    QGridLayout *NavigationStyleBoxLayout = new QGridLayout;
-    NavigationStyleBoxLayout->addWidget(setNavigationStyle, 0, 0);
-    NavigationStyleBoxLayout->addWidget(selectNavigationStyleCom, 0, 1);
-    NavigationStyleBox->setLayout(NavigationStyleBoxLayout);
-
-    QGridLayout *languageBoxLayout = new QGridLayout;
-    languageBoxLayout->addWidget(selectlangcom, 0, 1);
-    languageBoxLayout->addWidget(langLabel, 0, 0);
-    languageBox->setLayout(languageBoxLayout);
-
-    QGridLayout *unitsBoxLayout = new QGridLayout;
-    unitsBoxLayout->addWidget(selectUnitcom, 0, 1);
-    unitsBoxLayout->addWidget(setUnitLabel, 0, 0);
-    unitsBox->setLayout(unitsBoxLayout);
+    ThemeAndStyleBox = new QGroupBox(this);
 
     QGridLayout *ThemeAndStyleBoxLayout = new QGridLayout;
-    ThemeAndStyleBoxLayout->addWidget(selectthemecom, 0, 1);
+    ThemeAndStyleBoxLayout->addWidget(selectTheme, 0, 1);
     ThemeAndStyleBoxLayout->addWidget(setthemeLabel, 0, 0);
-    ThemeAndStyleBoxLayout->addWidget(selectHighlightsCom, 1, 1);
-    ThemeAndStyleBoxLayout->addWidget(setHighlights, 1, 0);
-    ThemeAndStyleBoxLayout->addWidget(selectIconsSizeCom, 2, 1);
+    // ThemeAndStyleBoxLayout->addWidget(selectHighlightsCom, 1, 1);
+    // ThemeAndStyleBoxLayout->addWidget(setHighlights, 1, 0);
+    ThemeAndStyleBoxLayout->addWidget(selectIconSize, 2, 1);
     ThemeAndStyleBoxLayout->addWidget(setIconSize, 2, 0);
     ThemeAndStyleBox->setLayout(ThemeAndStyleBoxLayout);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-        layout->addWidget(languageBox);
-        layout->addWidget(unitsBox);
-        layout->addWidget(NavigationStyleBox);
-        layout->addWidget(ThemeAndStyleBox);
+
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addWidget(label);
+    layout->addWidget(ThemeAndStyleBox);
 
     setLayout(layout);
 }
@@ -127,43 +174,125 @@ LookAndFeelPage::LookAndFeelPage(QWidget *parent)
 WorkbenchesPage::WorkbenchesPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("Select the workbenches you need."));
-    setSubTitle(tr("Choose the formatting of the generated code."));
+    QLabel* label = new QLabel();
+    label->setTextFormat(Qt::MarkdownText);
+    label->setText(R"""(
+# Workflow
+
+How are you planning to use FreeCAD?
+    )""");
     setPixmap(QWizard::LogoPixmap, QPixmap(":/images/icon-freecad.png"));
     setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner.png"));
-    workbenchexplain = new QLabel(tr("Please select the workbenches you want to use:"));
-    createListWidget();
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(workbenchexplain);
-    layout->addWidget(workbenchlist);
+
+    QRadioButton* workbenchSelectorMechanic = new QRadioButton(tr("Mechanical part design"), this);
+    QRadioButton* workbenchSelectorArchiBim = new QRadioButton(tr("Architecture and BIM"), this);
+    QRadioButton* workbenchSelectorMachining = new QRadioButton(tr("Machining"), this);
+    QRadioButton* workbenchSelectorAll = new QRadioButton(tr("All"), this);
+    QRadioButton* workbenchSelectorCustom = new QRadioButton(tr("Custom"), this);
+
+    WorkbenchList* workbenchList = new WorkbenchList(true, this);
+    workbenchList->loadSettings();
+
+    QStringList mechanicWorkbenches;
+    mechanicWorkbenches << "DraftWorkbench"
+                        << "FemWorkbench"
+                        << "PartDesignWorkbench"
+                        << "PartWorkbench"
+                        << "SketcherWorkbench"
+                        << "SpreadsheetWorkbench"
+                        << "SurfaceWorkbench"
+                        << "TechDrawWorkbench"
+                        << "StartWorkbench";
+
+    QStringList archiBimWorkbenches;
+    archiBimWorkbenches << "ArchWorkbench"
+                        << "DraftWorkbench"
+                        << "PartDesignWorkbench"
+                        << "PartWorkbench"
+                        << "SketcherWorkbench"
+                        << "SpreadsheetWorkbench"
+                        << "TechDrawWorkbench"
+                        << "StartWorkbench";
+
+    QStringList machiningWorkbenches;
+    machiningWorkbenches << "DraftWorkbench"
+                         << "PartDesignWorkbench"
+                         << "PartWorkbench"
+                         << "PathWorkbench"
+                         << "SketcherWorkbench"
+                         << "SpreadsheetWorkbench"
+                         << "TechDrawWorkbench"
+                         << "StartWorkbench";
+
+    connect(workbenchSelectorMechanic, &QRadioButton::clicked, [workbenchList, mechanicWorkbenches]() {
+        QSignalBlocker blocker(workbenchList);
+        workbenchList->disableWorkbenches();
+        workbenchList->enableWorkbenches(mechanicWorkbenches);
+    });
+    connect(workbenchSelectorArchiBim, &QRadioButton::clicked, [workbenchList, archiBimWorkbenches]() {
+        QSignalBlocker blocker(workbenchList);
+        workbenchList->disableWorkbenches();
+        workbenchList->enableWorkbenches(archiBimWorkbenches);
+    });
+    connect(workbenchSelectorMachining, &QRadioButton::clicked, [workbenchList, machiningWorkbenches]() {
+        QSignalBlocker blocker(workbenchList);
+        workbenchList->disableWorkbenches();
+        workbenchList->enableWorkbenches(machiningWorkbenches);
+    });
+    connect(workbenchSelectorAll, &QRadioButton::clicked, [workbenchList]() {
+        workbenchList->enableWorkbenches();
+    });
+    connect(workbenchList, &WorkbenchList::wbToggled, [workbenchSelectorCustom]() {
+        workbenchSelectorCustom->click();
+    });
+
+    workbenchSelectorMechanic->click();
+
+    // createListWidget();
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(label);
+    layout->addWidget(workbenchSelectorMechanic);
+    layout->addWidget(workbenchSelectorArchiBim);
+    layout->addWidget(workbenchSelectorMachining);
+    layout->addWidget(workbenchSelectorAll);
+    layout->addWidget(workbenchSelectorCustom);
+    layout->addWidget(workbenchList);
+
+    // layout->addWidget(workbenchlist);
     setLayout(layout);
 }
 
 void WorkbenchesPage::createListWidget(){
-    workbenchlist = new QListWidget;
-    QStringList strList;
-    strList << "PartDesign" << "Part" << "A2 plus" << "Assembly3"
-            << "Assembly4" << "FEM" << "Draft" << "Lattice2" << "Path";
+    // workbenchlist = new QListWidget;
+    // QStringList strList;
+    // strList << "PartDesign" << "Part" << "A2 plus" << "Assembly3"
+    //         << "Assembly4" << "FEM" << "Draft" << "Lattice2" << "Path";
 
-    workbenchlist->addItems(strList);
+    // workbenchlist->addItems(strList);
 
-    QListWidgetItem* item = 0;
-    for(int i = 0; i < workbenchlist->count(); ++i){
-        item = workbenchlist->item(i);
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(Qt::Unchecked);
-    }
+    // QListWidgetItem* item = 0;
+    // for(int i = 0; i < workbenchlist->count(); ++i){
+    //     item = workbenchlist->item(i);
+    //     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    //     item->setCheckState(Qt::Unchecked);
+    // }
 }
 
 ConclusionPage::ConclusionPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("You are ready to go"));
-    setSubTitle(tr("Press exit to exit the wizard and start using Freecad"));
-    setPixmap(QWizard::LogoPixmap, QPixmap(":/images/icon-freecad.png"));
-    setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner.png"));
+    // setTitle(tr("You are ready to go"));
+    // setSubTitle(tr("Press exit to exit the wizard and start using Freecad"));
+    // setPixmap(QWizard::LogoPixmap, QPixmap(":/images/icon-freecad.png"));
+    // setPixmap(QWizard::BannerPixmap, QPixmap(":/images/banner.png"));
 
-    label = new QLabel;
+    QLabel* label = new QLabel();
+    label->setTextFormat(Qt::MarkdownText);
+    label->setText(R"""(
+# Enjoy!
+
+You are ready to go! Remember, you can always change these settings later in Edit > Preferences.
+    )""");
     label->setWordWrap(true);
 
     QVBoxLayout *layout = new QVBoxLayout;
@@ -171,10 +300,10 @@ ConclusionPage::ConclusionPage(QWidget *parent)
     setLayout(layout);
 }
 
-void ConclusionPage::initializePage()
-{
-    QString finishText = wizard()->buttonText(QWizard::FinishButton);
-    finishText.remove('&');
-    label->setText(tr("Click %1 to exit the wizard")
-                   .arg(finishText));
-}
+// void ConclusionPage::initializePage()
+// {
+//     QString finishText = wizard()->buttonText(QWizard::FinishButton);
+//     finishText.remove('&');
+//     label->setText(tr("Click %1 to exit the wizard")
+//                    .arg(finishText));
+// }

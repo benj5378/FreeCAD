@@ -3,7 +3,6 @@
 
 #include <QWizard>
 
-QT_BEGIN_NAMESPACE
 class QCheckBox;
 class QGroupBox;
 class QComboBox;
@@ -11,8 +10,8 @@ class QLabel;
 class QLineEdit;
 class QRadioButton;
 class QListWidget;
-QT_END_NAMESPACE
 
+namespace Gui::Dialog {
 class FirstStartWizard : public QWizard
 {
     Q_OBJECT
@@ -40,25 +39,10 @@ public:
     LookAndFeelPage(QWidget *parent = 0);
 
 private:
-    QLabel *langLabel;
-    QComboBox *selectlangcom;
-    QGroupBox *languageBox;
-
-    QLabel *setUnitLabel;
-    QComboBox *selectUnitcom;
-    QGroupBox *unitsBox;
-
     QLabel *setthemeLabel;
-    QComboBox *selectthemecom;
     QLabel *setHighlights;
     QComboBox *selectHighlightsCom;
-    QLabel *setIconSize;
-    QComboBox *selectIconsSizeCom;
     QGroupBox *ThemeAndStyleBox;
-
-    QLabel *setNavigationStyle;
-    QComboBox *selectNavigationStyleCom;
-    QGroupBox *NavigationStyleBox;
 
 };
 //! [2]
@@ -89,10 +73,11 @@ public:
     ConclusionPage(QWidget *parent = 0);
 
 protected:
-    void initializePage();
+    // void initializePage();
 
 private:
     QLabel *label;
 };
 
+};
 #endif

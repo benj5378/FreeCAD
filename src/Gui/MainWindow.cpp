@@ -1469,7 +1469,7 @@ void MainWindow::delayedStartup()
 
     if (hGrp->GetBool("FirstStart", true) || true) {
         hGrp->SetBool("FirstStart", false);
-        QWizard* firstStartWizard = new FirstStartWizard;
+        QWizard* firstStartWizard = new Gui::Dialog::FirstStartWizard;
         firstStartWizard->show();
     }
 }
