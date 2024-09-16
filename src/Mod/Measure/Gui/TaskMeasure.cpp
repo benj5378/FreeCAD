@@ -307,12 +307,7 @@ void TaskMeasure::update()
         // clearSelection();
         // addElement(measureModule.c_str(), get<0>(sel).c_str(), get<1>(sel).c_str());
 
-        // Reset measure object
-        if (!explicitMode) {
-            setModeSilent(nullptr);
-        }
-        removeObject();
-        enableAnnotateButton(false);
+        reset();
         return;
     }
 
@@ -408,14 +403,14 @@ void TaskMeasure::reset()
 {
     // Reset tool state
     _mMeasureType = nullptr;
-    _mMeasureObject = nullptr;
     this->clearSelection();
 
     // Should the explicit mode also be reset?
-    // setModeSilent(nullptr);
-    // explicitMode = false;
-
-    this->update();
+    if (!explicitMode) {
+        setModeSilent(nullptr);
+    }
+    removeObject();
+    enableAnnotateButton(false);
 }
 
 
