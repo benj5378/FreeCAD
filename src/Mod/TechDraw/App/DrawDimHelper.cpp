@@ -201,13 +201,10 @@ void DrawDimHelper::makeExtentDim3d(DrawViewPart* dvp, ReferenceVector reference
 
     dimExt->recomputeFeature();
 }
-std::pair<Base::Vector3d, Base::Vector3d>
+std::pair<Base::Vector3d, Base::Vector3d>                
 DrawDimHelper::minMax(DrawViewPart* dvp, std::vector<std::string> edgeNames, int direction)
 {
     //    Base::Console().Message("DDH::minMax() - edgeName: %d\n", edgeNames.size());
-    std::pair<Base::Vector3d, Base::Vector3d> result;
-    Base::Vector3d refMin;
-    Base::Vector3d refMax;
 
     gp_Ax3 projAx3;// OXYZ
     gp_Pln projPlane(projAx3);
@@ -235,21 +232,26 @@ DrawDimHelper::minMax(DrawViewPart* dvp, std::vector<std::string> edgeNames, int
         }
     }
 
-    if (edgeGeomList.empty()) {
-        return result;
+    return minMax(edgeGeomList, direction);
+}
+
+std::pair<Base::Vector3d, Base::Vector3d> DrawDimHelper::minMax(const BaseGeomPtrVector &edges, int direction)
+{
+    if (edges.empty()) {
+        return std::pair<Base::Vector3d, Base::Vector3d>();
     }
 
-    Bnd_Box edgeBbx;
-    edgeBbx.SetGap(1.0);//make the box a bit bigger
+    Bnd_Box shapeBbx;
+    shapeBbx.SetGap(1.0);//make the box a bit bigger
 
     std::vector<TopoDS_Edge> inEdges;
-    for (auto& bg : edgeGeomList) {
+    for (auto& bg : edges) {
         inEdges.push_back(bg->getOCCEdge());
-        BRepBndLib::Add(bg->getOCCEdge(), edgeBbx);
+        BRepBndLib::Add(bg->getOCCEdge(), shapeBbx);
     }
 
     double minX, minY, minZ, maxX, maxY, maxZ;
-    edgeBbx.Get(minX, minY, minZ, maxX, maxY, maxZ);
+    shapeBbx.Get(minX, minY, minZ, maxX, maxY, maxZ);
     double xMid = (maxX + minX) / 2.0;
     double yMid = (maxY + minY) / 2.0;
 
@@ -261,6 +263,8 @@ DrawDimHelper::minMax(DrawViewPart* dvp, std::vector<std::string> edgeNames, int
     gp_Dir xDir(1.0, 0.0, 0.0);
     gp_Dir yDir(0.0, 1.0, 0.0);
 
+    Base::Vector3d refMin;
+    Base::Vector3d refMax;
     if (direction == HORIZONTAL) {
         Handle(Geom_Line) lineLeft = new Geom_Line(leftMid, yDir);
         BRepBuilderAPI_MakeEdge mkEdgeLeft(lineLeft);
@@ -287,6 +291,7 @@ DrawDimHelper::minMax(DrawViewPart* dvp, std::vector<std::string> edgeNames, int
         refMax = Base::Vector3d(topPoint.X(), topPoint.Y(), 0.0);
     }
 
+    std::pair<Base::Vector3d, Base::Vector3d> result;
     result.first = refMin;
     result.second = refMax;
     return result;
@@ -325,9 +330,6 @@ std::pair<Base::Vector3d, Base::Vector3d>
 DrawDimHelper::minMax3d(DrawViewPart* dvp, ReferenceVector references, int direction)
 {
     //    Base::Console().Message("DDH::minMax3d() - references: %d\n", references.size());
-    std::pair<Base::Vector3d, Base::Vector3d> result;
-    Base::Vector3d refMin;
-    Base::Vector3d refMax;
 
     gp_Ax3 projAx3;//OXYZ
     gp_Pln projPlane(projAx3);
@@ -353,64 +355,9 @@ DrawDimHelper::minMax3d(DrawViewPart* dvp, ReferenceVector references, int direc
     go->isPerspective(false);
     go->usePolygonHLR(false);
     go->projectShape(comp, dvp->getProjectionCS());
-    auto edges = go->getEdgeGeometry();
 
-    if (edges.empty()) {
-        return result;
-    }
-
-    Bnd_Box shapeBbx;
-    shapeBbx.SetGap(1.0);//make the box a bit bigger
-
-    std::vector<TopoDS_Edge> inEdges;
-    for (auto& bg : edges) {
-        inEdges.push_back(bg->getOCCEdge());
-        BRepBndLib::Add(bg->getOCCEdge(), shapeBbx);
-    }
-
-    //from here on this is the same as 2d method
-    double minX, minY, minZ, maxX, maxY, maxZ;
-    shapeBbx.Get(minX, minY, minZ, maxX, maxY, maxZ);
-    double xMid = (maxX + minX) / 2.0;
-    double yMid = (maxY + minY) / 2.0;
-
-    gp_Pnt rightMid(maxX, yMid, 0.0);
-    gp_Pnt leftMid(minX, yMid, 0.0);
-    gp_Pnt topMid(xMid, maxY, 0.0);
-    gp_Pnt bottomMid(xMid, minY, 0.0);
-
-    gp_Dir xDir(1.0, 0.0, 0.0);
-    gp_Dir yDir(0.0, 1.0, 0.0);
-
-    if (direction == HORIZONTAL) {
-        Handle(Geom_Line) lineLeft = new Geom_Line(leftMid, yDir);
-        BRepBuilderAPI_MakeEdge mkEdgeLeft(lineLeft);
-        TopoDS_Edge edgeLeft = mkEdgeLeft.Edge();
-        gp_Pnt leftPoint = findClosestPoint(inEdges, edgeLeft);
-        Handle(Geom_Line) lineRight = new Geom_Line(rightMid, yDir);
-        BRepBuilderAPI_MakeEdge mkEdgeRight(lineRight);
-        TopoDS_Edge edgeRight = mkEdgeRight.Edge();
-        gp_Pnt rightPoint = findClosestPoint(inEdges, edgeRight);
-
-        refMin = Base::Vector3d(leftPoint.X(), leftPoint.Y(), 0.0);
-        refMax = Base::Vector3d(rightPoint.X(), rightPoint.Y(), 0.0);
-    }
-    else if (direction == VERTICAL) {
-        Handle(Geom_Line) lineBottom = new Geom_Line(bottomMid, xDir);
-        BRepBuilderAPI_MakeEdge mkEdgeBottom(lineBottom);
-        TopoDS_Edge edgeBottom = mkEdgeBottom.Edge();
-        gp_Pnt bottomPoint = findClosestPoint(inEdges, edgeBottom);
-        Handle(Geom_Line) lineTop = new Geom_Line(topMid, xDir);
-        BRepBuilderAPI_MakeEdge mkEdgeTop(lineTop);
-        TopoDS_Edge edgeTop = mkEdgeTop.Edge();
-        gp_Pnt topPoint = findClosestPoint(inEdges, edgeTop);
-        refMin = Base::Vector3d(bottomPoint.X(), bottomPoint.Y(), 0.0);
-        refMax = Base::Vector3d(topPoint.X(), topPoint.Y(), 0.0);
-    }
-
-    result.first = refMin;
-    result.second = refMax;
-    return result;
+    const BaseGeomPtrVector edges = go->getEdgeGeometry();
+    return minMax(edges, direction);
 }
 
 DrawViewDimension*

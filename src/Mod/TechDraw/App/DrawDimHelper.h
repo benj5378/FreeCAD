@@ -34,6 +34,7 @@
 
 #include "DimensionReferences.h"
 
+class Bnd_Box;
 
 namespace TechDraw
 {
@@ -73,6 +74,7 @@ class TechDrawExport DrawDimHelper {
     static std::pair<Base::Vector3d, Base::Vector3d> minMax(DrawViewPart* dvp,
                                                             std::vector<std::string> edgeNames,
                                                             int direction);
+    static std::pair<Base::Vector3d, Base::Vector3d> minMax(const BaseGeomPtrVector &edges, int direction);
     static std::pair<Base::Vector3d, Base::Vector3d> minMax3d(DrawViewPart* dvp,
                                                       ReferenceVector references,
                                                        int direction);
