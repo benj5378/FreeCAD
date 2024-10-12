@@ -675,23 +675,23 @@ void EditModeGeometryCoinManager::createEditModeCurveInventorNodes()
             editModeScenegraphNodes.CurvesCoordinate[i].push_back(coords);
             sep->addChild(editModeScenegraphNodes.CurvesCoordinate[i][t]);
 
-            if (geometryLayerParameters.isConstructionSubLayer(t)) {
-                sep->addChild(editModeScenegraphNodes.CurvesConstructionDrawStyle);
-            }
-            else if (geometryLayerParameters.isInternalSubLayer(t)) {
-                sep->addChild(editModeScenegraphNodes.CurvesInternalDrawStyle);
-            }
-            else if (geometryLayerParameters.isExternalSubLayer(t)) {
-                sep->addChild(editModeScenegraphNodes.CurvesExternalDrawStyle);
-            }
-            else {
+            // if (geometryLayerParameters.isConstructionSubLayer(t)) {
+            //     sep->addChild(editModeScenegraphNodes.CurvesConstructionDrawStyle);
+            // }
+            // else if (geometryLayerParameters.isInternalSubLayer(t)) {
+            //     sep->addChild(editModeScenegraphNodes.CurvesInternalDrawStyle);
+            // }
+            // else if (geometryLayerParameters.isExternalSubLayer(t)) {
+            //     sep->addChild(editModeScenegraphNodes.CurvesExternalDrawStyle);
+            // }
+            // else {
                 sep->addChild(editModeScenegraphNodes.CurvesDrawStyle);
-            }
+            // }
 
             auto solineset = new SoLineSet;
             solineset->setName(concat("CurvesLineSet", i * 10 + t).c_str());
             editModeScenegraphNodes.CurveSet[i].push_back(solineset);
-            sep->addChild(editModeScenegraphNodes.CurveSet[i][t]);
+            sep->addChild(editModeScenegraphNodes.CurveSet[i][0]);
 
             editModeScenegraphNodes.CurvesGroup->addChild(sep);
             sep->unref();

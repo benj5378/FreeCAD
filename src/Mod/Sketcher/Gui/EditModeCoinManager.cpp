@@ -167,15 +167,15 @@ void EditModeCoinManager::ParameterObserver::initParameters()
          }},
         {"ConstructionPattern",
          [this, &drawingParameters = Client.drawingParameters](const std::string& param) {
-             updatePattern(drawingParameters.ConstructionPattern, param, 0b1111110011111100);
+             updatePattern(drawingParameters.ConstructionPattern, param, 0b1111111111111111);
          }},
         {"InternalPattern",
          [this, &drawingParameters = Client.drawingParameters](const std::string& param) {
-             updatePattern(drawingParameters.InternalPattern, param, 0b1111110011111100);
+             updatePattern(drawingParameters.InternalPattern, param, 0b1111111111111111);
          }},
         {"ExternalPattern",
          [this, &drawingParameters = Client.drawingParameters](const std::string& param) {
-             updatePattern(drawingParameters.ExternalPattern, param, 0b1110010011100100);
+             updatePattern(drawingParameters.ExternalPattern, param, 0b1111111111111111);
          }},
         {"CreateLineColor",
          [this, drawingParameters = Client.drawingParameters](const std::string& param) {
@@ -371,6 +371,9 @@ void EditModeCoinManager::ParameterObserver::updateElementSizeParameters(
     // simple scaling factor for hardcoded pixel values in the Sketcher
     Client.drawingParameters.pixelScalingFactor = viewScalingFactor * dpi
         / 96;  // 96 ppi is the standard pixel density for which pixel quantities were calculated
+
+    
+    Client.drawingParameters.pixelScalingFactor = 1;
 
     // About sizes:
     // SoDatumLabel takes the size in points, not in pixels. This is because it uses QFont
@@ -1125,6 +1128,11 @@ void EditModeCoinManager::updateInventorWidths()
         drawingParameters.InternalWidth * drawingParameters.pixelScalingFactor;
     editModeScenegraphNodes.CurvesExternalDrawStyle->lineWidth =
         drawingParameters.ExternalWidth * drawingParameters.pixelScalingFactor;
+
+    // Base::Console().Message("CurvesDrawStyle->lineWidth: %d\n", CurvesDrawStyle->lineWidth);
+    // Base::Console().Message("CurvesConstructionDrawStyle->lineWidth: %d\n", CurvesConstructionDrawStyle->lineWidth);
+    // Base::Console().Message("CurvesInternalDrawStyle->lineWidth: %d\n", CurvesInternalDrawStyle->lineWidth);
+    // Base::Console().Message("CurvesExternalDrawStyle->lineWidth: %d\n", CurvesExternalDrawStyle->lineWidth);
 }
 
 void EditModeCoinManager::updateInventorPatterns()
@@ -1135,6 +1143,10 @@ void EditModeCoinManager::updateInventorPatterns()
     editModeScenegraphNodes.CurvesInternalDrawStyle->linePattern =
         drawingParameters.InternalPattern;
     editModeScenegraphNodes.CurvesExternalDrawStyle->linePattern =
+        drawingParameters.ExternalPattern;
+
+        
+    editModeScenegraphNodes.HiddenCurvesDrawStyle->linePattern =
         drawingParameters.ExternalPattern;
 }
 
