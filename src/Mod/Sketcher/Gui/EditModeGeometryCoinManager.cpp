@@ -124,6 +124,7 @@ void EditModeGeometryCoinManager::processGeometry(const GeoListFacade& geolistfa
 void EditModeGeometryCoinManager::updateGeometryColor(const GeoListFacade& geolistfacade,
                                                       bool issketchinvalid)
 {
+    Base::Console().Message("EditModeGeometryCoinManager::updateGeometryColor\n");
     // Lambdas for convenience retrieval of geometry information
     auto isDefinedGeomPoint = [&geolistfacade](int GeoId, Sketcher::PointPos PosId) {
         auto geom = geolistfacade.getGeometryFacadeFromGeoId(GeoId);
@@ -256,6 +257,9 @@ void EditModeGeometryCoinManager::updateGeometryColor(const GeoListFacade& geoli
                         }
                     }
                 }
+                float r; float g; float b;
+                pcolor[i].getValue(r, g, b);
+                Base::Console().Message("ptnum: %i, color %d %d %d\n", i, r, g, b);
             }
         }
 
@@ -481,11 +485,18 @@ void EditModeGeometryCoinManager::updateGeometryColor(const GeoListFacade& geoli
                         }
                     }
                 }
-            }
+                float r; float g; float b;
+                pcolor[i].getValue(r, g, b);
+                Base::Console().Message("CurvNum: %i, color %d %d %d\n", i, r, g, b);
 
             editModeScenegraphNodes.CurvesMaterials[l][t]->diffuseColor.finishEditing();
             editModeScenegraphNodes.CurvesCoordinate[l][t]->point.finishEditing();
             editModeScenegraphNodes.CurveSet[l][t]->numVertices.finishEditing();
+            }
+            SbString colorstr;
+            editModeScenegraphNodes.CurvesMaterials[l][t]->get(colorstr);
+            Base::Console().Message("CurvesMaterials: %s\n", colorstr.getString());
+            Base::Console().Message("getSubLayer: %i\n", t);
         }
 
         // colors of the cross
