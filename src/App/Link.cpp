@@ -26,6 +26,7 @@
 
 #include <boost/range.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <Base/Console.h>
 #include <Base/Interpreter.h>
 #include <Base/Tools.h>
 #include <Base/Uuid.h>
