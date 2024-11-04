@@ -1,0 +1,17 @@
+
+services:
+  freecad-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: freecad-build:latest
+    container_name: freecad_build_container
+    volumes:
+      - .:/workspace  # Mount current directory to /workspace inside the container
+    environment:
+      - CCACHE_DIR=/workspace/ccache
+      - CCACHE_CONFIGPATH=/workspace/ccache/config
+      - CCACHE_MAXSIZE=1G
+      - BUILDDIR=/workspace/build/release
+    working_dir: /workspace
+    tty: true
