@@ -36,15 +36,16 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <TopoDS_Wire.hxx>
-#include <gp_Ax2.hxx>
+//#include <gp_Ax2.hxx>
 #include <gp_Dir.hxx>
 #include <gp_Dir2d.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Pnt2d.hxx>
 #include <gp_Vec.hxx>
 
+#include <Base/Tools2D.h>
 #include <Base/Vector3D.h>
-#include <Mod/Part/App/PartFeature.h>
+//#include <Mod/Part/App/PartFeature.h>
 #include <Mod/TechDraw/TechDrawGlobal.h>
 
 
@@ -72,6 +73,13 @@ constexpr double DegreesHalfCircle{180.0};
 //a multiplier for EWTOLERANCE used in fuzzy fuse and common operations.
 #define FUZZYADJUST 4.0
 
+
+class gp_Ax2;
+
+namespace App
+{
+class DocumentObject;
+}
 
 namespace TechDraw
 {
@@ -150,8 +158,8 @@ public:
 
     static Base::Vector3d closestBasis(Base::Vector3d v);
     static gp_Vec closestBasis(gp_Vec inVec);
-    static Base::Vector3d closestBasis(Base::Vector3d vDir, gp_Ax2 coordSys);
-    static Base::Vector3d closestBasis(gp_Dir gDir, gp_Ax2 coordSys);
+    static Base::Vector3d closestBasis(Base::Vector3d vDir, const gp_Ax2& coordSys);
+    static Base::Vector3d closestBasis(gp_Dir gDir, const gp_Ax2& coordSys);
     static Base::Vector3d closestBasisOriented(Base::Vector3d v);
 
     static double getWidthInDirection(gp_Dir direction, TopoDS_Shape& shape);
@@ -181,7 +189,7 @@ public:
     {
         return Base::Vector3d(gp.X(), gp.Y(), gp.Z());
     }
-    static Base::Vector3d toVector3d(const QPointF gp)
+    static Base::Vector3d toVector3d(const QPointF& gp)
     {
         return Base::Vector3d(gp.x(), gp.y(), 0.0);
     }

@@ -786,13 +786,13 @@ Base::Vector3d DrawUtil::closestBasisOriented(Base::Vector3d v)
     return Base::Vector3d(1.0, 0.0, 0.0);
 }
 
-Base::Vector3d DrawUtil::closestBasis(Base::Vector3d vDir, gp_Ax2 coordSys)
+Base::Vector3d DrawUtil::closestBasis(Base::Vector3d vDir, const gp_Ax2& coordSys)
 {
     gp_Dir gDir(vDir.x, vDir.y, vDir.z);
     return closestBasis(gDir, coordSys);
 }
 
-Base::Vector3d DrawUtil::closestBasis(gp_Dir gDir, gp_Ax2 coordSys)
+Base::Vector3d DrawUtil::closestBasis(gp_Dir gDir, const gp_Ax2& coordSys)
 {
     gp_Dir xCS = coordSys.XDirection();
     gp_Dir yCS = coordSys.YDirection();

@@ -23,7 +23,8 @@
 #ifndef TECHDRAW_CENTERLINE_H
 #define TECHDRAW_CENTERLINE_H
 
-#include <App/FeaturePython.h>
+//#include <App/FeaturePython.h>
+#include <CXX/Objects.hxx>
 #include <Base/Persistence.h>
 #include <Base/Vector3D.h>
 #include <Mod/TechDraw/TechDrawGlobal.h>

@@ -25,7 +25,8 @@
 
 #include <QColor>
 
-#include <App/FeaturePython.h>
+//#include <App/FeaturePython.h>
+#include <CXX/Objects.hxx>
 #include <App/Color.h>
 #include <Base/Persistence.h>
 #include <Base/Vector3D.h>

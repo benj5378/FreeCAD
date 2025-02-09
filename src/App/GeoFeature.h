@@ -26,7 +26,7 @@
 
 #include "DocumentObject.h"
 #include "PropertyGeo.h"
-#include "MappedElement.h"
+//#include "MappedElement.h"
 #include "Material.h"
 #include "ComplexGeoData.h"
 

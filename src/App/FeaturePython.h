@@ -24,7 +24,8 @@
 #ifndef APP_FEATUREPYTHON_H
 #define APP_FEATUREPYTHON_H
 
-#include <App/GeoFeature.h>
+//#include <App/GeoFeature.h>
+#include <App/DocumentObject.h>
 #include <App/PropertyPythonObject.h>
 
 
@@ -403,8 +404,8 @@ private:
 };
 
 // Special Feature-Python classes
-using FeaturePython = FeaturePythonT<DocumentObject>;
-using GeometryPython = FeaturePythonT<GeoFeature>;
+//using FeaturePython = FeaturePythonT<DocumentObject>;
+//using GeometryPython = FeaturePythonT<GeoFeature>;
 
 }  // namespace App
 
