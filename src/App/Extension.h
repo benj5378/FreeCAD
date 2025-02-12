@@ -24,11 +24,20 @@
 #ifndef APP_EXTENSION_H
 #define APP_EXTENSION_H
 
-#include "PropertyContainer.h"
+#include <string>
+#include <map>
+
 #include <Base/SmartPtrPy.h>
+#include <Base/Type.h>
+
+#include "PropertyContainer.h"
+
+namespace Base {
+class Writer;
+class XMLReader;
+}
 
 namespace App {
-
 class ExtensionContainer;
 
 // clang-format off

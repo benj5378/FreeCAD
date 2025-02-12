@@ -27,12 +27,12 @@
 
 #include <Base/Tools.h>
 
-#include "ComplexGeoData.h"
+#include "ComplexGeoData.h"  // can be removed with some effort
 #include "Document.h"
 #include "GeoFeature.h"
 #include "GeoFeatureGroupExtension.h"
-#include "ElementNamingUtils.h"
 #include "Link.h"
+#include "MappedElement.h"
 
 
 using namespace App;

@@ -23,6 +23,7 @@
 #include "PreCompiled.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <QString>
 
 #include <Base/Console.h>
 #include <Base/Reader.h>

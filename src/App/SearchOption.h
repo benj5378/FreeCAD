@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 /****************************************************************************
  *                                                                          *
- *   Copyright (c) 2024 Kacper Donat <kacper@kadet.net>                     *
+ *   Copyright (c) 2002 Jürgen Riegel <juergen.riegel@web.de>               *
+ *   Copyright (c) 2022 Zheng, Lei <realthunder.dev@gmail.com>              *
+ *   Copyright (c) 2023 FreeCAD Project Association                         *
  *                                                                          *
  *   This file is part of FreeCAD.                                          *
  *                                                                          *
@@ -21,59 +23,25 @@
  *                                                                          *
  ***************************************************************************/
 
-#ifndef APP_SERVICES_H
-#define APP_SERVICES_H
+#ifndef APP_SEARCHOPTION_H
+#define APP_SEARCHOPTION_H
 
-#include <optional>
+#include <Base/Bitmask.h>
 
-namespace Base {
-class Placement;
-template<typename T> class Vector3;
-using Vector3d = Vector3<double>;
-}
+namespace Data {
 
-namespace App
+// struct MappedChildElements;
+/// Option for App::GeoFeature::searchElementCache()
+enum class SearchOption
 {
-class SubObjectT;
-class DocumentObject;
-
-/**
-* This service should provide placement of given sub object (like for example face).
-* This feature is not implemented in the core and so it must be provided by module.
-*/
-class SubObjectPlacementProvider
-{
-public:
-    virtual ~SubObjectPlacementProvider() = default;
-
-    /**
-    * Returns placement of sub object relative to the base placement.
-    */
-    virtual Base::Placement calculate(SubObjectT& object, const Base::Placement& basePlacement) const = 0;
+    /// Whether to compare shape geometry
+    CheckGeometry = 1,
+    SingleResult = 2,
 };
+typedef Base::Flags<SearchOption> SearchOptions;
 
-/**
-* This service should provide center of mass calculation;
-*/
-class CenterOfMassProvider
-{
-public:
-    virtual ~CenterOfMassProvider() = default;
+}  // namespace Data
 
-    virtual std::optional<Base::Vector3d> ofDocumentObject(DocumentObject* object) const = 0;
-};
+ENABLE_BITMASK_OPERATORS(Data::SearchOption)
 
-/**
-* Default implementation for the center of mass contract
-* It always returns empty optional
-*/
-class NullCenterOfMass final : public CenterOfMassProvider
-{
-public:
-    std::optional<Base::Vector3d> ofDocumentObject(DocumentObject* object) const override;
-};
-
-}
-
-
-#endif // APP_SERVICES_H
+#endif

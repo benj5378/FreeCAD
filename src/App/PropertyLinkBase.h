@@ -30,6 +30,7 @@
 namespace App {
 class Document;
 class DocumentObject;
+struct ElementNamePair;
 
 /**
  * @brief Defines different scopes for which a link can be valid

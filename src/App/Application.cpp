@@ -54,6 +54,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QMap>
 #include <QProcessEnvironment>
 #include <QStandardPaths>
 #include <LibraryVersions.h>
@@ -166,7 +167,6 @@
 FC_LOG_LEVEL_INIT("App", true, true)
 
 using namespace App;
-using namespace Base;
 using namespace std;
 using namespace boost;
 using namespace boost::program_options;

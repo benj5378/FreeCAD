@@ -23,8 +23,9 @@
 #ifndef EXPRESSIONTOKENIZER_H
 #define EXPRESSIONTOKENIZER_H
 
-#include <QString>
 #include <FCGlobal.h>
+
+class QString;
 
 namespace App
 {

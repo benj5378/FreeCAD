@@ -2683,10 +2683,10 @@ private:
 
 private:
     // Helper methods
-    static std::vector<Data::ElementMap::MappedChildElements>
+    static std::vector<Data::MappedChildElements>
     createChildMap(size_t count, const std::vector<TopoShape>& shapes, const char* op);
 
-    void setupChild(Data::ElementMap::MappedChildElements& child,
+    void setupChild(Data::MappedChildElements& child,
                     TopAbs_ShapeEnum elementType,
                     const TopoShape& topoShape,
                     size_t shapeCount,

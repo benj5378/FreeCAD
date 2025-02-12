@@ -24,13 +24,15 @@
 #define APP_LINK_H
 
 #include <unordered_set>
-#include <Base/Parameter.h>
+
 #include <Base/Bitmask.h>
+#include <Base/Parameter.h>  // can be removed with a bit of effort
+#include <Base/Vector3D.h>
+
 #include "DocumentObject.h"
 #include "DocumentObjectExtension.h"
 #include "FeaturePython.h"
-#include "GroupExtension.h"
-#include "PropertyLink.h"
+#include "PropertyGeo.h"
 #include "PropertyLinkList.h"
 #include "PropertyLinkSub.h"
 
@@ -50,6 +52,8 @@
 
 namespace App
 {
+class GroupExtension;
+template<class ExtensionT> class ExtensionPythonT;
 
 class AppExport LinkBaseExtension: public App::DocumentObjectExtension
 {

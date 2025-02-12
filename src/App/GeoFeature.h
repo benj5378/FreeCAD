@@ -24,15 +24,20 @@
 #ifndef APP_GEOFEATURE_H
 #define APP_GEOFEATURE_H
 
+#include "SearchOption.h"
 #include "DocumentObject.h"
 #include "PropertyGeo.h"
-#include "MappedElement.h"
-#include "Material.h"
-#include "ComplexGeoData.h"
+
+namespace Data {
+struct MappedElement;
+class ComplexGeoData;
+class MappedName;
+class IndexedName;
+}
 
 namespace App
 {
-
+class Material;
 
 /** Base class of all geometric document objects.
  */

@@ -24,9 +24,13 @@
 #ifndef APP_Path_H
 #define APP_Path_H
 
-#include <Base/Persistence.h>
+#include <vector>
+
 #include <FCGlobal.h>
 
+namespace Base {
+class Persistence;
+}
 
 namespace App
 {

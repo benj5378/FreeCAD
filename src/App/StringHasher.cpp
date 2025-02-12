@@ -39,7 +39,8 @@
 #include <boost/io/ios_state.hpp>
 #include <boost/iostreams/stream.hpp>
 
-#include "MappedElement.h"
+#include "MappedName.h"
+#include "IndexedName.h"
 #include "StringHasher.h"
 #include "StringHasherPy.h"
 #include "StringIDPy.h"

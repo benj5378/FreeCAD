@@ -479,9 +479,9 @@ TEST_F(ElementMapTest, mimicOperationAgainstSelf)
 TEST_F(ElementMapTest, hasChildElementMapTest)
 {
     // Arrange
-    Data::ElementMap::MappedChildElements child =
+    Data::MappedChildElements child =
         {Data::IndexedName("face", 1), 2, 7, 4L, Data::ElementMapPtr(), QByteArray(""), _sid};
-    std::vector<Data::ElementMap::MappedChildElements> children = {child};
+    std::vector<Data::MappedChildElements> children = {child};
     LessComplexPart cubeFull(3L, "FullBox", _hasher);
     cubeFull.elementMapPtr->addChildElements(cubeFull.Tag, children);
     //
@@ -501,7 +501,7 @@ TEST_F(ElementMapTest, hashChildMapsTest)
     // Arrange
     LessComplexPart cube(1L, "Box", _hasher);
     auto childOneName = Data::IndexedName("Ping", 1);
-    Data::ElementMap::MappedChildElements childOne = {
+    Data::MappedChildElements childOne = {
         childOneName,
         2,
         7,
@@ -509,7 +509,7 @@ TEST_F(ElementMapTest, hashChildMapsTest)
         Data::ElementMapPtr(),
         QByteArray("abcdefghij"),  // postfix must be 10 or more bytes to invoke hasher
         _sid};
-    std::vector<Data::ElementMap::MappedChildElements> children = {childOne};
+    std::vector<Data::MappedChildElements> children = {childOne};
     cube.elementMapPtr->addChildElements(cube.Tag, children);
     auto before = _hasher->getIDMap();
 
@@ -526,7 +526,7 @@ TEST_F(ElementMapTest, addAndGetChildElementsTest)
 {
     // Arrange
     LessComplexPart cube(1L, "Box", _hasher);
-    Data::ElementMap::MappedChildElements childOne = {
+    Data::MappedChildElements childOne = {
         Data::IndexedName("Ping", 1),
         2,
         7,
@@ -534,9 +534,9 @@ TEST_F(ElementMapTest, addAndGetChildElementsTest)
         Data::ElementMapPtr(),
         QByteArray("abcdefghij"),  // postfix must be 10 or more bytes to invoke hasher
         _sid};
-    Data::ElementMap::MappedChildElements childTwo =
+    Data::MappedChildElements childTwo =
         {Data::IndexedName("Pong", 2), 2, 7, 4L, Data::ElementMapPtr(), QByteArray("abc"), _sid};
-    std::vector<Data::ElementMap::MappedChildElements> children = {childOne, childTwo};
+    std::vector<Data::MappedChildElements> children = {childOne, childTwo};
 
     // Act
     cube.elementMapPtr->addChildElements(cube.Tag, children);
@@ -545,11 +545,11 @@ TEST_F(ElementMapTest, addAndGetChildElementsTest)
     // Assert
     EXPECT_EQ(result.size(), 2);
     EXPECT_TRUE(
-        std::any_of(result.begin(), result.end(), [](Data::ElementMap::MappedChildElements e) {
+        std::any_of(result.begin(), result.end(), [](Data::MappedChildElements e) {
             return e.indexedName.toString() == "Ping1";
         }));
     EXPECT_TRUE(
-        std::any_of(result.begin(), result.end(), [](Data::ElementMap::MappedChildElements e) {
+        std::any_of(result.begin(), result.end(), [](Data::MappedChildElements e) {
             return e.indexedName.toString() == "Pong2";
         }));
 }

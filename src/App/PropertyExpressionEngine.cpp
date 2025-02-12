@@ -29,6 +29,9 @@
 #include <Base/Reader.h>
 #include <Base/Tools.h>
 #include <Base/Writer.h>
+
+#include <boost/graph/topological_sort.hpp>
+#include <boost/graph/depth_first_search.hpp>
 #include <CXX/Objects.hxx>
 
 #include "PropertyExpressionEngine.h"

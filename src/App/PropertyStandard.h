@@ -28,8 +28,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <boost/any/fwd.hpp>
 #include <boost/dynamic_bitset.hpp>
-#include <boost/filesystem/path.hpp>
 #include <Base/Uuid.h>
 
 #include "Property.h"
@@ -86,10 +86,7 @@ public:
     }
 
     void setPathValue(const App::ObjectIdentifier& path, const boost::any& value) override;
-    const boost::any getPathValue(const App::ObjectIdentifier& /*path*/) const override
-    {
-        return _lValue;
-    }
+    const boost::any getPathValue(const App::ObjectIdentifier& /*path*/) const override;
 
     bool isSame(const Property& other) const override
     {

@@ -23,20 +23,17 @@
  *                                                                          *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"  // NOLINT
-
-#ifndef _PreComp_
-#include <cstdlib>
-#endif
 
 #include <boost/regex.hpp>
 
 #include "ComplexGeoData.h"
 #include "ElementMap.h"
 #include "ElementNamingUtils.h"
+#include "MappedElement.h"
+#include "MappedName.h"
 
-#include <Base/BoundBox.h>
+#include <Base/Console.h>
 #include <Base/Placement.h>
 #include <Base/Reader.h>
 #include <Base/Rotation.h>
@@ -44,6 +41,7 @@
 
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 
 using namespace Data;
@@ -290,6 +288,15 @@ ComplexGeoData::getElementName(const char* name, ElementIDRefs* sid, bool copy) 
     return result;
 }
 
+MappedName ComplexGeoData::setElementName(const IndexedName& element,
+                                          const MappedName& name,
+                                          long masterTag,
+                                          const ElementIDRefs* sid,
+                                          bool overwrite)
+{
+    return _elementMap->setElementName(element, name, masterTag, sid, overwrite);
+}
+
 std::vector<std::pair<MappedName, ElementIDRefs>>
 ComplexGeoData::getElementMappedNames(const IndexedName& element, bool needUnmapped) const
 {
@@ -345,6 +352,11 @@ ElementMapPtr ComplexGeoData::ensureElementMap(bool flush)
 
 void ComplexGeoData::flushElementMap() const
 {}
+
+void ComplexGeoData::traceElement(const MappedName& name, TraceCallback cb) const
+{
+    _elementMap->traceElement(name, Tag, cb);
+}
 
 void ComplexGeoData::setElementMap(const std::vector<MappedElement>& map)
 {
@@ -672,8 +684,18 @@ std::vector<IndexedName> ComplexGeoData::getHigherElements(const char*, bool) co
     return {};
 }
 
+long ComplexGeoData::getElementHistory(const MappedName& name,
+                                       MappedName* original,
+                                       std::vector<MappedName>* history) const
+{
+    if (_elementMap != nullptr) {
+        return _elementMap->getElementHistory(name, Tag, original, history);
+    }
+    return 0;
+};
+
 void ComplexGeoData::setMappedChildElements(
-    const std::vector<Data::ElementMap::MappedChildElements>& children)
+    const std::vector<Data::MappedChildElements>& children)
 {
     // DO NOT reset element map if there is one. Because we allow mixing child
     // mapping and normal mapping
@@ -683,7 +705,7 @@ void ComplexGeoData::setMappedChildElements(
     _elementMap->addChildElements(Tag, children);
 }
 
-std::vector<Data::ElementMap::MappedChildElements> ComplexGeoData::getMappedChildElements() const
+std::vector<Data::MappedChildElements> ComplexGeoData::getMappedChildElements() const
 {
     if (!_elementMap) {
         return {};

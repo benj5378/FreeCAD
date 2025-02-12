@@ -20,9 +20,14 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <QString>
+
+#include <Base/BaseClass.h>
+#include <Base/Console.h>
 #include <Base/Writer.h>
 #include <Base/Reader.h>
 
+#include "StringHasher.h"
 #include "PropertyLinkList.h"
 #include "PropertyLinkSub.h"
 #include "PropertyLinkSubList.h"
@@ -625,7 +630,7 @@ void PropertyLinkSubList::updateElementReference(DocumentObject* feature, bool r
         unregisterElementReference();
     }
     _ShadowSubList.resize(_lSubList.size());
-    auto owner = freecad_dynamic_cast<DocumentObject>(getContainer());
+    auto owner = Base::freecad_dynamic_cast<DocumentObject>(getContainer());
     if (owner && owner->isRestoring()) {
         return;
     }

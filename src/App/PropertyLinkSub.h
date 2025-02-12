@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 
+#include "ElementNamingUtils.h"
 #include "PropertyLinkBase.h"
 
 

@@ -23,8 +23,6 @@
 
 #include "PreCompiled.h"
 
-#include "Application.h"
-
 // inclusion of the generated files (generated out of PropertyContainerPy.xml)
 #include <App/ExtensionPy.h>
 #include <App/ExtensionPy.cpp>

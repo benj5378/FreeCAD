@@ -28,22 +28,34 @@
 
 #include "FCGlobal.h"
 
-#include "Application.h"
-#include "MappedElement.h"
-#include "StringHasher.h"
-
 #include <cstring>
 #include <deque>
 #include <functional>
 #include <map>
 #include <memory>
+#include <QByteArray>
+#include <QVector>  // struct
 
+#include <Base/Handle.h>
+
+#include "IndexedName.h"  // struct
+
+namespace App {
+class StringIDRef;
+class StringHasher;
+using StringHasherRef = Base::Reference<StringHasher>;
+}
 
 namespace Data
 {
-
 class ElementMap;
+class MappedName;
+class StringHasher;
+struct MappedElement;
+struct MappedNameRef;
+using ElementIDRefs = QVector<App::StringIDRef>;  // struct
 using ElementMapPtr = std::shared_ptr<ElementMap>;
+using StringHasherRef = Base::Reference<StringHasher>;
 
 /** Element trace callback
  *
@@ -59,6 +71,19 @@ using ElementMapPtr = std::shared_ptr<ElementMap>;
  * @sa traceElement()
  */
 typedef std::function<bool(const MappedName&, int, long, long)> TraceCallback;
+
+struct AppExport MappedChildElements
+{
+    IndexedName indexedName;
+    int count;
+    int offset;
+    long tag;
+    ElementMapPtr elementMap;
+    QByteArray postfix;
+    ElementIDRefs sids;
+
+    // prefix() has been moved to ElementNamingUtils.h
+};
 
 /* This class provides for ComplexGeoData's ability to provide proper naming.
  * Specifically, ComplexGeoData uses this class for it's `_id` property.
@@ -85,7 +110,7 @@ public:
      * @param hasherRef where all the StringID needed to build the map are stored.
      */
     // FIXME this should be made part of \c save, to achieve symmetry with the restore method
-    void beforeSave(const ::App::StringHasherRef& hasherRef) const;
+    void beforeSave(const App::StringHasherRef& hasherRef) const;
 
     /** Serialize this map. Calls \c collectChildMaps to get \c childMapSet and
      * \c postfixMap, then calls the other (private) save function with those parameters.
@@ -175,19 +200,6 @@ public:
      *   now you must pass in `long masterTag` explicitly.
      */
     void hashChildMaps(long masterTag);
-
-    struct AppExport MappedChildElements
-    {
-        IndexedName indexedName;
-        int count;
-        int offset;
-        long tag;
-        ElementMapPtr elementMap;
-        QByteArray postfix;
-        ElementIDRefs sids;
-
-        // prefix() has been moved to ElementNamingUtils.h
-    };
 
     /* Note: the original addChildElements passed `ComplexGeoData& master` for getting the `Tag`,
      *   now it just passes `long masterTag`.*/

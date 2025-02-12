@@ -26,13 +26,18 @@
 #define APP_GeoFeatureGroup_H
 
 #include <unordered_set>
-#include "DocumentObject.h"
-#include "GroupExtension.h"
-#include "PropertyGeo.h"
 
+#include "GroupExtension.h"
+
+namespace Base {
+class Placement;
+}
 
 namespace App
 {
+class DocumentObject;
+class Property;
+class PropertyPlacement;
 
 /**
  * @brief The base class for placeable group of DocumentObjects. It represents a local coordnate
@@ -96,11 +101,7 @@ public:
     Base::Placement globalGroupPlacement();
 
     /// Returns true if the given DocumentObject is DocumentObjectGroup but not GeoFeatureGroup
-    static bool isNonGeoGroup(const DocumentObject* obj)
-    {
-        return obj->hasExtension(GroupExtension::getExtensionClassTypeId())
-            && !obj->hasExtension(GeoFeatureGroupExtension::getExtensionClassTypeId());
-    }
+    static bool isNonGeoGroup(const DocumentObject* obj);
 
     bool extensionGetSubObject(DocumentObject*& ret,
                                const char* subname,

@@ -28,15 +28,17 @@
 #include <sstream>
 #endif
 
+#include <boost/any.hpp>
+
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/sax/HandlerBase.hpp>
+#include <xercesc/dom/DOM.hpp>
 
 #include "App/Application.h"
 #include "App/Expression.h"
 #include "Base/XMLTools.h"
-
 #include "Metadata.h"
 
 

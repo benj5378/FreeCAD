@@ -22,9 +22,11 @@
 
 #include "PreCompiled.h"
 #include <boost/property_map/property_map.hpp>
+#include <QtGlobal>
 
 #include <boost/range.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <Base/Interpreter.h>
 #include <Base/Tools.h>
 #include <Base/Uuid.h>
 
@@ -33,9 +35,10 @@
 #include "ComplexGeoDataPy.h"
 #include "Document.h"
 #include "DocumentObserver.h"
-#include "GeoFeatureGroupExtension.h"
+#include "GroupExtension.h"
 #include "Link.h"
 #include "LinkBaseExtensionPy.h"
+#include "StringHasher.h"
 
 // FIXME: ISO C++11 requires at least one argument for the "..." in a variadic macro
 #if defined(__clang__)

@@ -26,12 +26,11 @@
 
 #include <string>
 #include <QDomDocument>
-#include <QMap>
-#include <QString>
-#include <QVector>
-
 
 class QIODevice;
+template <class Key, class T>
+class QMap;
+class QString;
 
 namespace App
 {
@@ -40,15 +39,14 @@ class Branding
 {
 public:
     using XmlConfig = QMap<std::string, std::string>;
-    Branding();
+    Branding() {};
 
     bool readFile(const QString& fn);
     XmlConfig getUserDefines() const;
 
 private:
-    QVector<std::string> filter;
     bool evaluateXML(QIODevice* device, QDomDocument& xmlDocument);
-    QDomDocument domDocument;
+    QDomDocument domDocument;  // Might be able to remove this
 };
 
 }  // namespace App

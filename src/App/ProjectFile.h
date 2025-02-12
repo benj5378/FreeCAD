@@ -25,8 +25,7 @@
 #define APP_PROJECTFILE_H
 
 #include <Base/Type.h>
-#include <zipios++/zipfile.h>
-#include <sstream>
+
 #include <list>
 #include <map>
 #include <string>

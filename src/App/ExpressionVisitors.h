@@ -24,6 +24,8 @@
 #define RENAMEOBJECTIDENTIFIEREXPRESSIONVISITOR_H
 
 #include "Expression.h"
+#include "ObjectIdentifier.h"
+#include "Range.h"
 
 namespace App
 {

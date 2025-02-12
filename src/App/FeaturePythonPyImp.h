@@ -24,9 +24,12 @@
 #ifndef APP_FEATUREPYTHONPYIMP_H
 #define APP_FEATUREPYTHONPYIMP_H
 
-#include <Base/BaseClass.h>
-#include <Base/Interpreter.h>
+// #include <Base/Interpreter.h>
 #include <Base/PyObjectBase.h>
+
+namespace Base {
+class BaseClass;
+}
 
 #if defined(__clang__)
 # pragma clang diagnostic push

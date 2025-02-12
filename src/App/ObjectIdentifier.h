@@ -40,8 +40,9 @@ class Object;
 }
 namespace App
 {
-
+class DocumentObject;
 using any = boost::any;
+using SubNameMap = std::map<std::pair<App::DocumentObject*, std::string>, std::string>;
 
 template<class T>
 inline const T& any_cast(const boost::any& value)
@@ -450,7 +451,6 @@ public:
     const std::string& getSubObjectName(bool newStyle) const;
     const std::string& getSubObjectName() const;
 
-    using SubNameMap = std::map<std::pair<App::DocumentObject*, std::string>, std::string>;
     void importSubNames(const SubNameMap& subNameMap);
 
     bool updateLabelReference(App::DocumentObject*, const std::string&, const char*);

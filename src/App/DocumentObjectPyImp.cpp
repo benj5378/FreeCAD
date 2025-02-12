@@ -28,10 +28,11 @@
 
 #include "DocumentObject.h"
 #include "Document.h"
-#include "ExpressionParser.h"
+#include "Expression.h"
 #include "GeoFeature.h"
 #include "GeoFeatureGroupExtension.h"
 #include "GroupExtension.h"
+#include "ObjectIdentifier.h"
 
 
 // inclusion of the generated files (generated out of DocumentObjectPy.xml)

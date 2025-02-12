@@ -26,11 +26,13 @@
 #include <tuple>
 #endif
 
+#include <QString>
+
 #include "ExpressionParser.h"
 #include "ExpressionTokenizer.h"
 
-using namespace App;
 
+namespace App {
 
 // Code below inspired by blog entry:
 // https://john.nachtimwald.com/2009/07/04/qcompleter-and-comma-separated-tags/
@@ -151,3 +153,5 @@ QString ExpressionTokenizer::perform(const QString& prefix, int pos)
 
     return completionPrefix;
 }
+
+}  // namespace App

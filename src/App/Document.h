@@ -24,7 +24,6 @@
 #define APP_DOCUMENT_H
 
 #include <CXX/Objects.hxx>
-#include <Base/Observer.h>
 #include <Base/Persistence.h>
 #include <Base/Type.h>
 #include <Base/Handle.h>
@@ -35,7 +34,6 @@
 
 #include <map>
 #include <vector>
-#include <QString>
 
 namespace Base
 {

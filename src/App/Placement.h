@@ -25,6 +25,7 @@
 #define _AppPlacement_h_
 
 #include "FeaturePython.h"
+#include "GeoFeature.h"
 
 namespace App
 {
@@ -47,8 +48,9 @@ public:
         return "Gui::ViewProviderPlacement";
     }
 };
-using PlacementPython = App::FeaturePythonT<App::Placement>;
 
+template<class FeatureT> class FeaturePythonT;
+using PlacementPython = App::FeaturePythonT<App::Placement>;
 
 }  // namespace App
 

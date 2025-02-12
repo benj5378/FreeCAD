@@ -25,7 +25,7 @@
 #define APP_PROPERTYCONTAINER_H
 
 #include <map>
-#include <cstring>
+// #include <cstring>
 #include <Base/Persistence.h>
 
 #include "DynamicProperty.h"

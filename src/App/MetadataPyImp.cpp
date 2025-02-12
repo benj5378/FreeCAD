@@ -29,7 +29,8 @@
 #include "MetadataPy.h"
 #include "MetadataPy.cpp"
 
-using namespace Base;
+#include <xercesc/dom/DOMException.hpp>
+
 #ifndef XERCES_CPP_NAMESPACE_BEGIN
 #define XERCES_CPP_NAMESPACE_QUALIFIER
 using namespace XERCES_CPP_NAMESPACE;

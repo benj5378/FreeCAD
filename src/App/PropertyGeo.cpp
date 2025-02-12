@@ -23,6 +23,8 @@
 
 #include "PreCompiled.h"
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <Base/MatrixPy.h>
 #include <Base/PlacementPy.h>
 #include <Base/Reader.h>
@@ -41,6 +43,7 @@
 #include "PropertyGeo.h"
 #include "Placement.h"
 #include "ObjectIdentifier.h"
+#include "StringHasher.h"
 
 
 using namespace App;

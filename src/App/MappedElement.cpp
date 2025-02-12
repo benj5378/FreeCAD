@@ -23,11 +23,6 @@
 // NOLINTNEXTLINE
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <cstdlib>
-#include <unordered_set>
-#endif
-
 #include "DocumentObject.h"
 #include "MappedElement.h"
 

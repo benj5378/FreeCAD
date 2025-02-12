@@ -23,7 +23,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <sstream>
+#include <ostream>
 #endif
 
 #include <App/DocumentObjectPy.h>
@@ -31,6 +31,7 @@
 #include <Base/MatrixPy.h>
 #include <Base/Tools.h>
 
+#include "GeoFeature.h"
 #include "FeaturePython.h"
 #include "FeaturePythonPyImp.h"
 

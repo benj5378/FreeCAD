@@ -24,7 +24,6 @@
 #ifndef APP_PROPERTYGEO_H
 #define APP_PROPERTYGEO_H
 
-#include <Base/BoundBox.h>
 #include <Base/Matrix.h>
 #include <Base/Placement.h>
 #include <Base/Unit.h>
@@ -36,6 +35,8 @@
 
 namespace Base
 {
+template<class _Precision> class BoundBox3;
+using BoundBox3d = BoundBox3<double>;
 class Writer;
 }
 

@@ -58,21 +58,14 @@ recompute path. Also, it enables more complicated dependencies beyond trees.
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-#include <bitset>
-#include <stack>
 #include <filesystem>
 #endif
 
-#include <boost/algorithm/string.hpp>
-#include <boost/bimap.hpp>
+// #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/strong_components.hpp>
-
-#ifdef USE_OLD_DAG
 #include <boost/graph/topological_sort.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/visitors.hpp>
-#endif  // USE_OLD_DAG
 
 #include <boost/regex.hpp>
 #include <random>

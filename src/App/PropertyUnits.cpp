@@ -25,6 +25,7 @@
 #include <cfloat>
 #endif
 
+#include <boost/any.hpp>
 #include <Base/QuantityPy.h>
 #include <Base/UnitPy.h>
 

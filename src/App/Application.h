@@ -29,7 +29,6 @@
 #include <deque>
 #include <vector>
 
-#include <Base/Observer.h>
 #include <Base/Parameter.h>
 
 // forward declarations

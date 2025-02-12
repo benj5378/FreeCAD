@@ -33,7 +33,7 @@
 #include <Base/Sequencer.h>
 
 #include "Application.h"
-#include "DocumentPy.h"
+#include "Document.h"
 #include "DocumentObserverPython.h"
 #include "DocumentObjectPy.h"
 

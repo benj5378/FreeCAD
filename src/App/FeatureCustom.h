@@ -24,8 +24,6 @@
 #ifndef APP_FEATURECUSTOM_H
 #define APP_FEATURECUSTOM_H
 
-#include <App/PropertyContainer.h>
-
 namespace App
 {
 

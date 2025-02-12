@@ -32,7 +32,6 @@
 #include <Base/GeometryPyCXX.h>
 #include <Base/Tools.h>
 #include <Base/Interpreter.h>
-#include <Base/QuantityPy.h>
 #include <Base/Console.h>
 #include <Base/Reader.h>
 #include <CXX/Objects.hxx>
@@ -43,6 +42,7 @@
 #include "ExpressionParser.h"
 #include "Link.h"
 #include "Property.h"
+#include "Range.h"
 
 
 FC_LOG_LEVEL_INIT("Expression", true, true)
@@ -2033,7 +2033,7 @@ const std::string& ObjectIdentifier::getSubObjectName() const
     return subObjectName.getString();
 }
 
-void ObjectIdentifier::importSubNames(const ObjectIdentifier::SubNameMap& subNameMap)
+void ObjectIdentifier::importSubNames(const SubNameMap& subNameMap)
 {
     if (!owner || !owner->getDocument()) {
         return;

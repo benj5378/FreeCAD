@@ -22,7 +22,9 @@
  **************************************************************************/
 
 #include "PreCompiled.h"
-#include <list>
+#ifndef _PreComp_
+    #include <list>
+#endif
 
 #include "CleanupProcess.h"
 

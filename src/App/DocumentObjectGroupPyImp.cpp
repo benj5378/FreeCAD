@@ -23,8 +23,6 @@
 
 #include "PreCompiled.h"
 
-#include "DocumentObjectGroup.h"
-
 // inclusion of the generated files (generated out of DocumentObjectGroupPy.xml)
 #include "DocumentObjectGroupPy.h"
 #include "DocumentObjectGroupPy.cpp"

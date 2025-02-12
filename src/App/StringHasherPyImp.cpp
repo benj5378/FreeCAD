@@ -22,8 +22,6 @@
 
 #include "PreCompiled.h"
 
-#include "StringHasher.h"
-
 #include "StringHasherPy.h"
 #include "StringHasherPy.cpp"
 #include <Base/PyWrapParseTupleAndKeywords.h>

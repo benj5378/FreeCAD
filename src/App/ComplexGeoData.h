@@ -29,19 +29,20 @@
 
 #include <algorithm>
 #include <optional>
+#include <functional>
 
 #include <Base/Handle.h>
 #include <Base/Matrix.h>
 #include <Base/Persistence.h>
-#include "MappedName.h"
-#include "MappedElement.h"
-#include "ElementMap.h"
-#include "StringHasher.h"
+
+#include "ElementNamingUtils.h"
 
 #ifdef __GNUC__
 #include <cstdint>
 #endif
 
+
+template<typename T> class QVector;
 
 namespace Base
 {
@@ -50,20 +51,26 @@ class Rotation;
 template<class _Precision>
 class BoundBox3;  // NOLINT
 using BoundBox3d = BoundBox3<double>;
+template <typename Enum>
+class Flags;
 }  // namespace Base
+
+namespace App {
+class StringIDRef;
+class StringHasher;
+using StringHasherRef = Base::Reference<StringHasher>;
+}
 
 namespace Data
 {
-
-// struct MappedChildElements;
-/// Option for App::GeoFeature::searchElementCache()
-enum class SearchOption
-{
-    /// Whether to compare shape geometry
-    CheckGeometry = 1,
-    SingleResult = 2,
-};
-typedef Base::Flags<SearchOption> SearchOptions;
+using ElementIDRefs = QVector<App::StringIDRef>;
+class ElementMap;
+using ElementMapPtr = std::shared_ptr<ElementMap>;
+class MappedName;
+struct MappedChildElements;
+struct MappedElement;
+class IndexedName;
+typedef std::function<bool(const MappedName&, int, long, long)> TraceCallback;
 
 /** Segments
  *  Sub-element type of the ComplexGeoData type
@@ -274,10 +281,7 @@ public:
                               const MappedName& name,
                               long masterTag,
                               const ElementIDRefs* sid = nullptr,
-                              bool overwrite = false)
-    {
-        return _elementMap->setElementName(element, name, masterTag, sid, overwrite);
-    }
+                              bool overwrite = false);
 
     bool hasElementMap()
     {
@@ -314,16 +318,10 @@ public:
     // NOTE: getElementHistory is now in ElementMap
     long getElementHistory(const MappedName& name,
                            MappedName* original = nullptr,
-                           std::vector<MappedName>* history = nullptr) const
-    {
-        if (_elementMap != nullptr) {
-            return _elementMap->getElementHistory(name, Tag, original, history);
-        }
-        return 0;
-    };
+                           std::vector<MappedName>* history = nullptr) const;
 
-    void setMappedChildElements(const std::vector<Data::ElementMap::MappedChildElements>& children);
-    std::vector<Data::ElementMap::MappedChildElements> getMappedChildElements() const;
+    void setMappedChildElements(const std::vector<Data::MappedChildElements>& children);
+    std::vector<Data::MappedChildElements> getMappedChildElements() const;
 
     char elementType(const Data::MappedName&) const;
     char elementType(const Data::IndexedName&) const;
@@ -367,10 +365,7 @@ public:
      * @param cb: trace callback with call signature.
      * @sa TraceCallback
      */
-    void traceElement(const MappedName& name, TraceCallback cb) const
-    {
-        _elementMap->traceElement(name, Tag, cb);
-    }
+    void traceElement(const MappedName& name, TraceCallback cb) const;
 
     /** Flush an internal buffering for element mapping */
     virtual void flushElementMap() const;
@@ -517,5 +512,4 @@ protected:
 
 }  // namespace Data
 
-ENABLE_BITMASK_OPERATORS(Data::SearchOption)
 #endif

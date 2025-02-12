@@ -27,7 +27,7 @@
 #include <Base/Exception.h>
 #include <Base/Tools.h>
 
-#include "GeoFeature.h"
+#include "GeoFeatureGroupExtension.h"
 #include "OriginGroupExtension.h"
 #include "Origin.h"
 #include "PropertyLinkSub.h"

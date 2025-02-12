@@ -23,12 +23,9 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include <deque>
 #include <set>
 #include <string>
 
-#include <App/ObjectIdentifier.h>
-#include <App/Range.h>
 #include <App/Property.h>
 
 #include <Base/Exception.h>
@@ -40,16 +37,17 @@ class Quantity;
 }
 
 namespace App  {
-
+class Document;
 class DocumentObject;
 class Expression;
-class Document;
+class ObjectIdentifier;
 class PropertyLinkBase;
-
+struct CellAddress;
 using ExpressionPtr = std::unique_ptr<Expression>;
+using SubNameMap = std::map<std::pair<App::DocumentObject*, std::string>, std::string>;
 
-AppExport bool isAnyEqual(const App::any &v1, const App::any &v2);
-AppExport Base::Quantity anyToQuantity(const App::any &value, const char *errmsg = nullptr);
+AppExport bool isAnyEqual(const boost::any &v1, const boost::any &v2);
+AppExport Base::Quantity anyToQuantity(const boost::any &value, const char *errmsg = nullptr);
 
 // clang-format off
 // Map of depending objects to a map of depending property name to the full referencing object identifier
@@ -74,7 +72,7 @@ protected:
     void collectReplacement(Expression &e, std::map<ObjectIdentifier,ObjectIdentifier> &,
             const App::DocumentObject *parent, App::DocumentObject *oldObj, App::DocumentObject *newObj) const;
     bool updateElementReference(Expression &e, App::DocumentObject *feature,bool reverse);
-    void importSubNames(Expression &e, const ObjectIdentifier::SubNameMap &subNameMap);
+    void importSubNames(Expression &e, const SubNameMap &subNameMap);
     void updateLabelReference(Expression &e, App::DocumentObject *obj,
             const std::string &ref, const char *newLabel);
     void moveCells(Expression &e, const CellAddress &address, int rowCount, int colCount);
@@ -198,7 +196,7 @@ protected:
     virtual bool _adjustLinks(const std::set<App::DocumentObject*> &, ExpressionVisitor &) {return false;}
     virtual bool _updateElementReference(App::DocumentObject *,bool,ExpressionVisitor &) {return false;}
     virtual bool _relabeledDocument(const std::string &, const std::string &, ExpressionVisitor &) {return false;}
-    virtual void _importSubNames(const ObjectIdentifier::SubNameMap &) {}
+    virtual void _importSubNames(const SubNameMap &) {}
     virtual void _updateLabelReference(App::DocumentObject *, const std::string &, const char *) {}
     virtual bool _renameObjectIdentifier(const std::map<ObjectIdentifier,ObjectIdentifier> &,
                                          const ObjectIdentifier &, ExpressionVisitor &) {return false;}

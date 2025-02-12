@@ -22,12 +22,9 @@
 
 #include "PreCompiled.h"
 
-#include "DocumentObject.h"
-
 // inclusion of the generated files (generated out of SuppressibleExtensionPy.xml)
 #include "SuppressibleExtensionPy.h"
 #include "SuppressibleExtensionPy.cpp"
-#include "DocumentObjectPy.h"
 
 
 using namespace App;

@@ -23,9 +23,7 @@
 
 #include "PreCompiled.h"
 
-#include <App/Document.h>
-#include <Base/Placement.h>
-
+#include "PropertyGeo.h"
 #include "Origin.h"
 
 using namespace App;

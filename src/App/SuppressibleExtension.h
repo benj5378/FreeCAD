@@ -23,9 +23,8 @@
 #ifndef SUPPRESSIBLEEXTENSION_H
 #define SUPPRESSIBLEEXTENSION_H
 
-#include <App/DocumentObject.h>
 #include <App/DocumentObjectExtension.h>
-#include <App/ExtensionPython.h>
+#include "PropertyStandard.h"
 
 namespace App
 {
@@ -56,6 +55,8 @@ public:
     ~SuppressibleExtensionPythonT() override = default;
 };
 
+
+template<class ExtensionT> class ExtensionPythonT;
 using SuppressibleExtensionPython =
     ExtensionPythonT<SuppressibleExtensionPythonT<SuppressibleExtension>>;
 

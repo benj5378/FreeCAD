@@ -391,6 +391,12 @@ void GeoFeatureGroupExtension::recursiveCSRelevantLinks(const DocumentObject* ob
     }
 }
 
+bool isNonGeoGroup(const DocumentObject* obj)
+{
+    return obj->hasExtension(GroupExtension::getExtensionClassTypeId())
+        && !obj->hasExtension(GeoFeatureGroupExtension::getExtensionClassTypeId());
+}
+
 bool GeoFeatureGroupExtension::extensionGetSubObject(DocumentObject*& ret,
                                                      const char* subname,
                                                      PyObject** pyObj,

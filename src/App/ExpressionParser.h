@@ -25,17 +25,23 @@
 #ifndef EXPRESSION_PARSER_H
 #define EXPRESSION_PARSER_H
 
+#include <deque>
+
 #include "Expression.h"
-#include <Base/Matrix.h>
+#include "ObjectIdentifier.h"
+
 #include <Base/Quantity.h>
-#include <Base/Vector3D.h>
 
 namespace Base {
+template<typename T> class Vector3;
+using Vector3d = Vector3<double>;
+class Matrix4D;
 class XMLReader;
 }
 
 namespace App
 {
+class Range;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Expecting the extended expression is going to be constantly amended (to
@@ -479,7 +485,7 @@ protected:
     bool _isIndexable() const override;
     void _getIdentifiers(std::map<App::ObjectIdentifier, bool>&) const override;
     bool _adjustLinks(const std::set<App::DocumentObject*>&, ExpressionVisitor&) override;
-    void _importSubNames(const ObjectIdentifier::SubNameMap&) override;
+    void _importSubNames(const SubNameMap&) override;
     void _updateLabelReference(App::DocumentObject*, const std::string&, const char*) override;
     bool _updateElementReference(App::DocumentObject*, bool, ExpressionVisitor&) override;
     bool _relabeledDocument(const std::string&, const std::string&, ExpressionVisitor&) override;

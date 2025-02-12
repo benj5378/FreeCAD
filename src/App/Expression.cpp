@@ -21,6 +21,11 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
+#ifndef _PreComp_
+    #include <ostream>
+    #include <stack>
+    #include <string>
+#endif
 #ifdef __GNUC__
 # include <unistd.h>
 #endif
@@ -31,17 +36,14 @@
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/io/ios_state.hpp>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/math/special_functions/trunc.hpp>
 
-#include <sstream>
-#include <stack>
-#include <string>
-
-#include <App/Application.h>
 #include <App/DocumentObject.h>
 #include <App/ObjectIdentifier.h>
 #include <App/PropertyUnits.h>
+#include <Base/Console.h>
 #include <Base/Interpreter.h>
 #include <Base/MatrixPy.h>
 #include <Base/PlacementPy.h>
@@ -49,6 +51,7 @@
 #include <Base/RotationPy.h>
 #include <Base/VectorPy.h>
 
+#include "Range.h"
 #include "ExpressionParser.h"
 
 
@@ -241,7 +244,7 @@ bool ExpressionVisitor::adjustLinks(Expression &e, const std::set<App::DocumentO
     return e._adjustLinks(inList,*this);
 }
 
-void ExpressionVisitor::importSubNames(Expression &e, const ObjectIdentifier::SubNameMap &subNameMap) {
+void ExpressionVisitor::importSubNames(Expression &e, const SubNameMap &subNameMap) {
     e._importSubNames(subNameMap);
 }
 
@@ -987,7 +990,7 @@ bool Expression::adjustLinks(const std::set<App::DocumentObject*> &inList) {
 
 class ImportSubNamesExpressionVisitor : public ExpressionVisitor {
 public:
-    explicit ImportSubNamesExpressionVisitor(const ObjectIdentifier::SubNameMap &subNameMap)
+    explicit ImportSubNamesExpressionVisitor(const SubNameMap &subNameMap)
         :subNameMap(subNameMap)
     {}
 
@@ -995,13 +998,13 @@ public:
         this->importSubNames(e,subNameMap);
     }
 
-    const ObjectIdentifier::SubNameMap &subNameMap;
+    const SubNameMap &subNameMap;
 };
 
 ExpressionPtr Expression::importSubNames(const std::map<std::string,std::string> &nameMap) const {
     if(!owner || !owner->getDocument())
         return nullptr;
-    ObjectIdentifier::SubNameMap subNameMap;
+    SubNameMap subNameMap;
     for(auto &dep : getDeps(DepAll)) {
         for(auto &info : dep.second) {
             for(auto &path : info.second) {
@@ -2973,7 +2976,7 @@ bool VariableExpression::_adjustLinks(
     return var.adjustLinks(v,inList);
 }
 
-void VariableExpression::_importSubNames(const ObjectIdentifier::SubNameMap &subNameMap)
+void VariableExpression::_importSubNames(const SubNameMap &subNameMap)
 {
     var.importSubNames(subNameMap);
 }

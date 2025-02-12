@@ -22,19 +22,10 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <unordered_set>
-#endif
-
 #include "MappedName.h"
-
-#include "Base/Console.h"
 
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
-
-
-FC_LOG_LEVEL_INIT("MappedName", true, 2);  // NOLINT
 
 namespace Data
 {

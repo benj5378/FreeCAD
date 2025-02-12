@@ -22,8 +22,6 @@
 
 #include "PreCompiled.h"
 
-#include "StringHasher.h"
-
 #include "StringIDPy.h"
 #include "StringIDPy.cpp"
 

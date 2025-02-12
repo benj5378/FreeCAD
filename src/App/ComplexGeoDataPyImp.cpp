@@ -27,22 +27,22 @@
 #endif
 
 #include "ComplexGeoData.h"
+#include "ElementMap.h"
+#include "IndexedName.h"
+#include "MappedElement.h"
 #include "StringHasher.h"
+#include "StringHasherPy.h"
 
 // inclusion of the generated files (generated out of ComplexGeoDataPy.xml)
 #include <App/ComplexGeoDataPy.h>
 #include <App/ComplexGeoDataPy.cpp>
-#include <App/StringHasherPy.h>
 #include <App/StringIDPy.h>
-#include <Base/BoundBoxPy.h>
 #include <Base/MatrixPy.h>
 #include <Base/PlacementPy.h>
 #include "Base/PyWrapParseTupleAndKeywords.h"
 #include <Base/VectorPy.h>
 #include <Base/GeometryPyCXX.h>
 
-using namespace Data;
-using namespace Base;
 
 // returns a string which represent the object e.g. when printed in python
 std::string ComplexGeoDataPy::representation() const
@@ -393,16 +393,16 @@ PyObject* ComplexGeoDataPy::setElementName(PyObject* args, PyObject* kwds)
 
     const std::array<const char*, 7> kwlist =
         {"element", "name", "postfix", "overwrite", "sid", "tag", nullptr};
-    if (!Wrapped_ParseTupleAndKeywords(args,
-                                       kwds,
-                                       "s|sssOOi",
-                                       kwlist,
-                                       &element,
-                                       &name,
-                                       &postfix,
-                                       &overwrite,
-                                       &pySid,
-                                       &tag)) {
+    if (!Base::Wrapped_ParseTupleAndKeywords(args,
+                                             kwds,
+                                             "s|sssOOi",
+                                             kwlist,
+                                             &element,
+                                             &name,
+                                             &postfix,
+                                             &overwrite,
+                                             &pySid,
+                                             &tag)) {
         return NULL;
     }
     ElementIDRefs sids;

@@ -24,9 +24,10 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
+#include <Base/Console.h>
 #include <Base/PyObjectBase.h>
-#include <Base/Writer.h>
 #include <Base/Reader.h>
+#include <Base/Writer.h>
 
 #include "Document.h"
 #include "DocumentObject.h"

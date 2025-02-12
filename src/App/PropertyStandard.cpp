@@ -154,6 +154,10 @@ void PropertyInteger::setPathValue(const ObjectIdentifier& path, const boost::an
     }
 }
 
+const boost::any PropertyInteger::getPathValue(const App::ObjectIdentifier& /*path*/) const
+{
+    return _lValue;
+}
 
 //**************************************************************************
 //**************************************************************************

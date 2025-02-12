@@ -49,6 +49,7 @@ public:
     }
 };
 
+template<class FeatureT> class FeaturePythonT;
 using MaterialObjectPython = App::FeaturePythonT<MaterialObject>;
 
 

@@ -24,13 +24,12 @@
 #ifndef APP_FEATUREPYTHON_H
 #define APP_FEATUREPYTHON_H
 
-#include <App/GeoFeature.h>
 #include <App/PropertyPythonObject.h>
-
+#include "DocumentObject.h"
 
 namespace App
 {
-
+class GeoFeature;
 class Property;
 
 // Helper class to hide implementation details

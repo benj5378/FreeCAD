@@ -27,17 +27,18 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <QByteArray>
 #include <QHash>
-#include <QVector>
-#include <utility>
 
 #include "ElementNamingUtils.h"
 #include "IndexedName.h"
 #include "StringHasher.h"
+
+template <typename T> class QVector;
 
 
 namespace Data
@@ -930,7 +931,7 @@ private:
 };
 
 
-using ElementIDRefs = QVector<::App::StringIDRef>;
+using ElementIDRefs = QVector<App::StringIDRef>;
 
 struct MappedNameRef
 {

@@ -24,7 +24,6 @@
 #ifndef APP_COLORMODEL_H
 #define APP_COLORMODEL_H
 
-#include "Material.h"
 #include <Base/Bitmask.h>
 
 #include <algorithm>
@@ -32,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include "Color.h"
 
 namespace App
 {

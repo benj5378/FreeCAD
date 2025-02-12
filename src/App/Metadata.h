@@ -26,15 +26,19 @@
 #include "FCConfig.h"
 
 #include <filesystem>
-
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
+namespace XERCES_CPP_NAMESPACE {
+class DOMElement;
+class DOMNode;
+class InputSource;
+class XercesDOMParser;
+}
 
 namespace App
 {
