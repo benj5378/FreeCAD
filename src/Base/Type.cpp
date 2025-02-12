@@ -26,15 +26,13 @@
 #include <cassert>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
 #include "Type.h"
-#include "Exception.h"
 #include "Interpreter.h"
 #include "Console.h"
 
 
 using namespace Base;
-using namespace std;
+// using namespace std;
 
 
 struct Base::TypeData
@@ -55,9 +53,9 @@ struct Base::TypeData
     Type::instantiationMethod instMethod;
 };
 
-map<string, unsigned int> Type::typemap;
-vector<TypeData*> Type::typedata;
-set<string> Type::loadModuleSet;
+std::map<std::string, unsigned int> Type::typemap;
+std::vector<TypeData*> Type::typedata;
+std::set<std::string> Type::loadModuleSet;
 
 void* Type::createInstance() const
 {
@@ -90,7 +88,7 @@ void* Type::createInstanceByName(const char* TypeName, bool bLoadModule)
 void Type::importModule(const char* TypeName)
 {
     // cut out the module name
-    const string mod = getModuleName(TypeName);
+    const std::string mod = getModuleName(TypeName);
 
     // ignore base modules
     if (mod == "App" || mod == "Gui" || mod == "Base") {
@@ -111,12 +109,12 @@ void Type::importModule(const char* TypeName)
     loadModuleSet.insert(mod);
 }
 
-string Type::getModuleName(const char* ClassName)
+std::string Type::getModuleName(const char* ClassName)
 {
-    string_view classNameView(ClassName);
+    std::string_view classNameView(ClassName);
     auto pos = classNameView.find("::");
 
-    return pos != string_view::npos ? string(classNameView.substr(0, pos)) : string();
+    return pos != std::string_view::npos ? std::string(classNameView.substr(0, pos)) : std::string();
 }
 
 Type Type::badType()

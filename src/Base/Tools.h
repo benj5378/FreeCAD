@@ -27,16 +27,13 @@
 #ifndef FC_GLOBAL_H
 #include <FCGlobal.h>
 #endif
-#include <functional>
-#include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <boost_signals2.hpp>
-#include <QString>
 
-// ----------------------------------------------------------------------------
+
+class QString;
 
 namespace Base
 {

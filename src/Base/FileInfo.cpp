@@ -26,12 +26,11 @@
 
 #ifndef _PreComp_
 #include <algorithm>
-#include <cassert>
 #include <codecvt>
 #include <cstring>
-#include <locale>
 #if defined(FC_OS_LINUX) || defined(FC_OS_CYGWIN) || defined(FC_OS_MACOSX) || defined(FC_OS_BSD)
 #include <dirent.h>
+#include <iostream>
 #include <unistd.h>
 #include <limits.h>
 #elif defined(FC_OS_WIN32)
@@ -45,6 +44,7 @@
 #include "FileInfo.h"
 #include "Exception.h"
 #include "Stream.h"
+#include "TimeInfo.h"
 
 
 using namespace Base;

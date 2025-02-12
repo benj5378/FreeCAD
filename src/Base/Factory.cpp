@@ -29,8 +29,9 @@
 #endif
 
 #include "Factory.h"
+#ifdef FC_DEBUG
 #include "Console.h"
-
+#endif
 
 using namespace Base;
 

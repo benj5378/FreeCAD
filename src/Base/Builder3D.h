@@ -34,6 +34,8 @@
 #include <FCGlobal.h>
 #endif
 
+#include "Placement.h"
+
 namespace Base
 {
 class Matrix4D;
@@ -761,6 +763,7 @@ public:
 
 private:
     /// the result string
+    // consider whether this needs to be stringstream
     std::stringstream result;
     InventorBuilder builder;
 };

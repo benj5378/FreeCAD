@@ -896,7 +896,7 @@ private:
     // observer list
     std::set<ILogger*> _aclObservers;
 
-    std::map<std::string, int> _logLevels;
+    std::map<std::string, int> _logLevels; //Unused but implemented in functions??
     int _defaultLogLevel;
 
     friend class ConsoleOutput;
@@ -911,6 +911,7 @@ inline ConsoleSingleton& Console()
     return ConsoleSingleton::Instance();
 }
 
+//rewrite this using enum class and templates
 inline constexpr ConsoleSingleton::FreeCAD_ConsoleMsgType
 ConsoleSingleton::getConsoleMsg(Base::LogStyle style)
 {

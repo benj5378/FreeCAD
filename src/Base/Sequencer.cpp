@@ -27,6 +27,7 @@
 #include <mutex>
 #include <vector>
 #include <algorithm>
+#include <string>
 #endif
 
 #include "Sequencer.h"

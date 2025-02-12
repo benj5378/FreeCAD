@@ -24,7 +24,6 @@
 #ifndef BASE_VECTOR3D_H
 #define BASE_VECTOR3D_H
 
-
 #include <cmath>
 #include <cfloat>
 

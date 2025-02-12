@@ -28,16 +28,12 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <cassert>
 #include <memory>
 
-#ifdef _MSC_VER
-#include <zipios++/zipios-config.h>
-#endif
-#include <zipios++/zipfile.h>
-#include <zipios++/zipinputstream.h>
+// #ifdef _MSC_VER
+// #include <zipios++/zipios-config.h>
+// #endif
 #include <zipios++/zipoutputstream.h>
-#include <zipios++/meta-iostreams.h>
 
 #include "FileInfo.h"
 
@@ -220,6 +216,7 @@ private:
     zipios::ZipOutputStream ZipStream;
 };
 
+// Move this to new file
 /** The StringWriter class
  * This is an important helper class implementation for the store and retrieval system
  * of objects in FreeCAD.

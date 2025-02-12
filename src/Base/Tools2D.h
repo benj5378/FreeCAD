@@ -25,12 +25,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cfloat>
-#include <cstdio>
 #include <list>
 #include <vector>
 
-#include "Vector3D.h"
+#include "Vector3D.h"  // included solely for DOUBLE_MAX??
 #ifndef FC_GLOBAL_H
 #include <FCGlobal.h>
 #endif

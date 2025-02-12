@@ -23,11 +23,8 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <cstdlib>
-#include <set>
-#endif
-
+#include "BoundBox.h"
+#include "Placement.h"
 #include "Tools3D.h"
 #include "Vector3D.h"
 

@@ -34,7 +34,6 @@
 #endif
 
 #include "Console.h"
-#include "Exception.h"
 #include "PyObjectBase.h"
 #include <QCoreApplication>
 
@@ -47,14 +46,15 @@ using namespace Base;
 namespace Base
 {
 
+// Why this not just struct?
 class ConsoleEvent: public QEvent
 {
 public:
     ConsoleSingleton::FreeCAD_ConsoleMsgType msgtype;
     IntendedRecipient recipient;
     ContentType content;
-    std::string notifier;
-    std::string msg;
+    const std::string& notifier;
+    const std::string& msg;
 
     ConsoleEvent(ConsoleSingleton::FreeCAD_ConsoleMsgType type,
                  IntendedRecipient recipient,
