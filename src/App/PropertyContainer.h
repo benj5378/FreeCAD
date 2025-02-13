@@ -28,12 +28,6 @@
 // #include <cstring>
 #include <Base/Persistence.h>
 
-#include <boost/multi_index_container.hpp> 
-#include <boost/multi_index/hashed_index.hpp> 
-#include <boost/multi_index/sequenced_index.hpp> 
-#include <boost/multi_index/member.hpp> 
-#include <boost/multi_index/mem_fun.hpp> 
-
 #include "DynamicProperty.h"
 
 namespace Base {
@@ -63,6 +57,9 @@ enum PropertyType
 
 struct AppExport PropertyData
 {
+  PropertyData();
+  ~PropertyData();
+
   struct PropertySpec
   {
     const char * Name;
@@ -97,27 +94,8 @@ struct AppExport PropertyData
       const void* m_container;
   };
 
-    // clang-format off
-    // A multi index container for holding the property spec, with the following
-    // index,
-    // * a sequence, to preserve creation order
-    // * hash index on property name
-    // * hash index on property pointer offset
-    mutable bmi::multi_index_container<
-        PropertySpec,
-        bmi::indexed_by<
-            bmi::sequenced<>,
-            bmi::hashed_unique<
-                bmi::member<PropertySpec, const char*, &PropertySpec::Name>,
-                CStringHasher,
-                CStringHasher
-            >,
-            bmi::hashed_unique<
-                bmi::member<PropertySpec, short, &PropertySpec::Offset>
-            >
-        >
-    > propertyData;
-    // clang-format on
+  struct Private;
+  Private* pImpl;
 
   mutable bool parentMerged = false;
 
