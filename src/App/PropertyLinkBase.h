@@ -24,6 +24,7 @@
 #define APP_PROPERTYLINKBASE_H
 
 #include <unordered_set>
+#include <boost/signals2.hpp>
 
 #include "Property.h"
 

@@ -32,9 +32,10 @@
 #include <Base/Writer.h>
 #include <CXX/Objects.hxx>
 
-#include "Property.h"
 #include "ObjectIdentifier.h"
+#include "Property.h"
 #include "PropertyContainer.h"
+#include "PropertySignals.h"
 
 
 using namespace App;
@@ -55,9 +56,14 @@ static std::atomic<int64_t> _PropID;
 // Here is the implementation! Description should take place in the header file!
 Property::Property()
     : _id(++_PropID)
-{}
+{
+    signals = new Public;
+}
 
-Property::~Property() = default;
+Property::~Property()
+{
+    delete signals;
+}
 
 const char* Property::getName() const
 {
@@ -274,7 +280,7 @@ void Property::hasSetValue()
         father->onChanged(this);
         if (!testStatus(Busy)) {
             Base::BitsetLocker<decltype(StatusBits)> guard(StatusBits, Busy);
-            signalChanged(*this);
+            signals->propertyChanged(*this);
         }
     }
     StatusBits.set(Touched);

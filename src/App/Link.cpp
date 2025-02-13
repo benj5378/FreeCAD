@@ -38,6 +38,7 @@
 #include "GroupExtension.h"
 #include "Link.h"
 #include "LinkBaseExtensionPy.h"
+#include "PropertySignals.h"
 #include "StringHasher.h"
 
 // FIXME: ISO C++11 requires at least one argument for the "..." in a variadic macro
@@ -891,7 +892,7 @@ bool LinkBaseExtension::setupCopyOnChange(
     for (const auto& v : newProps) {
         // sync configuration properties
         copyOnChangeConns->push_back(
-            v.second->signalChanged.connect([parent](const Property& prop) {
+            v.second->signals->propertyChanged.connect([parent](const Property& prop) {
                 if (!prop.testStatus(Property::CopyOnChange)) {
                     return;
                 }

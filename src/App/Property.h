@@ -27,7 +27,6 @@
 #include <Base/Exception.h>
 #include <Base/Persistence.h>
 #include <boost/any/fwd.hpp>
-#include <boost/signals2.hpp>
 #include <bitset>
 #include <string>
 #include <FCGlobal.h>
@@ -332,7 +331,8 @@ private:
     int64_t _id;
 
 public:
-    boost::signals2::signal<void(const App::Property&)> signalChanged;
+    struct Public;
+    Public* signals;
 };
 
 
