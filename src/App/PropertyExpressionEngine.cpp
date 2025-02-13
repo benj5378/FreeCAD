@@ -40,6 +40,7 @@
 #include <CXX/Objects.hxx>
 
 #include "PropertyExpressionEngine.h"
+#include "PropertyExpressionEngineSignals.h"
 #include "ExpressionVisitors.h"
 
 FC_LOG_LEVEL_INIT("App", true);
@@ -119,13 +120,18 @@ TYPESYSTEM_SOURCE(App::PropertyExpressionEngine, App::PropertyExpressionContaine
 
 PropertyExpressionEngine::PropertyExpressionEngine()
     : validator(0)
-{}
+{
+    signals = new Public;
+}
 
 /**
  * @brief Destroy the PropertyExpressionEngine object.
  */
 
-PropertyExpressionEngine::~PropertyExpressionEngine() = default;
+PropertyExpressionEngine::~PropertyExpressionEngine()
+{
+    delete signals;
+}
 
 /**
  * @brief Estimate memory size of this property.
@@ -311,7 +317,7 @@ void PropertyExpressionEngine::Paste(const Property& from)
             info.expression = std::shared_ptr<Expression>(e.second.expression->copy());
         }
         expressions[e.first] = info;
-        expressionChanged(e.first);
+        signals->expressionChanged(e.first);
     }
     validator = fromee.validator;
     signaller.tryInvoke();
@@ -561,13 +567,13 @@ void PropertyExpressionEngine::setValue(const ObjectIdentifier& path,
         }
         AtomicPropertyChange signaller(*this);
         expressions[usePath] = ExpressionInfo(expr);
-        expressionChanged(usePath);
+        signals->expressionChanged(usePath);
         signaller.tryInvoke();
     }
     else if (it != expressions.end()) {
         AtomicPropertyChange signaller(*this);
         expressions.erase(it);
-        expressionChanged(usePath);
+        signals->expressionChanged(usePath);
         signaller.tryInvoke();
     }
 }
@@ -957,7 +963,7 @@ void PropertyExpressionEngine::renameExpressions(
     aboutToSetValue();
     expressions = newExpressions;
     for (auto i = expressions.begin(); i != expressions.end(); ++i) {
-        expressionChanged(i->first);
+        signals->expressionChanged(i->first);
     }
 
     hasSetValue();
@@ -1018,7 +1024,7 @@ void PropertyExpressionEngine::breakLink(App::DocumentObject *obj, bool clear) {
             continue;
         auto path = it->first;
         expressions.erase(it);
-        expressionChanged(path);
+        signals->expressionChanged(path);
     }
 }
 */
@@ -1044,7 +1050,7 @@ bool PropertyExpressionEngine::adjustLink(const std::set<DocumentObject*>& inLis
     for (auto& v : expressions) {
         try {
             if (v.second.expression && v.second.expression->adjustLinks(inList)) {
-                expressionChanged(v.first);
+                signals->expressionChanged(v.first);
             }
         }
         catch (Base::Exception& e) {
@@ -1070,7 +1076,7 @@ void PropertyExpressionEngine::updateElementReference(DocumentObject* feature,
         if (e.second.expression) {
             e.second.expression->visit(v);
             if (v.changed()) {
-                expressionChanged(e.first);
+                signals->expressionChanged(e.first);
                 v.reset();
             }
         }

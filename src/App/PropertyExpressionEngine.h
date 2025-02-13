@@ -25,8 +25,6 @@
 
 #include <functional>
 #include <set>
-#include <boost/unordered/unordered_map_fwd.hpp>
-#include <boost_signals2.hpp>
 #include <App/PropertyXLink.h>
 
 namespace Base
@@ -35,6 +33,9 @@ class Writer;
 class XMLReader;
 }  // namespace Base
 
+namespace boost {
+    class any;
+}
 namespace App
 {
 
@@ -171,8 +172,8 @@ public:
 
     size_t numExpressions() const;
 
-    /// signal called when an expression was changed
-    boost::signals2::signal<void(const App::ObjectIdentifier&)> expressionChanged;
+    struct Public;
+    Public* signals;
 
     void afterRestore() override;
     void onContainerRestored() override;
