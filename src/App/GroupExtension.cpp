@@ -28,6 +28,7 @@
 #include "Document.h"
 #include "GeoFeatureGroupExtension.h"
 #include "GroupExtensionPy.h"
+#include "DocumentObjectSignals.h"
 
 
 using namespace App;
@@ -388,7 +389,7 @@ void GroupExtension::extensionOnChanged(const Property* p)
         for (auto obj : Group.getValue()) {
             if (obj && obj->isAttachedToDocument()) {
                 // NOLINTBEGIN
-                _Conns[obj] = obj->signalChanged.connect(
+                _Conns[obj] = obj->signals->changed.connect(
                     std::bind(&GroupExtension::slotChildChanged, this, sp::_1, sp::_2));
                 // NOLINTEND
             }

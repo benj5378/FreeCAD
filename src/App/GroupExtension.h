@@ -32,6 +32,12 @@
 #include <App/PropertyLinkList.h>
 
 
+namespace boost {
+namespace signals2 {
+class scoped_connection;
+}
+}
+
 namespace App
 {
 class DocumentObjectGroup;

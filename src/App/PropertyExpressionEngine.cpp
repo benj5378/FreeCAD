@@ -41,6 +41,7 @@
 
 #include "PropertyExpressionEngine.h"
 #include "PropertyExpressionEngineSignals.h"
+#include "DocumentObjectSignals.h"
 #include "ExpressionVisitors.h"
 
 FC_LOG_LEVEL_INIT("App", true);
@@ -224,14 +225,14 @@ void PropertyExpressionEngine::hasSetValue()
                         if (propDeps.empty()) {
                             // NOLINTBEGIN
                             if (!propName.empty()) {
-                                pimpl->conns.emplace_back(obj->signalChanged.connect(
+                                pimpl->conns.emplace_back(obj->signals->changed.connect(
                                     std::bind(&PropertyExpressionEngine::slotChangedProperty,
                                               this,
                                               sp::_1,
                                               sp::_2)));
                             }
                             else {
-                                pimpl->conns.emplace_back(obj->signalChanged.connect(
+                                pimpl->conns.emplace_back(obj->signals->changed.connect(
                                     std::bind(&PropertyExpressionEngine::slotChangedObject,
                                               this,
                                               sp::_1,

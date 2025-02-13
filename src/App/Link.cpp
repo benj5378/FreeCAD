@@ -34,6 +34,7 @@
 #include "ElementNamingUtils.h"
 #include "ComplexGeoDataPy.h"
 #include "Document.h"
+#include "DocumentObjectSignals.h"
 #include "DocumentObserver.h"
 #include "GroupExtension.h"
 #include "Link.h"
@@ -1017,7 +1018,7 @@ void LinkBaseExtension::monitorOnChangeCopyObjects(const std::vector<App::Docume
     for (auto obj : objs) {
         obj->setStatus(App::ObjectStatus::TouchOnColorChange, true);
         copyOnChangeSrcConns.emplace_back(
-            obj->signalChanged.connect([this](const DocumentObject&, const Property&) {
+            obj->signals->changed.connect([this](const DocumentObject&, const Property&) {
                 if (auto prop = this->getLinkCopyOnChangeTouchedProperty()) {
                     if (this->getLinkCopyOnChangeValue() != CopyOnChangeDisabled) {
                         prop->setValue(true);
@@ -1807,7 +1808,7 @@ void LinkBaseExtension::updateGroup()
                 FC_LOG("new group connection " << getExtendedObject()->getFullName() << " -> "
                                                << group->getFullName());
                 // NOLINTBEGIN
-                conn = group->signalChanged.connect(
+                conn = group->signals->changed.connect(
                     std::bind(&LinkBaseExtension::slotChangedPlainGroup, this, sp::_1, sp::_2));
                 // NOLINTEND
             }
@@ -1824,7 +1825,7 @@ void LinkBaseExtension::updateGroup()
                     FC_LOG("new group connection " << getExtendedObject()->getFullName() << " -> "
                                                    << child->getFullName());
                     // NOLINTBEGIN
-                    conn = child->signalChanged.connect(
+                    conn = child->signals->changed.connect(
                         std::bind(&LinkBaseExtension::slotChangedPlainGroup, this, sp::_1, sp::_2));
                     // NOLINTEND
                 }
@@ -2137,7 +2138,7 @@ void LinkBaseExtension::update(App::DocumentObject* parent, const Property* prop
     }
     else if (prop == getLinkCopyOnChangeSourceProperty()) {
         if (auto source = getLinkCopyOnChangeSourceValue()) {
-            this->connCopyOnChangeSource = source->signalChanged.connect(
+            this->connCopyOnChangeSource = source->signals->changed.connect(
                 [this](const DocumentObject& obj, const Property& prop) {
                     auto src = getLinkCopyOnChangeSourceValue();
                     if (src != &obj || getLinkCopyOnChangeValue() == CopyOnChangeDisabled) {

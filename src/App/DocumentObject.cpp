@@ -37,6 +37,7 @@
 #include "ElementNamingUtils.h"
 #include "Document.h"
 #include "DocumentObject.h"
+#include "DocumentObjectSignals.h"
 #include "DocumentObjectExtension.h"
 #include "DocumentObjectGroup.h"
 #include "GeoFeatureGroupExtension.h"
@@ -68,6 +69,7 @@ DocumentObjectExecReturn* DocumentObject::StdReturn = nullptr;
 DocumentObject::DocumentObject()
     : ExpressionEngine()
 {
+    signals = new Signals;
     // define Label of type 'Output' to avoid being marked as touched after relabeling
     ADD_PROPERTY_TYPE(Label, ("Unnamed"), "Base", Prop_Output, "User name of the object (UTF8)");
     ADD_PROPERTY_TYPE(Label2, (""), "Base", Prop_Hidden, "User description of the object (UTF8)");
@@ -97,6 +99,7 @@ DocumentObject::~DocumentObject()
         // Call before decrementing the reference counter, otherwise a heap error can occur
         obj->setInvalid();
     }
+    delete signals;
 }
 
 void DocumentObject::printInvalidLinks() const
@@ -813,7 +816,7 @@ void DocumentObject::onBeforeChange(const Property* prop)
         onBeforeChangeProperty(_pDoc, prop);
     }
 
-    signalBeforeChange(*this, *prop);
+    signals->beforeChange(*this, *prop);
 }
 
 void DocumentObject::onEarlyChange(const Property* prop)
@@ -832,7 +835,7 @@ void DocumentObject::onEarlyChange(const Property* prop)
         }
     }
 
-    signalEarlyChanged(*this, *prop);
+    signals->earlyChanged(*this, *prop);
 }
 
 /// get called by the container when a Property was changed
@@ -886,7 +889,7 @@ void DocumentObject::onChanged(const Property* prop)
         _pDoc->onChangedProperty(this, prop);
     }
 
-    signalChanged(*this, *prop);
+    signals->changed(*this, *prop);
 }
 
 void DocumentObject::clearOutListCache() const

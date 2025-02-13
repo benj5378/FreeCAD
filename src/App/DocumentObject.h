@@ -30,8 +30,6 @@
 #include <App/PropertyStandard.h>
 #include <Base/SmartPtrPy.h>
 
-#include <boost_signals2.hpp>
-
 #include <bitset>
 #include <unordered_map>
 
@@ -113,14 +111,8 @@ public:
     /// Allow control visibility status in App name space
     PropertyBool Visibility;
 
-    // clang-format off
-    /// signal before changing a property of this object
-    boost::signals2::signal<void(const App::DocumentObject&, const App::Property&)> signalBeforeChange;
-    /// signal on changed  property of this object
-    boost::signals2::signal<void(const App::DocumentObject&, const App::Property&)> signalChanged;
-    /// signal on changed property of this object before document scoped signalChangedObject
-    boost::signals2::signal<void(const App::DocumentObject&, const App::Property&)> signalEarlyChanged;
-    // clang-format on
+    struct Signals;
+    Signals* signals;
 
     /// returns the type name of the ViewProvider
     virtual const char* getViewProviderName() const
