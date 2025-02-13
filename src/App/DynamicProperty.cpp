@@ -35,6 +35,7 @@
 #include <Base/Tools.h>
 #include <Base/Writer.h>
 
+#include "CStringHasher.h"
 #include "DynamicProperty.h"
 #include "Application.h" 
 #include "Property.h"

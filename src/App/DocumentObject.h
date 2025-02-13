@@ -33,6 +33,8 @@
 #include <bitset>
 #include <unordered_map>
 
+#include "CStringHasher.h"
+
 namespace Base
 {
 class Matrix4D;

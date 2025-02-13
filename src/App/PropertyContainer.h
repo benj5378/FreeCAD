@@ -26,8 +26,11 @@
 
 #include <map>
 // #include <cstring>
+#include <limits.h>
+
 #include <Base/Persistence.h>
 
+#include "CStringHasher.h"
 #include "DynamicProperty.h"
 
 namespace Base {

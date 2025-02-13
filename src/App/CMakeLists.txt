@@ -233,6 +233,7 @@ SOURCE_GROUP("Document" FILES ${Document_SRCS})
 # The property stuff
 SET(Properties_CPP_SRCS
     DocInfo.cpp
+    CStringHasher.cpp
     DynamicProperty.cpp
     ObjectIdentifier.cpp
     Property.cpp
@@ -253,6 +254,7 @@ SET(Properties_CPP_SRCS
 )
 SET(Properties_HPP_SRCS
     DocInfo.h
+    CStringHasher.h
     DynamicProperty.h
     ObjectIdentifier.h
     Property.h
