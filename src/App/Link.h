@@ -36,6 +36,13 @@
 #include "PropertyLinkList.h"
 #include "PropertyLinkSub.h"
 
+#include <boost/log/utility/type_dispatch/standard_types.hpp>
+#include <boost/preprocessor/facilities/expand.hpp>
+#include <boost/preprocessor/seq/cat.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/stringize.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+
 
 // FIXME: ISO C++11 requires at least one argument for the "..." in a variadic macro
 #if defined(__clang__)

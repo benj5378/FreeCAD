@@ -24,11 +24,10 @@
 #define EXPRESSIONENGINE_H
 
 #include <functional>
+#include <set>
 #include <boost/unordered/unordered_map_fwd.hpp>
 #include <boost_signals2.hpp>
-#include <boost_graph_adjacency_list.hpp>
 #include <App/PropertyXLink.h>
-#include <set>
 
 namespace Base
 {
@@ -191,31 +190,18 @@ protected:
     void hasSetValue() override;
 
 private:
-    using DiGraph = boost::adjacency_list<boost::listS, boost::vecS, boost::directedS>;
-    using Edge = std::pair<int, int>;
-// Note: use std::map instead of unordered_map to keep the binding order stable
-#if defined(FC_OS_MACOSX) || defined(FC_OS_BSD) || defined(_LIBCPP_VERSION)
-    using ExpressionMap = std::map<App::ObjectIdentifier, ExpressionInfo>;
-#else
-    using ExpressionMap = std::map<const App::ObjectIdentifier, ExpressionInfo>;
-#endif
+    // Note: use std::map instead of unordered_map to keep the binding order stable
+    #if defined(FC_OS_MACOSX) || defined(FC_OS_BSD) || defined(_LIBCPP_VERSION)
+        using ExpressionMap = std::map<App::ObjectIdentifier, ExpressionInfo>;
+    #else
+        using ExpressionMap = std::map<const App::ObjectIdentifier, ExpressionInfo>;
+    #endif
 
     std::vector<App::ObjectIdentifier> computeEvaluationOrder(ExecuteOption option);
 
-    void buildGraphStructures(const App::ObjectIdentifier& path,
-                              const std::shared_ptr<Expression> expression,
-                              boost::unordered_map<App::ObjectIdentifier, int>& nodes,
-                              boost::unordered_map<int, App::ObjectIdentifier>& revNodes,
-                              std::vector<Edge>& edges) const;
-
-    void buildGraph(const ExpressionMap& exprs,
-                    boost::unordered_map<int, App::ObjectIdentifier>& revNodes,
-                    DiGraph& g,
-                    ExecuteOption option = ExecuteAll) const;
-
-    void slotChangedObject(const App::DocumentObject& obj, const App::Property& prop);
-    void slotChangedProperty(const App::DocumentObject& obj, const App::Property& prop);
-    void updateHiddenReference(const std::string& key);
+    void slotChangedObject(const App::DocumentObject &obj, const App::Property &prop);
+    void slotChangedProperty(const App::DocumentObject &obj, const App::Property &prop);
+    void updateHiddenReference(const std::string &key);
 
     bool running = false; /**< Boolean used to avoid loops */
     bool restoring = false;
