@@ -23,6 +23,8 @@
 #ifndef APP_PROPERTYXLINK_H
 #define APP_PROPERTYXLINK_H
 
+#include <list>
+
 #include "PropertyLinkBase.h"
 #include "PropertyLink.h"
 

@@ -33,6 +33,7 @@
 #include "GeoFeature.h"
 #include "ObjectIdentifier.h"
 #include "PropertyLinkBase.h"
+#include "PropertyLinkBaseSignals.h"
 
 FC_LOG_LEVEL_INIT("PropertyLinkBase", true, true)
 
@@ -50,12 +51,16 @@ static std::unordered_map<std::string, std::set<PropertyLinkBase*>> _LabelMap;
 static std::unordered_map<App::DocumentObject*, std::unordered_set<PropertyLinkBase*>> _ElementRefMap;
 // clang-format on
 
-PropertyLinkBase::PropertyLinkBase() = default;
+PropertyLinkBase::PropertyLinkBase()
+{
+    signals = new Public;
+}
 
 PropertyLinkBase::~PropertyLinkBase()
 {
     unregisterLabelReferences();
     unregisterElementReference();
+    delete signals;
 }
 
 void PropertyLinkBase::setAllowExternal(bool allow)
@@ -448,7 +453,7 @@ bool PropertyLinkBase::_updateElementReference(DocumentObject* feature,
 
     auto updateSub = [&](const std::string& newSub) {
         if (sub != newSub) {
-            // signalUpdateElementReference(sub, newSub);
+            // signals->updateElementRef(sub, newSub);
             sub = newSub;
         }
     };

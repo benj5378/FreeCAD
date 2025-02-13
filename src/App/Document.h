@@ -28,6 +28,8 @@
 #include <Base/Type.h>
 #include <Base/Handle.h>
 
+#include <boost_signals2.hpp>
+
 #include "PropertyContainer.h"
 #include "PropertyLink.h"
 #include "PropertyStandard.h"

@@ -24,7 +24,6 @@
 #define APP_PROPERTYLINKBASE_H
 
 #include <unordered_set>
-#include <boost/signals2.hpp>
 
 #include "Property.h"
 
@@ -598,8 +597,8 @@ public:
 
     void setSilentRestore(bool enable);
 
-    boost::signals2::signal<void(const std::string&, const std::string&)>
-        signalUpdateElementReference;
+    struct Public;
+    Public* signals;
 
 protected:
     void hasSetValue() override;

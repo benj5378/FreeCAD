@@ -27,6 +27,8 @@
 #include <Base/Exception.h>
 #include <Base/Persistence.h>
 #include <boost/any/fwd.hpp>
+
+#include <cassert>
 #include <bitset>
 #include <string>
 #include <FCGlobal.h>

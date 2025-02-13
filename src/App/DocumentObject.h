@@ -30,6 +30,8 @@
 #include <App/PropertyStandard.h>
 #include <Base/SmartPtrPy.h>
 
+#include <boost_signals2.hpp>
+
 #include <bitset>
 #include <unordered_map>
 
