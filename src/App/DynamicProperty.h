@@ -28,12 +28,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <FCGlobal.h>
+#include <boost/container_hash/hash.hpp>
 
 
 namespace Base
@@ -47,8 +42,6 @@ namespace App
 {
 class Property;
 class PropertyContainer;
-
-namespace bmi = boost::multi_index;
 
 struct CStringHasher
 {
@@ -156,10 +149,7 @@ public:
     void clear();
 
     /// Get property count
-    size_t size() const
-    {
-        return props.size();
-    }
+    size_t size() const;
 
     void save(const Property* prop, Base::Writer& writer) const;
 
@@ -211,14 +201,8 @@ private:
     std::string getUniquePropertyName(PropertyContainer& pc, const char* Name) const;
 
 private:
-    bmi::multi_index_container<
-        PropData,
-        bmi::indexed_by<
-            bmi::hashed_unique<bmi::const_mem_fun<PropData, const char*, &PropData::getName>,
-                               CStringHasher,
-                               CStringHasher>,
-            bmi::hashed_unique<bmi::member<PropData, Property*, &PropData::property>>>>
-        props;
+    struct Private;
+    Private* pImpl;
 };
 
 }  // namespace App
