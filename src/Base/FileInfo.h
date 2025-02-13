@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include <FCGlobal.h>
 
 namespace Base
 {
