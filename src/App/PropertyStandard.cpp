@@ -24,6 +24,7 @@
 #include "PreCompiled.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/dynamic_bitset.hpp> 
 #include <boost/math/special_functions/round.hpp>
 
 #include <Base/Console.h>
@@ -42,6 +43,8 @@
 #include "DocumentObject.h"
 #include "MaterialPy.h"
 #include "ObjectIdentifier.h"
+#include "PropertyBoolList.h"
+#include "PropertyPath.h"
 
 
 using namespace App;

@@ -29,7 +29,6 @@
 #include <string>
 #include <vector>
 #include <boost/any/fwd.hpp>
-#include <boost/dynamic_bitset.hpp>
 #include <Base/Uuid.h>
 
 #include "Property.h"

@@ -25,6 +25,7 @@
 #define APP_FEATURETEST_H
 
 #include "DocumentObject.h"
+#include "PropertyBoolList.h"
 #include "PropertyGeo.h"
 #include "PropertyLink.h"
 #include "PropertyLinkList.h"

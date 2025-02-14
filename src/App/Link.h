@@ -32,6 +32,7 @@
 #include "DocumentObject.h"
 #include "DocumentObjectExtension.h"
 #include "FeaturePython.h"
+#include "PropertyBoolList.h" 
 #include "PropertyGeo.h"
 #include "PropertyLinkList.h"
 #include "PropertyLinkSub.h"
