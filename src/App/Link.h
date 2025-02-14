@@ -43,6 +43,7 @@
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/signals2/connection.hpp>
 
 
 // FIXME: ISO C++11 requires at least one argument for the "..." in a variadic macro

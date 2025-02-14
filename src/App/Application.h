@@ -25,6 +25,7 @@
 #define APP_APPLICATION_H
 
 
+#include <list>
 #include <deque>
 #include <vector>
 

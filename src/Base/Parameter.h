@@ -47,7 +47,6 @@ using PyObject = struct _object;
 
 #include <map>
 #include <vector>
-#include <boost_signals2.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 
 #include "Handle.h"
@@ -459,11 +458,8 @@ public:
      *  - Group removal: both 'name' and 'value' are empty
      *  - Group rename: 'name' is the new name, and 'value' is the old name
      */
-    boost::signals2::signal<void(ParameterGrp* /*param*/,
-                                 ParamType /*type*/,
-                                 const char* /*name*/,
-                                 const char* /*value*/)>
-        signalParamChanged;
+    struct Signals;
+    Signals* signals;
 
     int LoadDocument(const char* sFileName);
     int LoadDocument(const XERCES_CPP_NAMESPACE_QUALIFIER InputSource&);

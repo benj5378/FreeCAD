@@ -53,6 +53,7 @@
 #include <fmt/printf.h>
 
 #include "Parameter.h"
+#include "ParameterSignals.h"
 #include "Parameter.inl"
 #include "Console.h"
 #include "Exception.h"
@@ -680,7 +681,7 @@ ParameterGrp::GetAttributeMap(ParamType Type, const char* sFilter) const
 void ParameterGrp::_Notify(ParamType Type, const char* Name, const char* Value)
 {
     if (_Manager) {
-        _Manager->signalParamChanged(this, Type, Name, Value);
+        _Manager->signals->paramChanged(this, Type, Name, Value);
     }
 }
 
@@ -1587,6 +1588,7 @@ static XercesDOMParser::ValSchemes gValScheme = XercesDOMParser::Val_Auto;  // N
 ParameterManager::ParameterManager()
 {
     _Manager = this;
+    signals = new Signals;
 
     // initialize the XML system
     Init();
@@ -1657,6 +1659,7 @@ ParameterManager::~ParameterManager()
     _Reset();
     delete _pDocument;
     delete paramSerializer;
+    delete signals;
 }
 
 Base::Reference<ParameterManager> ParameterManager::Create()

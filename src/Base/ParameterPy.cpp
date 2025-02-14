@@ -39,6 +39,7 @@
 #endif
 
 #include "Parameter.h"
+#include "ParameterSignals.h"
 #include "Exception.h"
 #include "Interpreter.h"
 
@@ -808,7 +809,7 @@ Py::Object ParameterGrpPy::attachManager(const Py::Tuple& args)
 
     auto obs = new ParameterGrpObserver(o, attr, _cParamGrp);
     ParameterManager* man = _cParamGrp->Manager();
-    obs->conn = man->signalParamChanged.connect([obs, this](ParameterGrp* Param,
+    obs->conn = man->signals->paramChanged.connect([obs, this](ParameterGrp* Param,
                                                             ParameterGrp::ParamType Type,
                                                             const char* Name,
                                                             const char* Value) {
