@@ -34,6 +34,7 @@
 #include "Base64.h"
 #include "Base64Filter.h"
 #include "Console.h"
+#include "FileException.h"
 #include "Exception.h"
 #include "InputSource.h"
 #include "Persistence.h"

@@ -79,6 +79,7 @@ recompute path. Also, it enables more complicated dependencies beyond trees.
 #include <Base/Interpreter.h>
 #include <Base/Console.h>
 #include <Base/Exception.h>
+#include <Base/FileException.h>
 #include <Base/FileInfo.h>
 #include <Base/TimeInfo.h>
 #include <Base/Reader.h>

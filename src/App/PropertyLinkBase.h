@@ -23,6 +23,7 @@
 #ifndef APP_PROPERTYLINKBASE_H
 #define APP_PROPERTYLINKBASE_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "Property.h"

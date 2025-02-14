@@ -23,6 +23,7 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include <memory>
 #include <set>
 #include <string>
 

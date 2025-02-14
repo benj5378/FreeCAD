@@ -34,6 +34,7 @@
 #include <FCGlobal.h>
 #endif
 
+#include "FileException.h"
 #include "Placement.h"
 
 namespace Base

@@ -42,7 +42,7 @@
 #endif
 
 #include "FileInfo.h"
-#include "Exception.h"
+#include "FileException.h"
 #include "Stream.h"
 #include "TimeInfo.h"
 

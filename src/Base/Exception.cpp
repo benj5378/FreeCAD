@@ -24,6 +24,7 @@
 
 #include "PreCompiled.h"
 
+#include "FileException.h"
 #include "Exception.h"
 #include "Console.h"
 #include "PyObjectBase.h"

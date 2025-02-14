@@ -31,6 +31,7 @@
 #include "Base64.h"
 #include "Base64Filter.h"
 #include "Exception.h"
+#include "FileException.h"
 #include "FileInfo.h"
 #include "Persistence.h"
 #include "Stream.h"

@@ -32,6 +32,7 @@
 #include "Interpreter.h"
 #include "Console.h"
 #include "ExceptionFactory.h"
+#include "FileException.h"
 #include "FileInfo.h"
 #include "PyObjectBase.h"
 #include "PyTools.h"
