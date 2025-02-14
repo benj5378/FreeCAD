@@ -35,9 +35,10 @@
 #include <Base/Tools.h>
 #include <Base/Writer.h>
 
+#include "Application.h" 
+#include "ApplicationSignals.h" 
 #include "CStringHasher.h"
 #include "DynamicProperty.h"
-#include "Application.h" 
 #include "Property.h"
 #include "PropertyContainer.h"
 
@@ -262,7 +263,7 @@ Property* DynamicProperty::addDynamicProperty(PropertyContainer& pc,
     pcProperty->syncType(attr);
     pcProperty->StatusBits.set((size_t)Property::PropDynamic);
 
-    GetApplication().signalAppendDynamicProperty(*pcProperty);
+    GetApplication().signals->appendDynamicProperty(*pcProperty);
 
     return pcProperty;
 }
@@ -310,7 +311,7 @@ bool DynamicProperty::removeDynamicProperty(const char* name)
             throw Base::RuntimeError("property is not dynamic");
         }
         Property* prop = it->property;
-        GetApplication().signalRemoveDynamicProperty(*prop);
+        GetApplication().signals->removeDynamicProperty(*prop);
 
         // Handle possible recursive calls of removeDynamicProperty
         if (prop->myName) {

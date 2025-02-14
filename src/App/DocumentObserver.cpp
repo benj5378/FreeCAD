@@ -26,6 +26,7 @@
 #include <Base/Tools.h>
 
 #include "Application.h"
+#include "ApplicationSignals.h"
 #include "ElementNamingUtils.h"
 #include "Document.h"
 #include "DocumentObserver.h"
@@ -691,7 +692,7 @@ public:
     {
         if (doc) {
             // NOLINTBEGIN
-            connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(
+            connectApplicationDeletedDocument = App::GetApplication().signals->deleteDocument.connect(
                 std::bind(&Private::deletedDocument, this, sp::_1));
             // NOLINTEND
         }
@@ -784,7 +785,7 @@ public:
         if (obj) {
             // NOLINTBEGIN
             indocument = true;
-            connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(
+            connectApplicationDeletedDocument = App::GetApplication().signals->deleteDocument.connect(
                 std::bind(&Private::deletedDocument, this, sp::_1));
             App::Document* doc = obj->getDocument();
             connectDocumentCreatedObject =
@@ -861,11 +862,11 @@ DocumentObserver::DocumentObserver()
     : _document(nullptr)
 {
     // NOLINTBEGIN
-    this->connectApplicationCreatedDocument = App::GetApplication().signalNewDocument.connect(
+    this->connectApplicationCreatedDocument = App::GetApplication().signals->newDocument.connect(
         std::bind(&DocumentObserver::slotCreatedDocument, this, sp::_1));
-    this->connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(
+    this->connectApplicationDeletedDocument = App::GetApplication().signals->deleteDocument.connect(
         std::bind(&DocumentObserver::slotDeletedDocument, this, sp::_1));
-    this->connectApplicationActivateDocument = App::GetApplication().signalActiveDocument.connect(
+    this->connectApplicationActivateDocument = App::GetApplication().signals->activeDocument.connect(
         std::bind(&DocumentObserver::slotActivateDocument, this, sp::_1));
     // NOLINTEND
 }

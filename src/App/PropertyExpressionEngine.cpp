@@ -28,6 +28,7 @@
 #include <boost/graph/topological_sort.hpp>
 
 #include <App/Application.h>
+#include <App/ApplicationSignals.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObserver.h>
@@ -60,7 +61,7 @@ PropertyExpressionContainer::PropertyExpressionContainer()
     static bool inited;
     if (!inited) {
         inited = true;
-        GetApplication().signalRelabelDocument.connect(
+        GetApplication().signals->relabelDocument.connect(
             PropertyExpressionContainer::slotRelabelDocument);
     }
     _ExprContainers.insert(this);

@@ -6,8 +6,10 @@
 #endif
 #endif
 
-#include "App/Application.h"
-#include "Base/Console.h"
+#include <Base/Console.h>
+
+#include "Application.h"
+#include "ApplicationSignals.h"
 #include "Document.h"
 #include "DocumentObject.h"
 #include "ElementMap.h"
@@ -52,18 +54,18 @@ void ElementMap::init()
     static bool inited;
     if (!inited) {
         inited = true;
-        ::App::GetApplication().signalStartSaveDocument.connect(
+        ::App::GetApplication().signals->startSaveDocument.connect(
             [](const ::App::Document&, const std::string&) {
                 _elementMapToId.clear();
             });
-        ::App::GetApplication().signalFinishSaveDocument.connect(
+        ::App::GetApplication().signals->finishSaveDocument.connect(
             [](const ::App::Document&, const std::string&) {
                 _elementMapToId.clear();
             });
-        ::App::GetApplication().signalStartRestoreDocument.connect([](const ::App::Document&) {
+        ::App::GetApplication().signals->startRestoreDocument.connect([](const ::App::Document&) {
             _idToElementMap.clear();
         });
-        ::App::GetApplication().signalFinishRestoreDocument.connect([](const ::App::Document&) {
+        ::App::GetApplication().signals->finishRestoreDocument.connect([](const ::App::Document&) {
             _idToElementMap.clear();
         });
     }

@@ -93,6 +93,7 @@ recompute path. Also, it enables more complicated dependencies beyond trees.
 #include "Document.h"
 #include "private/DocumentP.h"
 #include "Application.h"
+#include "ApplicationSignals.h"
 #include "AutoTransaction.h"
 #include "ExpressionParser.h"
 #include "GeoFeature.h"
@@ -629,9 +630,9 @@ void Document::clearDocument()
     d->activeObject = nullptr;
 
     if (!d->objectArray.empty()) {
-        GetApplication().signalDeleteDocument(*this);
+        GetApplication().signals->deleteDocument(*this);
         d->clearDocument();
-        GetApplication().signalNewDocument(*this, false);
+        GetApplication().signals->newDocument(*this, false);
     }
 
     Base::FlagToggler<> flag(globalIsRestoring, false);
@@ -772,10 +773,10 @@ void Document::onChanged(const Property* prop)
     // the Name property is a label for display purposes
     if (prop == &Label) {
         Base::FlagToggler<> flag(globalIsRelabeling);
-        App::GetApplication().signalRelabelDocument(*this);
+        App::GetApplication().signals->relabelDocument(*this);
     }
     else if (prop == &ShowHidden) {
-        App::GetApplication().signalShowHidden(*this);
+        App::GetApplication().signals->showHidden(*this);
     }
     else if (prop == &Uid) {
         std::string new_dir =
@@ -2203,7 +2204,7 @@ bool Document::saveToFile(const char* filename) const
             throw Base::FileException("Failed to write all data to file", tmp);
         }
 
-        GetApplication().signalSaveDocument(*this);
+        GetApplication().signals->saveDocument(*this);
     }
 
     if (policy) {
@@ -2261,7 +2262,7 @@ void Document::restore(const char* filename,
     Document* activeDoc = GetApplication().getActiveDocument();
     if (!d->objectArray.empty()) {
         signal = true;
-        GetApplication().signalDeleteDocument(*this);
+        GetApplication().signals->deleteDocument(*this);
         d->clearDocument();
     }
 
@@ -2276,7 +2277,7 @@ void Document::restore(const char* filename,
     d->lastObjectId = 0;
 
     if (signal) {
-        GetApplication().signalNewDocument(*this, true);
+        GetApplication().signals->newDocument(*this, true);
         if (activeDoc == this) {
             GetApplication().setActiveDocument(this);
         }
@@ -2301,7 +2302,7 @@ void Document::restore(const char* filename,
         throw Base::FileException("Error reading compression file", filename);
     }
 
-    GetApplication().signalStartRestoreDocument(*this);
+    GetApplication().signals->startRestoreDocument(*this);
     setStatus(Document::Restoring, true);
 
     d->partialLoadObjects.clear();
@@ -2345,10 +2346,10 @@ bool Document::afterRestore(bool checkPartial)
     Base::FlagToggler<> flag(globalIsRestoring, false);
     if (!afterRestore(d->objectArray, checkPartial)) {
         FC_WARN("Reload partial document " << getName());
-        GetApplication().signalPendingReloadDocument(*this);
+        GetApplication().signals->pendingReloadDocument(*this);
         return false;
     }
-    GetApplication().signalFinishRestoreDocument(*this);
+    GetApplication().signals->finishRestoreDocument(*this);
     setStatus(Document::Restoring, false);
     return true;
 }

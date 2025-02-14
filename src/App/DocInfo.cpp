@@ -31,6 +31,7 @@
 #include <Base/Console.h>
 
 #include "Application.h"
+#include "ApplicationSignals.h"
 #include "DocInfo.h"
 #include "Document.h"
 #include "DocumentObject.h"
@@ -199,14 +200,14 @@ void DocInfo::init(DocInfoMap::iterator pos, const char* objName, PropertyXLink*
     myPath = myPos->first.toUtf8().constData();
     App::Application& app = App::GetApplication();
     // NOLINTBEGIN
-    connFinishRestoreDocument = app.signalFinishRestoreDocument.connect(
+    connFinishRestoreDocument = app.signals->finishRestoreDocument.connect(
         std::bind(&DocInfo::slotFinishRestoreDocument, this, std::placeholders::_1));
-    connPendingReloadDocument = app.signalPendingReloadDocument.connect(
+    connPendingReloadDocument = app.signals->pendingReloadDocument.connect(
         std::bind(&DocInfo::slotFinishRestoreDocument, this, std::placeholders::_1));
     connDeleteDocument =
-        app.signalDeleteDocument.connect(std::bind(&DocInfo::slotDeleteDocument, this, std::placeholders::_1));
+        app.signals->deleteDocument.connect(std::bind(&DocInfo::slotDeleteDocument, this, std::placeholders::_1));
     connSaveDocument =
-        app.signalSaveDocument.connect(std::bind(&DocInfo::slotSaveDocument, this, std::placeholders::_1));
+        app.signals->saveDocument.connect(std::bind(&DocInfo::slotSaveDocument, this, std::placeholders::_1));
     // NOLINTEND
 
     QString fullpath(getFullPath());

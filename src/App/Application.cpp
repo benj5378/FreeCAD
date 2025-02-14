@@ -92,6 +92,7 @@
 
 #include "Annotation.h"
 #include "Application.h"
+#include "ApplicationSignals.h"
 #include "CleanupProcess.h"
 #include "ComplexGeoData.h"
 #include "Services.h"
@@ -257,6 +258,7 @@ init_image_module()
 Application::Application(std::map<std::string,std::string> &mConfig)
   : _mConfig(mConfig)
 {
+    signals = new Signals;
     mpcPramManager["System parameter"] = _pcSysParamMngr;
     mpcPramManager["User parameter"] = _pcUserParamMngr;
 
@@ -546,7 +548,7 @@ Document* Application::newDocument(const char * Name, const char * UserName, Doc
         Py::Module("FreeCAD").setAttr(std::string("ActiveDocument"), active);
     }
 
-    signalNewDocument(*_pActiveDoc, CreateFlags.createView);
+    signals->newDocument(*_pActiveDoc, CreateFlags.createView);
 
     // set the UserName after notifying all observers
     _pActiveDoc->Label.setValue(userName);
@@ -568,7 +570,7 @@ bool Application::closeDocument(const char* name)
 
     // Trigger observers before removing the document from the internal map.
     // Some observers might rely on this document still being there.
-    signalDeleteDocument(*pos->second);
+    signals->deleteDocument(*pos->second);
 
     // For exception-safety use a smart pointer
     if (_pActiveDoc == pos->second)
@@ -580,7 +582,7 @@ bool Application::closeDocument(const char* name)
     _objCount = -1;
 
     // Trigger observers after removing the document from the internal map.
-    signalDeletedDocument();
+    signals->deletedDocument();
 
     return true;
 }
@@ -764,13 +766,13 @@ std::vector<Document*> Application::openDocuments(const std::vector<std::string>
     if (errs)
         errs->resize(filenames.size());
 
-    DocOpenGuard guard(_isRestoring, signalFinishOpenDocument);
+    DocOpenGuard guard(_isRestoring, signals->finishOpenDocument);
     _pendingDocs.clear();
     _pendingDocsReopen.clear();
     _pendingDocMap.clear();
     _docReloadAttempts.clear();
 
-    signalStartOpenDocument();
+    signals->startOpenDocument();
 
     ParameterGrp::handle hGrp = GetParameterGroupByPath("User parameter:BaseApp/Preferences/Document");
     _allowPartial = !hGrp->GetBool("NoPartialLoading",false);
@@ -952,7 +954,7 @@ std::vector<Document*> Application::openDocuments(const std::vector<std::string>
     FC_TIME_LOG(t,"total");
     _isRestoring = false;
 
-    signalFinishOpenDocument();
+    signals->finishOpenDocument();
     return res;
 }
 
@@ -1078,7 +1080,7 @@ void Application::setActiveDocument(Document* pDoc)
     }
 
     if (pDoc)
-        signalActiveDocument(*pDoc);
+        signals->activeDocument(*pDoc);
 }
 
 void Application::setActiveDocument(const char *Name)
@@ -1110,7 +1112,7 @@ Application::TransactionSignaller::TransactionSignaller(bool abort, bool signal)
     ++_TransSignalCount;
     if(signal && !_TransSignalled) {
         _TransSignalled = true;
-        GetApplication().signalBeforeCloseTransaction(abort);
+        GetApplication().signals->beforeCloseTransaction(abort);
     }
 }
 
@@ -1118,7 +1120,7 @@ Application::TransactionSignaller::~TransactionSignaller() {
     if(--_TransSignalCount == 0 && _TransSignalled) {
         _TransSignalled = false;
         try {
-            GetApplication().signalCloseTransaction(abort);
+            GetApplication().signals->closeTransaction(abort);
         }
         catch (const boost::exception&) {
             // reported by code analyzers
@@ -1604,100 +1606,100 @@ std::map<std::string, std::string> Application::getExportFilters() const
 // signaling
 void Application::slotBeforeChangeDocument(const App::Document& doc, const Property& prop)
 {
-    this->signalBeforeChangeDocument(doc, prop);
+    this->signals->beforeChangeDocument(doc, prop);
 }
 
 void Application::slotChangedDocument(const App::Document& doc, const Property& prop)
 {
-    this->signalChangedDocument(doc, prop);
+    this->signals->changedDocument(doc, prop);
 }
 
 void Application::slotNewObject(const App::DocumentObject&O)
 {
-    this->signalNewObject(O);
+    this->signals->newObject(O);
     _objCount = -1;
 }
 
 void Application::slotDeletedObject(const App::DocumentObject&O)
 {
-    this->signalDeletedObject(O);
+    this->signals->deletedObject(O);
     _objCount = -1;
 }
 
 void Application::slotBeforeChangeObject(const DocumentObject& O, const Property& Prop)
 {
-    this->signalBeforeChangeObject(O, Prop);
+    this->signals->beforeChangeObject(O, Prop);
 }
 
 void Application::slotChangedObject(const App::DocumentObject&O, const App::Property& P)
 {
-    this->signalChangedObject(O,P);
+    this->signals->changedObject(O,P);
 }
 
 void Application::slotRelabelObject(const App::DocumentObject&O)
 {
-    this->signalRelabelObject(O);
+    this->signals->relabelObject(O);
 }
 
 void Application::slotActivatedObject(const App::DocumentObject&O)
 {
-    this->signalActivatedObject(O);
+    this->signals->activatedObject(O);
 }
 
 void Application::slotUndoDocument(const App::Document& d)
 {
-    this->signalUndoDocument(d);
+    this->signals->undoDocument(d);
 }
 
 void Application::slotRedoDocument(const App::Document& d)
 {
-    this->signalRedoDocument(d);
+    this->signals->redoDocument(d);
 }
 
 void Application::slotRecomputedObject(const DocumentObject& obj)
 {
-    this->signalObjectRecomputed(obj);
+    this->signals->objectRecomputed(obj);
 }
 
 void Application::slotRecomputed(const Document& doc)
 {
-    this->signalRecomputed(doc);
+    this->signals->recomputed(doc);
 }
 
 void Application::slotBeforeRecompute(const Document& doc)
 {
-    this->signalBeforeRecomputeDocument(doc);
+    this->signals->beforeRecomputeDocument(doc);
 }
 
 void Application::slotOpenTransaction(const Document& d, string s)
 {
-    this->signalOpenTransaction(d, s);
+    this->signals->openTransaction(d, s);
 }
 
 void Application::slotCommitTransaction(const Document& d)
 {
-    this->signalCommitTransaction(d);
+    this->signals->commitTransaction(d);
 }
 
 void Application::slotAbortTransaction(const Document& d)
 {
-    this->signalAbortTransaction(d);
+    this->signals->abortTransaction(d);
 }
 
 void Application::slotStartSaveDocument(const App::Document& doc, const std::string& filename)
 {
-    this->signalStartSaveDocument(doc, filename);
+    this->signals->startSaveDocument(doc, filename);
 }
 
 void Application::slotFinishSaveDocument(const App::Document& doc, const std::string& filename)
 {
     DocFileMap.clear();
-    this->signalFinishSaveDocument(doc, filename);
+    this->signals->finishSaveDocument(doc, filename);
 }
 
 void Application::slotChangePropertyEditor(const App::Document &doc, const App::Property &prop)
 {
-    this->signalChangePropertyEditor(doc,prop);
+    this->signals->changePropertyEditor(doc,prop);
 }
 
 //**************************************************************************

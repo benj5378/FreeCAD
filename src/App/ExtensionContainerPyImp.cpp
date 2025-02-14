@@ -28,6 +28,7 @@
 #endif
 
 #include "Application.h"
+#include "ApplicationSignals.h"
 
 #include <App/ExtensionContainerPy.h>
 #include <App/ExtensionContainerPy.cpp>
@@ -239,7 +240,7 @@ PyObject* ExtensionContainerPy::addExtension(PyObject* args)
         throw Py::TypeError(str.str());
     }
 
-    GetApplication().signalBeforeAddingDynamicExtension(*getExtensionContainerPtr(), typeId);
+    GetApplication().signals->beforeAddingDynamicExtension(*getExtensionContainerPtr(), typeId);
     ext->initExtension(getExtensionContainerPtr());
 
     // The PyTypeObject is shared by all instances of this type and therefore
@@ -277,7 +278,7 @@ PyObject* ExtensionContainerPy::addExtension(PyObject* args)
     Py_DECREF(obj);
 
     // throw the appropriate event
-    GetApplication().signalAddedDynamicExtension(*getExtensionContainerPtr(), typeId);
+    GetApplication().signals->addedDynamicExtension(*getExtensionContainerPtr(), typeId);
 
     Py_Return;
 }

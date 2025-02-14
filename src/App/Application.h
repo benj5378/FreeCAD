@@ -24,7 +24,6 @@
 #ifndef APP_APPLICATION_H
 #define APP_APPLICATION_H
 
-#include <boost_signals2.hpp>
 
 #include <deque>
 #include <vector>
@@ -207,118 +206,8 @@ public:
     void closeActiveTransaction(bool abort=false, int id=0);
     //@}
 
-    // NOLINTBEGIN
-    // clang-format off
-    /** @name Signals of the Application */
-    //@{
-    /// signal on new Document
-    boost::signals2::signal<void (const Document&, bool)> signalNewDocument;
-    /// signal on document getting deleted
-    boost::signals2::signal<void (const Document&)> signalDeleteDocument;
-    /// signal on already deleted Document
-    boost::signals2::signal<void ()> signalDeletedDocument;
-    /// signal on relabeling Document (user name)
-    boost::signals2::signal<void (const Document&)> signalRelabelDocument;
-    /// signal on renaming Document (internal name)
-    boost::signals2::signal<void (const Document&)> signalRenameDocument;
-    /// signal on activating Document
-    boost::signals2::signal<void (const Document&)> signalActiveDocument;
-    /// signal on saving Document
-    boost::signals2::signal<void (const Document&)> signalSaveDocument;
-    /// signal on starting to restore Document
-    boost::signals2::signal<void (const Document&)> signalStartRestoreDocument;
-    /// signal on restoring Document
-    boost::signals2::signal<void (const Document&)> signalFinishRestoreDocument;
-    /// signal on pending reloading of a partial Document
-    boost::signals2::signal<void (const Document&)> signalPendingReloadDocument;
-    /// signal on starting to save Document
-    boost::signals2::signal<void (const Document&, const std::string&)> signalStartSaveDocument;
-    /// signal on saved Document
-    boost::signals2::signal<void (const Document&, const std::string&)> signalFinishSaveDocument;
-    /// signal on undo in document
-    boost::signals2::signal<void (const Document&)> signalUndoDocument;
-    /// signal on application wide undo
-    boost::signals2::signal<void ()> signalUndo;
-    /// signal on redo in document
-    boost::signals2::signal<void (const Document&)> signalRedoDocument;
-    /// signal on application wide redo
-    boost::signals2::signal<void ()> signalRedo;
-    /// signal before close/abort active transaction
-    boost::signals2::signal<void (bool)> signalBeforeCloseTransaction;
-    /// signal after close/abort active transaction
-    boost::signals2::signal<void (bool)> signalCloseTransaction;
-    /// signal on show hidden items
-    boost::signals2::signal<void (const Document&)> signalShowHidden;
-    /// signal on start opening document(s)
-    boost::signals2::signal<void ()> signalStartOpenDocument;
-    /// signal on finished opening document(s)
-    boost::signals2::signal<void ()> signalFinishOpenDocument;
-    //@}
-
-
-    /** @name Signals of the document
-     * This signals are an aggregation of all document. If you only
-     * the signal of a special document connect to the document itself
-     */
-    //@{
-    /// signal before change of doc property
-    boost::signals2::signal<void (const App::Document&, const App::Property&)> signalBeforeChangeDocument;
-    /// signal on changed doc property
-    boost::signals2::signal<void (const App::Document&, const App::Property&)> signalChangedDocument;
-    /// signal on new Object
-    boost::signals2::signal<void (const App::DocumentObject&)> signalNewObject;
-    //boost::signals2::signal<void (const App::DocumentObject&)>     m_sig;
-    /// signal on deleted Object
-    boost::signals2::signal<void (const App::DocumentObject&)> signalDeletedObject;
-    /// signal on changed Object
-    boost::signals2::signal<void (const App::DocumentObject&, const App::Property&)> signalBeforeChangeObject;
-    /// signal on changed Object
-    boost::signals2::signal<void (const App::DocumentObject&, const App::Property&)> signalChangedObject;
-    /// signal on relabeled Object
-    boost::signals2::signal<void (const App::DocumentObject&)> signalRelabelObject;
-    /// signal on activated Object
-    boost::signals2::signal<void (const App::DocumentObject&)> signalActivatedObject;
-    /// signal before recomputed document
-    boost::signals2::signal<void (const App::Document&)> signalBeforeRecomputeDocument;
-    /// signal on recomputed document
-    boost::signals2::signal<void (const App::Document&)> signalRecomputed;
-    /// signal on recomputed document object
-    boost::signals2::signal<void (const App::DocumentObject&)> signalObjectRecomputed;
-    // signal on opened transaction
-    boost::signals2::signal<void (const App::Document&, std::string)> signalOpenTransaction;
-    // signal a committed transaction
-    boost::signals2::signal<void (const App::Document&)> signalCommitTransaction;
-    // signal an aborted transaction
-    boost::signals2::signal<void (const App::Document&)> signalAbortTransaction;
-    //@}
-
-    /** @name Signals of property changes
-     * These signals are emitted on property additions or removal.
-     * The changed object can be any sub-class of PropertyContainer.
-     */
-    //@{
-    /// signal on adding a dynamic property
-    boost::signals2::signal<void (const App::Property&)> signalAppendDynamicProperty;
-    /// signal on about removing a dynamic property
-    boost::signals2::signal<void (const App::Property&)> signalRemoveDynamicProperty;
-    /// signal on about changing the editor mode of a property
-    boost::signals2::signal<void (const App::Document&, const App::Property&)> signalChangePropertyEditor;
-    //@}
-
-    /** @name Signals of extension changes
-     * These signals are emitted on dynamic extension addition. Dynamic extensions are the ones added by python (c++ ones are part
-     * of the class definition, hence not dynamic)
-     * The extension in question is provided as parameter.
-     */
-    //@{
-    /// signal before adding the extension
-    boost::signals2::signal<void (const App::ExtensionContainer&, std::string extension)> signalBeforeAddingDynamicExtension;
-    /// signal after the extension was added
-    boost::signals2::signal<void (const App::ExtensionContainer&, std::string extension)> signalAddedDynamicExtension;
-    //@}
-    // clang-format off
-    // NOLINTEND
-
+    struct Signals;
+    Signals* signals;
 
     /** @name methods for parameter handling */
     //@{
