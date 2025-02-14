@@ -31,6 +31,7 @@
 #include "PropertyLinkList.h"
 #include "PropertyLinkSub.h"
 #include "PropertyLinkSubList.h"
+#include "PropertyPath.h"
 #include "PropertyPythonObject.h"
 #include "PropertyUnits.h"
 

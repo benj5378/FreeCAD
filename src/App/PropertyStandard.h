@@ -100,58 +100,6 @@ protected:
     long _lValue;
 };
 
-/** Path properties
- * Properties handling file system paths.
- */
-class AppExport PropertyPath: public Property
-{
-    TYPESYSTEM_HEADER_WITH_OVERRIDE();
-
-public:
-    PropertyPath();
-    ~PropertyPath() override;
-
-    /** Sets the property
-     */
-    void setValue(const std::filesystem::path&);
-
-    /** Sets the property
-     */
-    void setValue(const char*);
-
-    /** This method returns a string representation of the property
-     */
-    const std::filesystem::path& getValue() const;
-
-    const char* getEditorName() const override
-    {
-        return "Gui::PropertyEditor::PropertyPathItem";
-    }
-
-    PyObject* getPyObject() override;
-    void setPyObject(PyObject* py) override;
-
-    void Save(Base::Writer& writer) const override;
-    void Restore(Base::XMLReader& reader) override;
-
-    Property* Copy() const override;
-    void Paste(const Property& from) override;
-
-    unsigned int getMemSize() const override;
-
-    bool isSame(const Property& other) const override
-    {
-        if (&other == this) {
-            return true;
-        }
-        return getTypeId() == other.getTypeId()
-            && getValue() == static_cast<decltype(this)>(&other)->getValue();
-    }
-
-protected:
-    std::filesystem::path _cValue;
-};
-
 /// Property wrapper around an Enumeration object.
 class AppExport PropertyEnumeration: public Property
 {
@@ -967,33 +915,6 @@ public:
 private:
     bool _lValue;
 };
-
-/** Bool list properties
- *
- */
-class AppExport PropertyBoolList: public PropertyListsT<bool, boost::dynamic_bitset<>>
-{
-    TYPESYSTEM_HEADER_WITH_OVERRIDE();
-    using inherited = PropertyListsT<bool, boost::dynamic_bitset<>>;
-
-public:
-    PropertyBoolList();
-    ~PropertyBoolList() override;
-
-    PyObject* getPyObject() override;
-    void setPyObject(PyObject* py) override;
-
-    void Save(Base::Writer& writer) const override;
-    void Restore(Base::XMLReader& reader) override;
-
-    Property* Copy() const override;
-    void Paste(const Property& from) override;
-    unsigned int getMemSize() const override;
-
-protected:
-    bool getPyValue(PyObject* py) const override;
-};
-
 
 /** Color properties
  * This is the father of all properties handling colors.
