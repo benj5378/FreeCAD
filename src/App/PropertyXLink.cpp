@@ -32,6 +32,7 @@
 #include "Application.h"
 #include "DocInfo.h"
 #include "Document.h"
+#include "DocumentSignals.h"
 #include "DocumentObject.h"
 #include "DocumentObjectPy.h"
 #include "DocumentObserver.h"
@@ -269,7 +270,7 @@ void PropertyXLink::setValue(std::string&& filename,
     DocumentObject* pObject = nullptr;
     DocInfoPtr info;
     if (!filename.empty()) {
-        owner->getDocument()->signalLinkXsetValue(filename);
+        owner->getDocument()->signals->linkXsetValue(filename);
         info = DocInfo::get(filename.c_str(), owner->getDocument(), this, name.c_str());
         if (info->pcDoc) {
             pObject = info->pcDoc->getObject(name.c_str());

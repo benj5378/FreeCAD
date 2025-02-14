@@ -29,6 +29,7 @@
 #include "ApplicationSignals.h"
 #include "ElementNamingUtils.h"
 #include "Document.h"
+#include "DocumentSignals.h"
 #include "DocumentObserver.h"
 #include "GeoFeature.h"
 #include "Link.h"
@@ -789,9 +790,9 @@ public:
                 std::bind(&Private::deletedDocument, this, sp::_1));
             App::Document* doc = obj->getDocument();
             connectDocumentCreatedObject =
-                doc->signalNewObject.connect(std::bind(&Private::createdObject, this, sp::_1));
+                doc->signals->newObject.connect(std::bind(&Private::createdObject, this, sp::_1));
             connectDocumentDeletedObject =
-                doc->signalDeletedObject.connect(std::bind(&Private::deletedObject, this, sp::_1));
+                doc->signals->deletedObject.connect(std::bind(&Private::deletedObject, this, sp::_1));
             // NOLINTEND
         }
     }
@@ -899,15 +900,15 @@ void DocumentObserver::attachDocument(Document* doc)
         _document = doc;
 
         // NOLINTBEGIN
-        this->connectDocumentCreatedObject = _document->signalNewObject.connect(
+        this->connectDocumentCreatedObject = _document->signals->newObject.connect(
             std::bind(&DocumentObserver::slotCreatedObject, this, sp::_1));
-        this->connectDocumentDeletedObject = _document->signalDeletedObject.connect(
+        this->connectDocumentDeletedObject = _document->signals->deletedObject.connect(
             std::bind(&DocumentObserver::slotDeletedObject, this, sp::_1));
-        this->connectDocumentChangedObject = _document->signalChangedObject.connect(
+        this->connectDocumentChangedObject = _document->signals->changedObject.connect(
             std::bind(&DocumentObserver::slotChangedObject, this, sp::_1, sp::_2));
-        this->connectDocumentRecomputedObject = _document->signalRecomputedObject.connect(
+        this->connectDocumentRecomputedObject = _document->signals->recomputedObject.connect(
             std::bind(&DocumentObserver::slotRecomputedObject, this, sp::_1));
-        this->connectDocumentRecomputed = _document->signalRecomputed.connect(
+        this->connectDocumentRecomputed = _document->signals->recomputed.connect(
             std::bind(&DocumentObserver::slotRecomputedDocument, this, sp::_1));
         // NOLINTEND
     }

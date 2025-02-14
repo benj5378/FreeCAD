@@ -24,6 +24,7 @@
 
 #ifndef _PreComp_
 #include <boost/core/ignore_unused.hpp>
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #endif

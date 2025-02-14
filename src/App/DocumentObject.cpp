@@ -36,6 +36,7 @@
 #include "Application.h"
 #include "ElementNamingUtils.h"
 #include "Document.h"
+#include "DocumentSignals.h"
 #include "DocumentObject.h"
 #include "DocumentObjectSignals.h"
 #include "DocumentObjectExtension.h"
@@ -224,7 +225,7 @@ void DocumentObject::touch(bool noRecompute)
     }
     StatusBits.set(ObjectStatus::Touch);
     if (_pDoc) {
-        _pDoc->signalTouchedObject(*this);
+        _pDoc->signals->touchedObject(*this);
     }
 }
 
@@ -237,7 +238,7 @@ void DocumentObject::freeze()
     StatusBits.set(ObjectStatus::Freeze);
     // use the signalTouchedObject to refresh the Gui
     if (_pDoc) {
-        _pDoc->signalTouchedObject(*this);
+        _pDoc->signals->touchedObject(*this);
     }
 }
 
@@ -865,7 +866,7 @@ void DocumentObject::onChanged(const Property* prop)
     //     _pDoc->onChangedProperty(this,prop);
 
     if (prop == &Label && _pDoc && oldLabel != Label.getStrValue()) {
-        _pDoc->signalRelabelObject(*this);
+        _pDoc->signals->relabelObject(*this);
     }
 
     // set object touched if it is an input property
@@ -1555,6 +1556,6 @@ void DocumentObject::onPropertyStatusChanged(const Property& prop, unsigned long
 {
     (void)oldStatus;
     if (!Document::isAnyRestoring() && isAttachedToDocument() && getDocument()) {
-        getDocument()->signalChangePropertyEditor(*getDocument(), prop);
+        getDocument()->signals->changePropertyEditor(*getDocument(), prop);
     }
 }

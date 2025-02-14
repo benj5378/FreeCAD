@@ -29,6 +29,7 @@
 #include <zipios++/zipinputstream.h>
 
 #include <App/Document.h>
+#include <App/DocumentSignals.h>
 #include <Base/Reader.h>
 #include <Base/Writer.h>
 
@@ -82,9 +83,9 @@ MergeDocuments::MergeDocuments(App::Document* doc)
     : appdoc(doc)
 {
     // NOLINTBEGIN
-    connectExport = doc->signalExportObjects.connect(
+    connectExport = doc->signals->exportObjects.connect(
         std::bind(&MergeDocuments::exportObject, this, sp::_1, sp::_2));
-    connectImport = doc->signalImportObjects.connect(
+    connectImport = doc->signals->importObjects.connect(
         std::bind(&MergeDocuments::importObject, this, sp::_1, sp::_2));
     // NOLINTEND
 
@@ -151,11 +152,11 @@ void MergeDocuments::Restore(Base::XMLReader& r)
 void MergeDocuments::SaveDocFile(Base::Writer& w) const
 {
     // Save view provider stuff
-    appdoc->signalExportViewObjects(this->objects, w);
+    appdoc->signals->exportViewObjects(this->objects, w);
 }
 
 void MergeDocuments::RestoreDocFile(Base::Reader& r)
 {
     // Restore view provider stuff
-    appdoc->signalImportViewObjects(this->objects, r, this->nameMap);
+    appdoc->signals->importViewObjects(this->objects, r, this->nameMap);
 }
