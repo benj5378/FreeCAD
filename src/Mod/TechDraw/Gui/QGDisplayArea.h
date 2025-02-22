@@ -29,6 +29,8 @@
 #include <QPointF>
 #include <QRectF>
 
+#include "QGCenterable.h"
+
 QT_BEGIN_NAMESPACE
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -37,7 +39,7 @@ QT_END_NAMESPACE
 namespace TechDrawGui
 {
 
-class TechDrawGuiExport QGDisplayArea : public QGraphicsItemGroup
+class TechDrawGuiExport QGDisplayArea : public QGCenterable<QGraphicsItemGroup>
 {
 public:
     explicit QGDisplayArea();
@@ -48,8 +50,6 @@ public:
     QRectF boundingRect() const override;
 
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
-    virtual void centerAt(QPointF centerPos);
-    virtual void centerAt(double cX, double cY);
 
 protected:
 

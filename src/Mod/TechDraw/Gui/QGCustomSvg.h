@@ -31,6 +31,8 @@
 #include <QPointF>
 #include <QSvgRenderer>
 
+#include "QGCenterable.h"
+
 
 QT_BEGIN_NAMESPACE
 class QPainter;
@@ -40,7 +42,7 @@ QT_END_NAMESPACE
 namespace TechDrawGui
 {
 
-class TechDrawGuiExport QGCustomSvg : public QGraphicsSvgItem
+class TechDrawGuiExport QGCustomSvg : public QGCenterable<QGraphicsSvgItem>
 {
 public:
     explicit QGCustomSvg();
@@ -52,8 +54,6 @@ public:
     void paint( QPainter *painter,
                 const QStyleOptionGraphicsItem *option,
                 QWidget *widget = nullptr ) override;
-    virtual void centerAt(QPointF centerPos);
-    virtual void centerAt(double cX, double cY);
     virtual bool load(QByteArray *svgString);
     virtual bool load(QString filename);
 

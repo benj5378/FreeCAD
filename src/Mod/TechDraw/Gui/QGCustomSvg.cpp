@@ -48,21 +48,6 @@ QGCustomSvg::~QGCustomSvg()
     delete m_svgRender;
 }
 
-void QGCustomSvg::centerAt(QPointF centerPos)
-{
-    centerAt(centerPos.x(), centerPos.y());
-}
-
-void QGCustomSvg::centerAt(double cX, double cY)
-{
-    QRectF box = boundingRect();
-    double width = box.width();
-    double height = box.height();
-    double newX = (cX - width/2.) * scale();
-    double newY = (cY - height/2.) * scale();
-    setPos(newX, newY);
-}
-
 bool QGCustomSvg::load(QByteArray *svgBytes)
 {
     bool success = m_svgRender->load(*svgBytes);

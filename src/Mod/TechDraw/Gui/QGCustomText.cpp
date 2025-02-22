@@ -43,7 +43,8 @@ using namespace TechDraw;
 using namespace TechDrawGui;
 
 QGCustomText::QGCustomText(QGraphicsItem* parent) :
-    QGraphicsTextItem(parent), isHighlighted(false)
+    QGCenterable<QGraphicsTextItem>(parent),
+    isHighlighted(false)
 {
     setCacheMode(QGraphicsItem::NoCache);
     setAcceptHoverEvents(false);
@@ -53,21 +54,6 @@ QGCustomText::QGCustomText(QGraphicsItem* parent) :
     m_colCurrent = getNormalColor();
     m_colNormal  = m_colCurrent;
     tightBounding = false;
-}
-
-void QGCustomText::centerAt(QPointF centerPos)
-{
-      centerAt(centerPos.x(), centerPos.y());
-}
-
-void QGCustomText::centerAt(double cX, double cY)
-{
-    QRectF box = boundingRect();
-    double width = box.width();
-    double height = box.height();
-    double newX = cX - width/2.;
-    double newY = cY - height/2.;
-    setPos(newX, newY);
 }
 
 void QGCustomText::justifyLeftAt(QPointF centerPos, bool vCenter)

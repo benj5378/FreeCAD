@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2016 WandererFan <wandererfan@gmail.com>                *
+ *   Copyright (c) 2015 WandererFan <wandererfan@gmail.com>                *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -20,40 +20,39 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef DRAWINGGUI_QGCUSTOMBORDER_H
-#define DRAWINGGUI_QGCUSTOMBORDER_H
+#ifndef TECHDRAWGUI_QGCENTERABLE_H
+#define TECHDRAWGUI_QGCENTERABLE_H
 
 #include <Mod/TechDraw/TechDrawGlobal.h>
-
-#include <QGraphicsItem>
-#include <QGraphicsRectItem>
-#include <QPointF>
-
-QT_BEGIN_NAMESPACE
-class QPainter;
-class QStyleOptionGraphicsItem;
-QT_END_NAMESPACE
 
 namespace TechDrawGui
 {
 
-class TechDrawGuiExport QGCustomBorder : public QGraphicsRectItem
+// This template is for adding centerAt function to QGraphicItem classes
+// by using mixing
+template<typename T>
+class TechDrawGuiExport QGCenterable : public T
 {
 public:
-    explicit QGCustomBorder();
-    ~QGCustomBorder() override = default;
+    QGCenterable() = default;
+    QGCenterable(QGraphicsItem* parent) : T(parent) {};
+    void centerAt(QPointF centerPos)
+    {
+        centerAt(centerPos.x(), centerPos.y());
+    }
 
-    enum {Type = QGraphicsItem::UserType + 136};
-    int type() const override { return Type;}
-
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
-
-protected:
-
-private:
-
+    void centerAt(double cX, double cY)
+    {
+        QRectF box = T::boundingRect();
+        double width = box.width();
+        double height = box.height();
+        double newX = cX - width/2.;
+        double newY = cY - height/2.;
+        T::setPos(newX, newY);
+    }
 };
 
-} // namespace MDIViewPageGui
+} // namespace TechDrawGui
 
-#endif // DRAWINGGUI_QGCUSTOMBORDER_H
+#endif
+

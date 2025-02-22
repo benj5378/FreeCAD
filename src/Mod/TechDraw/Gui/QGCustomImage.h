@@ -31,6 +31,7 @@
 #include <QPointF>
 #include <QSize>
 
+#include "QGCenterable.h"
 
 QT_BEGIN_NAMESPACE
 class QPainter;
@@ -40,7 +41,7 @@ QT_END_NAMESPACE
 namespace TechDrawGui
 {
 
-class TechDrawGuiExport QGCustomImage : public QGraphicsPixmapItem
+class TechDrawGuiExport QGCustomImage : public QGCenterable<QGraphicsPixmapItem>
 {
 public:
     explicit QGCustomImage();
@@ -52,8 +53,6 @@ public:
     void paint( QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget = nullptr ) override;
-    virtual void centerAt(QPointF centerPos);
-    virtual void centerAt(double cX, double cY);
     virtual bool load(QString fileSpec);
     virtual bool load(QPixmap map);
     virtual QSize imageSize();

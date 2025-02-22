@@ -29,6 +29,8 @@
 #include <QGraphicsTextItem>
 #include <QPointF>
 
+#include "QGCenterable.h"
+
 QT_BEGIN_NAMESPACE
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -40,7 +42,7 @@ QT_END_NAMESPACE
 namespace TechDrawGui
 {
 
-class TechDrawGuiExport QGCustomText : public QGraphicsTextItem
+class TechDrawGuiExport QGCustomText : public QGCenterable<QGraphicsTextItem>
 {
 public:
     explicit QGCustomText(QGraphicsItem* parent = nullptr);
@@ -60,8 +62,6 @@ public:
     virtual void setPrettyPre();
     virtual void setPrettySel();
 
-    virtual void centerAt(QPointF centerPos);
-    virtual void centerAt(double cX, double cY);
     virtual void justifyLeftAt(QPointF centerPos, bool vCenter = true);
     virtual void justifyLeftAt(double cX, double cY, bool vCenter = true);
     virtual void justifyRightAt(QPointF centerPos, bool vCenter = true);

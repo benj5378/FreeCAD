@@ -47,8 +47,6 @@ public:
     int type() const override { return Type;}
 
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
-    virtual void centerAt(QPointF centerPos);
-    virtual void centerAt(double cX, double cY);
 
 protected:
 
