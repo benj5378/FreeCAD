@@ -182,6 +182,18 @@ void ViewProviderPage::updateData(const App::Property* prop)
     Gui::ViewProviderDocumentObject::updateData(prop);
 }
 
+bool ViewProviderPage::templateOnly() const
+{
+    std::vector<App::DocumentObject*> objs = claimChildren();
+    for (auto obj : objs) {
+        if (!obj->isDerivedFrom<TechDraw::DrawTemplate>()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool ViewProviderPage::onDelete(const std::vector<std::string>&)
 {
     // warn the user if the Page is not empty
@@ -190,18 +202,7 @@ bool ViewProviderPage::onDelete(const std::vector<std::string>&)
     // check if there are items in the group
     auto objs = claimChildren();
 
-    // check if there is just a template
-    // if there are several objects, the template is never the last one
-    // the ExportName of a template always begins with "Template"
-    bool isTemplate = false;
-    for (auto objsIterator : objs) {
-        if (objsIterator->getExportName().substr(0, 8).compare(std::string("Template")) == 0)
-            isTemplate = true;
-        else
-            isTemplate = false;
-    }
-
-    if (!objs.empty() && !isTemplate) {
+    if (!objs.empty() && !templateOnly()) {
         // generate dialog
         QString bodyMessage;
         QTextStream bodyMessageStream(&bodyMessage);
@@ -216,17 +217,13 @@ bool ViewProviderPage::onDelete(const std::vector<std::string>&)
         int DialogResult = QMessageBox::warning(
             Gui::getMainWindow(), qApp->translate("Std_Delete", "Object dependencies"), bodyMessage,
             QMessageBox::Yes, QMessageBox::No);
-        if (DialogResult == QMessageBox::Yes) {
-            removeMDIView();
-            return true;
-        }
-        else
+        if (DialogResult == QMessageBox::No) {
             return false;
+        }
     }
-    else {
-        removeMDIView();
-        return true;
-    }
+
+    removeMDIView();
+    return true;
 }
 
 void ViewProviderPage::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
@@ -252,9 +249,7 @@ bool ViewProviderPage::setEdit(int ModNum)
         }
         return false;
     }
-    else {
-        return Gui::ViewProviderDocumentObject::setEdit(ModNum);
-    }
+    return Gui::ViewProviderDocumentObject::setEdit(ModNum);
 }
 
 void ViewProviderPage::unsetEdit(int ModNum)

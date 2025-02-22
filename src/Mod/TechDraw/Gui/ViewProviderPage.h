@@ -97,6 +97,7 @@ public:
     TechDraw::DrawPage* getDrawPage() const;
     TechDraw::DrawTemplate* getTemplate() const;
     QGITemplate* getQTemplate(void) const;
+    bool templateOnly() const;
 
     //slots & connections
     void onGuiRepaint(const TechDraw::DrawPage* dp);
