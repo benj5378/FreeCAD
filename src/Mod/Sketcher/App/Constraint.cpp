@@ -184,7 +184,7 @@ void Constraint::Restore(XMLReader& reader)
     First = reader.getAttribute<long>("First");
     FirstPos = reader.getAttribute<PointPos>("FirstPos");
     Second = reader.getAttribute<long>("Second");
-    SecondPos = reader.getAttribute<PointPos>("SecondPos"));
+    SecondPos = reader.getAttribute<PointPos>("SecondPos");
 
     if (this->Type == InternalAlignment) {
         AlignmentType = reader.getAttribute<InternalAlignmentType>("InternalAlignmentType");

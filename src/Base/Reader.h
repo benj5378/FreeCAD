@@ -227,19 +227,23 @@ public:
     /// check if the read element has a special attribute
     bool hasAttribute(const char* AttrName) const;
 
-    /// return the named attribute as T (does type checking); if missing return
-    /// defaultValue
-    // E.g. QString, std::string
+    /// return the named attribute as T (does type checking); if missing return defaultValue.
+    /// If defaultValue is not set, it will default to the default initilization of the
+    /// corresponding type; bool: false, int: 0, ... as if one had used defaultValue=bool{}
+    /// or defaultValue=int{}
+    // General template, mark delete as it's not implemented, and should not be used!
     template <typename T>
-    T getAttribute(const char* AttrName, const char* defaultValue=nullptr) const
-    {
-        return T(getAttribute<const char*>(AttrName, defaultValue));
-    }
+    T getAttribute(const char* AttrName, T defaultValue=T{}) const = delete;
     // E.g. enum class
     template <typename T> requires std::is_enum_v<T>
-    T getAttribute(const char* AttrName, const char* defaultValue=nullptr) const
+    T getAttribute(const char* AttrName, T defaultValue=T{}) const
     {
-        return static_cast<T>(getAttribute<unsigned long>(AttrName, defaultValue));
+        return static_cast<T>(
+            getAttribute<unsigned long>(
+                AttrName,
+                static_cast<unsigned long>(defaultValue)
+            )
+        );
     }
 
     /** @name additional file reading */
@@ -388,15 +392,15 @@ private:
 template <>
 const char* XMLReader::getAttribute<const char*>(const char* AttrName, const char* defaultValue) const;
 template <>
-double XMLReader::getAttribute<double>(const char* AttrName, const char* defaultValue) const;
+double XMLReader::getAttribute<double>(const char* AttrName, double defaultValue) const;
 template <>
-int XMLReader::getAttribute<int>(const char* AttrName, const char* defaultValue) const;
+int XMLReader::getAttribute<int>(const char* AttrName, int defaultValue) const;
 template <>
-long XMLReader::getAttribute<long>(const char* AttrName, const char* defaultValue) const;
+long XMLReader::getAttribute<long>(const char* AttrName, long defaultValue) const;
 template <>
-unsigned long XMLReader::getAttribute<unsigned long>(const char* AttrName, const char* defaultValue) const;
+unsigned long XMLReader::getAttribute<unsigned long>(const char* AttrName, unsigned long defaultValue) const;
 template <>
-bool XMLReader::getAttribute<bool>(const char* AttrName, const char* defaultValue) const;
+bool XMLReader::getAttribute<bool>(const char* AttrName, bool defaultValue) const;
 
 }  // namespace Base
 

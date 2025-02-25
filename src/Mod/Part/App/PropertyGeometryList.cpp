@@ -205,12 +205,12 @@ void PropertyGeometryList::tryRestoreGeometry(Geometry * geom, Base::XMLReader &
 {
     // Not all geometry classes implement Restore() and throw an exception instead
     try {
-        if (!reader.getAttribute<long>("migrated", "0") && reader.hasAttribute("id")) {
+        if (!reader.getAttribute<long>("migrated", 0) && reader.hasAttribute("id")) {
             auto ext = std::make_unique<GeometryMigrationExtension>();
             ext->setId(reader.getAttribute<long>("id"));
             if(reader.hasAttribute("ref")) {
                 const char *ref = reader.getAttribute<const char*>("ref");
-                int index = reader.getAttribute<long>("refIndex", "1");
+                int index = reader.getAttribute<long>("refIndex", 1);
                 unsigned long flags = (unsigned long)reader.getAttribute<unsigned long>("flags");
                 ext->setReference(ref, index, flags);
             }

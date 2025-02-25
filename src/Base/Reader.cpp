@@ -119,35 +119,54 @@ unsigned int Base::XMLReader::getAttributeCount() const
 }
 
 template <>
-long Base::XMLReader::getAttribute<long>(const char* AttrName, const char* defaultValue) const
+long Base::XMLReader::getAttribute<long>(const char* AttrName, long defaultValue) const
 {
-    return stol(getAttribute<const char*>(AttrName, defaultValue));
+    const char* rawValue = getAttribute<const char*>(AttrName);
+    if (rawValue == nullptr) {
+        return defaultValue;
+    }
+    return stol(rawValue);
 }
 
 template <>
-int Base::XMLReader::getAttribute<int>(const char* AttrName, const char* defaultValue) const
+int Base::XMLReader::getAttribute<int>(const char* AttrName, int defaultValue) const
 {
-    return stoi(getAttribute<const char*>(AttrName, defaultValue));
+    const char* rawValue = getAttribute<const char*>(AttrName);
+    if (rawValue == nullptr) {
+        return defaultValue;
+    }
+    return stoi(rawValue);
 }
 
 template <>
 unsigned long Base::XMLReader::getAttribute<unsigned long>(const char* AttrName,
-                                                      const char* defaultValue) const
+                                                           unsigned long defaultValue) const
 {
-    return stoul(getAttribute<const char*>(AttrName, defaultValue), nullptr);
+    const char* rawValue = getAttribute<const char*>(AttrName);
+    if (rawValue == nullptr) {
+        return defaultValue;
+    }
+    return stoul(rawValue, nullptr);
 }
 
 template <>
-double Base::XMLReader::getAttribute<double>(const char* AttrName, const char* defaultValue) const
+double Base::XMLReader::getAttribute<double>(const char* AttrName, double defaultValue) const
 {
-    return stod(getAttribute<const char*>(AttrName, defaultValue), nullptr);
+    const char* rawValue = getAttribute<const char*>(AttrName);
+    if (rawValue == nullptr) {
+        return defaultValue;
+    }
+    return stod(rawValue, nullptr);
 }
 
 template <>
-bool Base::XMLReader::getAttribute<bool>(const char* AttrName, const char* defaultValue) const
+bool Base::XMLReader::getAttribute<bool>(const char* AttrName, bool defaultValue) const
 {
-    char firstCharacter = getAttribute<const char*>(AttrName, defaultValue)[0];
-    return firstCharacter == '0' ? false : true;
+    const char* rawValue = getAttribute<const char*>(AttrName);
+    if (rawValue == nullptr) {
+        return defaultValue;
+    }
+    return rawValue[0] == '0' ? false : true;
 }
 
 template <>

@@ -340,6 +340,13 @@ TEST_F(ReaderTest, charStreamBase64Encoded)
 TEST_F(ReaderTest, validDefaults)
 {
     // Arrange
+    enum class TimesIGoToBed {
+        Late,
+        Later,
+        VeryLate,
+        FreeCADDevLate  // https://user-images.githubusercontent.com/12400097/235325792-606bffd6-6607-4542-a7d9-a04f12120666.png
+    };
+
     auto xmlBody = R"(
 <node1 attr='1'/>
 <node2 attr='2'/>
@@ -350,12 +357,15 @@ TEST_F(ReaderTest, validDefaults)
 
     // Act
     const char* value2 = xml.Reader()->getAttribute<const char*>("missing", "expected value");
-    int value4 = xml.Reader()->getAttribute<long>("missing", "-123");
-    unsigned value6 = xml.Reader()->getAttribute<unsigned long>("missing", "123");
-    double value8 = xml.Reader()->getAttribute<double>("missing", "1.234");
+    int value4 = xml.Reader()->getAttribute<long>("missing", -123);
+    unsigned value6 = xml.Reader()->getAttribute<unsigned long>("missing", 123);
+    double value8 = xml.Reader()->getAttribute<double>("missing", 1.234);
+    bool value12 = xml.Reader()->getAttribute<bool>("missing", 0);
+    bool value14 = xml.Reader()->getAttribute<bool>("missing", 1);
+    TimesIGoToBed value18 = xml.Reader()->getAttribute<TimesIGoToBed>("missing", TimesIGoToBed::Late);
 
     // Assert
-    EXPECT_THROW({ xml.Reader()->getAttribute<long>("missing"); }, Base::XMLBaseException);
+    EXPECT_THROW({ xml.Reader()->getAttribute<const char*>("missing"); }, Base::XMLBaseException);
     EXPECT_EQ(value2, "expected value");
     EXPECT_THROW({ xml.Reader()->getAttribute<long>("missing"); }, Base::XMLBaseException);
     EXPECT_EQ(value4, -123);
@@ -363,27 +373,9 @@ TEST_F(ReaderTest, validDefaults)
     EXPECT_EQ(value6, 123);
     EXPECT_THROW({ xml.Reader()->getAttribute<double>("missing"); }, Base::XMLBaseException);
     EXPECT_NEAR(value8, 1.234, 0.001);
-}
-
-TEST_F(ReaderTest, invalidDefaults)
-{
-    // Arrange
-    auto xmlBody = R"(
-<node1 attr='1'/>
-<node2 attr='2'/>
-)";
-
-    ReaderXML xml;
-    xml.givenDataAsXMLStream(xmlBody);
-
-    // Act / Assert
-    EXPECT_THROW(
-        { xml.Reader()->getAttribute<long>("missing", "Not an Integer"); },
-        std::invalid_argument);
-    EXPECT_THROW(
-        { xml.Reader()->getAttribute<long>("missing", "Not an Unsigned"); },
-        std::invalid_argument);
-    EXPECT_THROW(
-        { xml.Reader()->getAttribute<long>("missing", "Not a Float"); },
-        std::invalid_argument);
+    EXPECT_THROW({ xml.Reader()->getAttribute<bool>("missing"); }, Base::XMLBaseException);
+    EXPECT_EQ(value12, false);
+    EXPECT_EQ(value14, true);
+    EXPECT_THROW({ xml.Reader()->getAttribute<TimesIGoToBed>("missing"); }, Base::XMLBaseException);
+    EXPECT_EQ(value18, TimesIGoToBed::Late);
 }

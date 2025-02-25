@@ -52,8 +52,8 @@ void ExternalGeometryExtension::restoreAttributes(Base::XMLReader& reader)
     Part::GeometryPersistenceExtension::restoreAttributes(reader);
 
     Ref = reader.getAttribute<const char*>("Ref", "");
-    RefIndex = reader.getAttribute<long>("RefIndex", "-1");
-    Flags = FlagType(reader.getAttribute<unsigned long>("Flags", "0"));
+    RefIndex = reader.getAttribute<long>("RefIndex", -1);
+    Flags = FlagType(reader.getAttribute<unsigned long>("Flags", 0));
 }
 
 void ExternalGeometryExtension::saveAttributes(Base::Writer& writer) const
