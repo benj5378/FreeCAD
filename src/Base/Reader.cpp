@@ -118,23 +118,34 @@ unsigned int Base::XMLReader::getAttributeCount() const
     return static_cast<unsigned int>(AttrMap.size());
 }
 
-long Base::XMLReader::getAttributeAsInteger(const char* AttrName, const char* defaultValue) const
+template <>
+long Base::XMLReader::getAttribute<long>(const char* AttrName, const char* defaultValue) const
 {
-    return stol(getAttribute(AttrName, defaultValue));
+    return stol(getAttribute<const char*>(AttrName, defaultValue));
 }
 
-unsigned long Base::XMLReader::getAttributeAsUnsigned(const char* AttrName,
+template <>
+unsigned long Base::XMLReader::getAttribute<unsigned long>(const char* AttrName,
                                                       const char* defaultValue) const
 {
-    return stoul(getAttribute(AttrName, defaultValue), nullptr);
+    return stoul(getAttribute<const char*>(AttrName, defaultValue), nullptr);
 }
 
-double Base::XMLReader::getAttributeAsFloat(const char* AttrName, const char* defaultValue) const
+template <>
+double Base::XMLReader::getAttribute<double>(const char* AttrName, const char* defaultValue) const
 {
-    return stod(getAttribute(AttrName, defaultValue), nullptr);
+    return stod(getAttribute<const char*>(AttrName, defaultValue), nullptr);
 }
 
-const char* Base::XMLReader::getAttribute(const char* AttrName,            // NOLINT
+template <>
+bool Base::XMLReader::getAttribute<bool>(const char* AttrName, const char* defaultValue) const
+{
+    char firstCharacter = getAttribute<const char*>(AttrName, defaultValue)[0];
+    return firstCharacter == '1' ? true : false;
+}
+
+template <>
+const char* Base::XMLReader::getAttribute<const char*>(const char* AttrName,            // NOLINT
                                           const char* defaultValue) const  // NOLINT
 {
     auto pos = AttrMap.find(AttrName);

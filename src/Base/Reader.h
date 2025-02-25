@@ -82,7 +82,7 @@ void PropertyString::Restore(Base::Reader &reader)
     // read my Element
     reader.readElement("String");
     // get the value of my Attribute
-    _cValue = reader.getAttribute("value");
+    _cValue = reader.getAttribute<const char*>("value");
 }
 
  *  \endcode
@@ -108,12 +108,12 @@ endl;
 void PropertyContainer::Restore(Base::Reader &reader)
 {
     reader.readElement("Properties");
-    int Cnt = reader.getAttributeAsInteger("Count");
+    int Cnt = reader.getAttribute<long>("Count");
 
     for(int i=0 ;i<Cnt ;i++)
     {
         reader.readElement("Property");
-        string PropName = reader.getAttribute("name");
+        string PropName = reader.getAttribute<const char*>("name");
         Property* prop = getPropertyByName(PropName.c_str());
         if(prop)
             prop->Restore(reader);
@@ -227,23 +227,20 @@ public:
     /// check if the read element has a special attribute
     bool hasAttribute(const char* AttrName) const;
 
-    /// return the named attribute as an integer (does type checking); if missing return
+    /// return the named attribute as T (does type checking); if missing return
     /// defaultValue
-    long getAttributeAsInteger(const char* AttrName, const char* defaultValue = nullptr) const;
-
-    /// return the named attribute as unsigned integer (does type checking); if missing return
-    /// defaultValue
-    unsigned long getAttributeAsUnsigned(const char* AttrName,
-                                         const char* defaultValue = nullptr) const;
-
-    /// return the named attribute as a double floating point (does type checking); if missing
-    /// return defaultValue
-    double getAttributeAsFloat(const char* AttrName, const char* defaultValue = nullptr) const;
-
-    /// return the named attribute as a double floating point (does type checking); if missing
-    /// return defaultValue
-    const char* getAttribute(const char* AttrName, const char* defaultValue = nullptr) const;
-    //@}
+    // E.g. QString, std::string
+    template <typename T>
+    T getAttribute(const char* AttrName, const char* defaultValue=nullptr) const
+    {
+        return T(getAttribute<const char*>(AttrName, defaultValue));
+    }
+    // E.g. enum class
+    template <typename T> requires std::is_enum_v<T>
+    T getAttribute(const char* AttrName, const char* defaultValue=nullptr) const
+    {
+        return static_cast<T>(getAttribute<unsigned long>(AttrName, defaultValue));
+    }
 
     /** @name additional file reading */
     //@{
@@ -387,6 +384,17 @@ private:
     int fileVersion;
     std::shared_ptr<Base::XMLReader> localreader;
 };
+
+template <>
+const char* XMLReader::getAttribute<const char*>(const char* AttrName, const char* defaultValue) const;
+template <>
+double XMLReader::getAttribute<double>(const char* AttrName, const char* defaultValue) const;
+template <>
+long XMLReader::getAttribute<long>(const char* AttrName, const char* defaultValue) const;
+template <>
+unsigned long XMLReader::getAttribute<unsigned long>(const char* AttrName, const char* defaultValue) const;
+template <>
+bool XMLReader::getAttribute<bool>(const char* AttrName, const char* defaultValue) const;
 
 }  // namespace Base
 

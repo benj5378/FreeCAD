@@ -276,14 +276,14 @@ TEST_F(ReaderTest, readNextStartElement)
     // next element
     EXPECT_TRUE(xml.Reader()->readNextElement());
     EXPECT_STREQ(xml.Reader()->localName(), "node1");
-    EXPECT_STREQ(xml.Reader()->getAttribute("attr"), "1");
+    EXPECT_STREQ(xml.Reader()->getAttribute<const char*>("attr"), "1");
     xml.Reader()->readEndElement("node1");
     EXPECT_TRUE(xml.Reader()->isEndOfElement());
 
     // next element
     EXPECT_TRUE(xml.Reader()->readNextElement());
     EXPECT_STREQ(xml.Reader()->localName(), "node2");
-    EXPECT_STREQ(xml.Reader()->getAttribute("attr"), "2");
+    EXPECT_STREQ(xml.Reader()->getAttribute<const char*>("attr"), "2");
     xml.Reader()->readEndElement("node2");
     EXPECT_TRUE(xml.Reader()->isEndOfElement());
     xml.Reader()->readEndElement("document");
@@ -308,12 +308,12 @@ TEST_F(ReaderTest, readNextStartEndElement)
     // next element
     EXPECT_TRUE(xml.Reader()->readNextElement());
     EXPECT_STREQ(xml.Reader()->localName(), "node1");
-    EXPECT_STREQ(xml.Reader()->getAttribute("attr"), "1");
+    EXPECT_STREQ(xml.Reader()->getAttribute<const char*>("attr"), "1");
 
     // next element
     EXPECT_TRUE(xml.Reader()->readNextElement());
     EXPECT_STREQ(xml.Reader()->localName(), "node2");
-    EXPECT_STREQ(xml.Reader()->getAttribute("attr"), "2");
+    EXPECT_STREQ(xml.Reader()->getAttribute<const char*>("attr"), "2");
     EXPECT_FALSE(xml.Reader()->readNextElement());
     EXPECT_TRUE(xml.Reader()->isEndOfDocument());
 }
@@ -349,19 +349,19 @@ TEST_F(ReaderTest, validDefaults)
     xml.givenDataAsXMLStream(xmlBody);
 
     // Act
-    const char* value2 = xml.Reader()->getAttribute("missing", "expected value");
-    int value4 = xml.Reader()->getAttributeAsInteger("missing", "-123");
-    unsigned value6 = xml.Reader()->getAttributeAsUnsigned("missing", "123");
-    double value8 = xml.Reader()->getAttributeAsFloat("missing", "1.234");
+    const char* value2 = xml.Reader()->getAttribute<const char*>("missing", "expected value");
+    int value4 = xml.Reader()->getAttribute<long>("missing", "-123");
+    unsigned value6 = xml.Reader()->getAttribute<unsigned long>("missing", "123");
+    double value8 = xml.Reader()->getAttribute<double>("missing", "1.234");
 
     // Assert
-    EXPECT_THROW({ xml.Reader()->getAttributeAsInteger("missing"); }, Base::XMLBaseException);
+    EXPECT_THROW({ xml.Reader()->getAttribute<long>("missing"); }, Base::XMLBaseException);
     EXPECT_EQ(value2, "expected value");
-    EXPECT_THROW({ xml.Reader()->getAttributeAsInteger("missing"); }, Base::XMLBaseException);
+    EXPECT_THROW({ xml.Reader()->getAttribute<long>("missing"); }, Base::XMLBaseException);
     EXPECT_EQ(value4, -123);
-    EXPECT_THROW({ xml.Reader()->getAttributeAsUnsigned("missing"); }, Base::XMLBaseException);
+    EXPECT_THROW({ xml.Reader()->getAttribute<unsigned long>("missing"); }, Base::XMLBaseException);
     EXPECT_EQ(value6, 123);
-    EXPECT_THROW({ xml.Reader()->getAttributeAsFloat("missing"); }, Base::XMLBaseException);
+    EXPECT_THROW({ xml.Reader()->getAttribute<double>("missing"); }, Base::XMLBaseException);
     EXPECT_NEAR(value8, 1.234, 0.001);
 }
 
@@ -378,12 +378,12 @@ TEST_F(ReaderTest, invalidDefaults)
 
     // Act / Assert
     EXPECT_THROW(
-        { xml.Reader()->getAttributeAsInteger("missing", "Not an Integer"); },
+        { xml.Reader()->getAttribute<long>("missing", "Not an Integer"); },
         std::invalid_argument);
     EXPECT_THROW(
-        { xml.Reader()->getAttributeAsInteger("missing", "Not an Unsigned"); },
+        { xml.Reader()->getAttribute<long>("missing", "Not an Unsigned"); },
         std::invalid_argument);
     EXPECT_THROW(
-        { xml.Reader()->getAttributeAsInteger("missing", "Not a Float"); },
+        { xml.Reader()->getAttribute<long>("missing", "Not a Float"); },
         std::invalid_argument);
 }
