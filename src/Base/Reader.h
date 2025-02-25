@@ -390,6 +390,8 @@ const char* XMLReader::getAttribute<const char*>(const char* AttrName, const cha
 template <>
 double XMLReader::getAttribute<double>(const char* AttrName, const char* defaultValue) const;
 template <>
+int XMLReader::getAttribute<int>(const char* AttrName, const char* defaultValue) const;
+template <>
 long XMLReader::getAttribute<long>(const char* AttrName, const char* defaultValue) const;
 template <>
 unsigned long XMLReader::getAttribute<unsigned long>(const char* AttrName, const char* defaultValue) const;

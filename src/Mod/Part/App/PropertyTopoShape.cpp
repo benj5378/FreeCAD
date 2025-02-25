@@ -329,8 +329,8 @@ void PropertyPartShape::Restore(Base::XMLReader &reader)
     if (has_ver)
         _Ver = reader.getAttribute<const char*>("ElementMap");
 
-    int hasher_idx = static_cast<int>(reader.getAttribute<long>("HasherIndex", "-1"));
-    int save_hasher = static_cast<int>(reader.getAttribute<long>("SaveHasher", "0"));
+    int hasher_idx = reader.getAttribute<int>("HasherIndex", "-1");
+    int save_hasher = reader.getAttribute<int>("SaveHasher", "0");
 
     TopoShape shape;
 

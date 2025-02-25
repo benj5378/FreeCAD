@@ -125,6 +125,12 @@ long Base::XMLReader::getAttribute<long>(const char* AttrName, const char* defau
 }
 
 template <>
+int Base::XMLReader::getAttribute<int>(const char* AttrName, const char* defaultValue) const
+{
+    return stoi(getAttribute<const char*>(AttrName, defaultValue));
+}
+
+template <>
 unsigned long Base::XMLReader::getAttribute<unsigned long>(const char* AttrName,
                                                       const char* defaultValue) const
 {
@@ -141,7 +147,7 @@ template <>
 bool Base::XMLReader::getAttribute<bool>(const char* AttrName, const char* defaultValue) const
 {
     char firstCharacter = getAttribute<const char*>(AttrName, defaultValue)[0];
-    return firstCharacter == '1' ? true : false;
+    return firstCharacter == '0' ? false : true;
 }
 
 template <>
