@@ -31,20 +31,17 @@ def check_trailing_whitespace(file_paths):
 
     Returns a dict mapping file paths to a list of line numbers with trailing whitespace.
     """
-    issues = {}
+    report = []
     for path in file_paths:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
-                error_lines = []
                 for idx, line in enumerate(lines, start=1):
                     if line.rstrip("\n") != line.rstrip():
-                        error_lines.append(idx)
-                if error_lines:
-                    issues[path] = error_lines
+                        report.append(f"{path}:{idx}: trailing whitespace")
         except Exception as e:
-            issues[path] = f"Error reading file: {e}"
-    return issues
+            report.append(f"{path}: Error reading file: {e}")
+    return report.join("\n")
 
 
 def check_tabs(file_paths):
@@ -52,20 +49,17 @@ def check_tabs(file_paths):
 
     Returns a dict mapping file paths to a list of line numbers containing tabs.
     """
-    issues = {}
+    report = []
     for path in file_paths:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
-                tab_lines = []
                 for idx, line in enumerate(lines, start=1):
                     if "\t" in line:
-                        tab_lines.append(idx)
-                if tab_lines:
-                    issues[path] = tab_lines
+                        report.append(f"{path}:{idx}: contains tab")
         except Exception as e:
-            issues[path] = f"Error reading file: {e}"
-    return issues
+            report.append(f"{path}: Error reading file: {e}")
+    return "\n".join(report)
 
 
 def format_report(section_title, issues):
@@ -77,12 +71,11 @@ def format_report(section_title, issues):
             f"<details><summary>:information_source: Found {count} issue(s) in {section_title}</summary>\n"
         )
         report.append("```")
-        for file, details in issues.items():
-            report.append(f"{file}: {details}")
+        report.append(issues)
         report.append("```\n</details>\n")
     else:
         report.append(f":heavy_check_mark: No issues found in {section_title}\n")
-    return "\n".join(report)
+    return report.join("\n")
 
 
 def main():
@@ -118,47 +111,29 @@ def main():
 
     # Check trailing whitespace.
     if args.whitespace_check:
-        ws_issues = check_trailing_whitespace(file_list)
-        if ws_issues:
-            ws_output_lines = []
-            for file, details in ws_issues.items():
-                if isinstance(details, list):
-                    for line in details:
-                        ws_output_lines.append(f"{file}:{line}: trailing whitespace")
-                else:
-                    ws_output_lines.append(f"{file}: {details}")
-            ws_output = "\n".join(ws_output_lines)
-
+        ws_output = check_trailing_whitespace(file_list)
+        if ws_output:
             ws_log_file = os.path.join(args.log_dir, "whitespace.log")
             write_file(ws_log_file, ws_output)
             emit_problem_matchers(
                 ws_log_file, "grepMatcherWarning.json", "grepMatcher-warning"
             )
-        report_sections.append(format_report("Trailing Whitespace", ws_issues))
+        report_sections.append(format_report("Trailing Whitespace", ws_output))
 
     # Check tab usage.
     if args.tabs_check:
-        tab_issues = check_tabs(file_list)
-        if tab_issues:
-            tab_output_lines = []
-            for file, details in tab_issues.items():
-                if isinstance(details, list):
-                    for line in details:
-                        tab_output_lines.append(f"{file}:{line}: contains tab")
-                else:
-                    tab_output_lines.append(f"{file}: {details}")
-            tab_output = "\n".join(tab_output_lines)
-
+        tab_output = check_tabs(file_list)
+        if tab_output:
             tab_log_file = os.path.join(args.log_dir, "tabs.log")
             write_file(tab_log_file, tab_output)
             emit_problem_matchers(
                 tab_log_file, "grepMatcherWarning.json", "grepMatcher-warning"
             )
-        report_sections.append(format_report("Tab Usage", tab_issues))
+        report_sections.append(format_report("Tab Usage", tab_output))
 
     report_content = "\n".join(report_sections)
     write_file(args.report_file, report_content)
-    print("Lint report generated at:", args.report_file)
+    print("Lint report generated at: ", args.report_file)
 
 
 if __name__ == "__main__":
