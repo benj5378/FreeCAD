@@ -207,15 +207,11 @@ void QGISVGTemplate::updateView(bool update)
 void QGISVGTemplate::clearClickHandles()
 {
     prepareGeometryChange();
-    constexpr int TemplateTextFieldType{QGraphicsItem::UserType + 160};
-    auto templateChildren = childItems();
-    for (auto& child : templateChildren) {
-        if (child->type() == TemplateTextFieldType) {
-            child->hide();
-            scene()->removeItem(child);
-            delete child;
-        }
-     }
+    for (auto& textField : getTextFields()) {
+        textField->hide();
+        scene()->removeItem(textField);
+        delete child;
+    }
 }
 
 void QGISVGTemplate::createClickHandles()
@@ -317,8 +313,23 @@ void QGISVGTemplate::createClickHandles()
         item->setZValue(ZVALUE::SVGTEMPLATE + 1);
 
         addToGroup(item);
-        textFields.push_back(item);
     }
+}
+
+std::vector<TemplateTextField*> QGISVGTemplate::getTextFields()
+{
+    constexpr int TemplateTextFieldType{QGraphicsItem::UserType + 160};
+    std::vector<TemplateTextField*> result;
+    result.reserve(childItems().size());
+
+    QList<QGraphicsItem*> templateChildren = childItems();
+    for (auto& child : templateChildren) {
+        if (child->type() == TemplateTextFieldType) {
+            result.push_back(child);
+        }
+    }
+
+    return result;
 }
 
 #include <Mod/TechDraw/Gui/moc_QGISVGTemplate.cpp>
