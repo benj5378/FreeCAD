@@ -264,6 +264,8 @@ SET(TechDrawGuiView_SRCS
     QGIEdge.h
     QGIFace.cpp
     QGIFace.h
+    QGIFrame.cpp
+    QGIFrame.h
     QGISVGTemplate.cpp
     QGISVGTemplate.h
     QGIVertex.cpp

@@ -35,6 +35,7 @@
 #include <Base/Vector3D.h>
 
 #include "QGCustomText.h"
+#include "QGIFrame.h"
 #include "QGIView.h"
 
 

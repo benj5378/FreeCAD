@@ -76,7 +76,7 @@ QGIDatumLabel::QGIDatumLabel() : m_dragState(DragState::NoDrag)
     m_unitText->setTightBounding(true);
     m_unitText->setParentItem(m_textItems);
 
-    m_frame = new QGraphicsRectItem();
+    m_frame = new QGIFrame(QGIFrame::Shape::Triangle);
     QPen framePen;
     framePen.setWidthF(Rez::guiX(0.5));
     framePen.setColor(m_dimText->defaultTextColor());

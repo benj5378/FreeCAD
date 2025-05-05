@@ -28,6 +28,7 @@
 #include "Enums.h"
 #include "QGCustomText.h"
 #include "QGIViewDimension.h"
+#include "QGIFrame.h"
 
 
 namespace TechDrawGui {
@@ -119,7 +120,7 @@ private:
     QGCustomText* m_tolTextUnder;
     QGCustomText* m_unitText;
     QGraphicsItemGroup* m_textItems;
-    QGraphicsRectItem* m_frame;
+    QGIFrame* m_frame;
     QColor m_colNormal;
     bool m_ctrl;
 
