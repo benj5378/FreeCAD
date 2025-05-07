@@ -335,6 +335,20 @@ QRectF QGIDatumLabel::tightBoundingRect() const
     return totalRect.adjusted(-paddingLeft, -paddingTop, paddingRight, paddingBottom);
 }
 
+//! Returns the bounding rect of text using cap height
+QRectF QGIDatumLabel::capBoundingRect() const
+{
+    QRectF totalRect;
+    for (QGraphicsItem* item : m_textItems->childItems()) {
+        auto* customText = dynamic_cast<QGCustomText*>(item);
+        if (customText && !customText->toPlainText().isEmpty()) {
+            QRectF itemRect = customText->capBoundingRect();
+            totalRect = totalRect.isNull() ? itemRect : totalRect.united(itemRect);
+        }
+    }
+    return totalRect;
+}
+
 void QGIDatumLabel::updateFrameRect() {
     prepareGeometryChange();
     m_frame->setRect(tightBoundingRect());

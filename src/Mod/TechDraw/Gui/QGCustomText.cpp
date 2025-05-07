@@ -196,6 +196,19 @@ QRectF QGCustomText::tightBoundingRect() const
     return result;
 }
 
+QRectF QGCustomText::capBoundingRect() const
+{
+    QFontMetricsF qfm(font());
+    qreal width = qfm.horizontalAdvance(toPlainText());
+    qreal height = qfm.capHeight();
+    QRectF rect{0, 0, width, height};
+    rect.moveBottom(boundingRect().bottom());
+    qreal deltaHeight = boundingRect().height() - qfm.height();
+    qreal deltaWidth = boundingRect().width() - rect.width();
+    rect.translate(deltaWidth / 2, -qfm.descent() - deltaHeight / 2);
+    return rect;
+}
+
 //! a boundingRect for text alignment, that does not adversely affect rendering.
 QRectF QGCustomText::alignmentRect() const
 {

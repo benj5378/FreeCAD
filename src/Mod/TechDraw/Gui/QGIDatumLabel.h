@@ -46,6 +46,7 @@ public:
 
     QRectF boundingRect() const override;
     QRectF tightBoundingRect() const;
+    QRectF capBoundingRect() const;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void paint( QPainter *painter,
                         const QStyleOptionGraphicsItem *option,

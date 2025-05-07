@@ -53,6 +53,7 @@ public:
     QRectF tightBoundingRect() const;
     QRectF alignmentRect() const;
     QPointF tightBoundingAdjust() const;
+    QRectF capBoundingRect() const;
 
 
     void setHighlighted(bool state);
