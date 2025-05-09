@@ -258,7 +258,7 @@ void TaskDimension::onUndertoleranceChanged()
 void TaskDimension::onFormatSpecifierChanged()
 {
     m_parent->getDimFeat()->FormatSpec.setValue(ui->leFormatSpecifier->text().toUtf8().constData());
-    recomputeFeature();
+    //recomputeFeature();
 }
 
 void TaskDimension::onArbitraryChanged()

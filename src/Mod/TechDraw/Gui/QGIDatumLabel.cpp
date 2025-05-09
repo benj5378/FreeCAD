@@ -76,7 +76,7 @@ QGIDatumLabel::QGIDatumLabel() : m_dragState(DragState::NoDrag)
     m_unitText->setTightBounding(true);
     m_unitText->setParentItem(m_textItems);
 
-    m_frame = new QGIFrame(QGIFrame::Shape::Triangle);
+    m_frame = new QGIFrame(QGIFrame::Shape::Hexagon);
     QPen framePen;
     framePen.setWidthF(Rez::guiX(0.5));
     framePen.setColor(m_dimText->defaultTextColor());
@@ -332,6 +332,7 @@ QRectF QGIDatumLabel::tightBoundingRect() const
     int paddingTop = fontSize * 0.1;
     int paddingRight = fontSize * 0.2;
     int paddingBottom = fontSize * 0.1;
+    // Base::Console().Message("tightbounding x %f, y %f", totalRect.center().x(), totalRect.center().y());
     return totalRect.adjusted(-paddingLeft, -paddingTop, paddingRight, paddingBottom);
 }
 
@@ -351,11 +352,12 @@ QRectF QGIDatumLabel::capBoundingRect() const
 
 void QGIDatumLabel::updateFrameRect() {
     prepareGeometryChange();
-    m_frame->setRect(tightBoundingRect());
+    m_frame->setRect(capBoundingRect());
 }
 
 void QGIDatumLabel::boundingRectChanged()
 {
+    updateChildren();
     setTransformOriginPoint(tightBoundingRect().center());
 }
 
@@ -387,6 +389,7 @@ void QGIDatumLabel::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 
 void QGIDatumLabel::setPosFromCenter(const double& xCenter, const double& yCenter)
 {
+    Base::Console().Message("setposfromcenter w %f, h %f\n", xCenter, yCenter);
     //set label's Qt position(top, left) given boundingRect center point
     Base::Vector2d centerOffset = getPosToCenterVec();
     double xTopLeft = xCenter - centerOffset.x;

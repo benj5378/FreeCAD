@@ -186,7 +186,7 @@ void ViewProviderDimension::updateData(const App::Property* prop)
         if (qgiv) {
             qgiv->updateView(true);
         }
-        return;
+        //return;
     }
 
     //Skip QGIView X, Y processing - do not call ViewProviderDrawingView

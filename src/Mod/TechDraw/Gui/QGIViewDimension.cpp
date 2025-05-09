@@ -262,6 +262,7 @@ void QGIViewDimension::updateView(bool update)
     // }
 
     draw();
+    draw();
 }
 
 void QGIViewDimension::updateDim()
@@ -1107,6 +1108,8 @@ void QGIViewDimension::drawDistanceExecutive(const Base::Vector2d& startPoint,
                                              int standardStyle, int renderExtent,
                                              bool flipArrows) const
 {
+    Base::Console().Message("=====\nlabelRectangle w %f, h %f\n", labelRectangle.MinX, labelRectangle.MinY);
+
     using std::numbers::pi;
 
     QPainterPath distancePath;

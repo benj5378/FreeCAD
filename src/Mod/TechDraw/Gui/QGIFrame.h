@@ -22,9 +22,10 @@ public:
 
     Shape m_shape;
 
-    QPainterPath rectPath(QRectF rect);
-    QPainterPath trianglePath(QRectF rect);
-    QPainterPath hexagonPath(QRectF rect);
+    static QPainterPath rectPath(const QRectF rect);
+    static QPainterPath trianglePath(const QRectF rect);
+    static QPainterPath hexagonPath(const QRectF rect);
+    static QPainterPath circlePath(const QRectF rect);
 
     void setShape(Shape shape);
     void setRect(QRectF rect);
@@ -38,7 +39,7 @@ protected:
     QRectF m_rect;
     
     //! Margin between shape and innerRect
-    float margin;
+    // float margin;
 };
 
 }

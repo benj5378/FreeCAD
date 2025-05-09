@@ -172,8 +172,8 @@ void QGCustomText::paint ( QPainter * painter, const QStyleOptionGraphicsItem * 
     QStyleOptionGraphicsItem myOption(*option);
     myOption.state &= ~QStyle::State_Selected;
 
-//    painter->setPen(Qt::green);
-//    painter->drawRect(alignmentRect());          //good for debugging
+    painter->setPen(Qt::green);
+    painter->drawRect(tightBoundingRect());          //good for debugging
 
     QGraphicsTextItem::paint (painter, &myOption, widget);
 }
@@ -192,6 +192,10 @@ QRectF QGCustomText::tightBoundingRect() const
     //     the em square.  see https://github.com/FreeCAD/FreeCAD/issues/11452
     // TODO: how to know where the glyph is going to be placed?
     result.adjust(x_adj, 1.75*y_adj, -x_adj, -y_adj);
+
+    // Base::Console().Message("result x %f, y %f\n", result.center().x(), result.center().y());
+    // Base::Console().Message("tight  x %f, y %f\n", tight.center().x(), tight.center().y());
+    // Base::Console().Message("adj x %f, y %f\n", x_adj, y_adj);
 
     return result;
 }
